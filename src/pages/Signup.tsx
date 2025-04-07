@@ -7,12 +7,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -28,7 +30,7 @@ const Signup = () => {
     setFormData((prev) => ({ ...prev, agreeToTerms: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (formData.password !== formData.confirmPassword) {
@@ -43,12 +45,32 @@ const Signup = () => {
     
     setIsLoading(true);
     
-    // Simulate signup process
-    setTimeout(() => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            username: formData.username,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        console.error("Signup error:", error);
+        return;
+      }
+
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      navigate("/login");
+    } catch (error) {
+      console.error("Unexpected error during signup:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+    } finally {
       setIsLoading(false);
-      toast.success("Account created successfully!");
-      navigate("/");
-    }, 1500);
+    }
   };
 
   return (
@@ -70,6 +92,18 @@ const Signup = () => {
                 placeholder="John Doe"
                 required
                 value={formData.name}
+                onChange={handleChange}
+                disabled={isLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                name="username"
+                placeholder="johndoe"
+                required
+                value={formData.username}
                 onChange={handleChange}
                 disabled={isLoading}
               />
