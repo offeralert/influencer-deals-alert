@@ -11,35 +11,29 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
-          application_date: string | null
           avatar_url: string | null
           created_at: string | null
           full_name: string | null
           id: string
           is_influencer: boolean | null
-          pending_influencer: boolean | null
           updated_at: string | null
           username: string | null
         }
         Insert: {
-          application_date?: string | null
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
           is_influencer?: boolean | null
-          pending_influencer?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
         Update: {
-          application_date?: string | null
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           is_influencer?: boolean | null
-          pending_influencer?: boolean | null
           updated_at?: string | null
           username?: string | null
         }
