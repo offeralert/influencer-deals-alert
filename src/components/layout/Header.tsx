@@ -1,3 +1,4 @@
+
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Search, Menu, X, Bell, User, LogOut } from "lucide-react";

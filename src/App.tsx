@@ -16,6 +16,7 @@ import Explore from "./pages/Explore";
 import MyDeals from "./pages/MyDeals";
 import InfluencerApply from "./pages/InfluencerApply";
 import CsvUpload from "./pages/CsvUpload";
+import InfluencerDashboard from "./pages/InfluencerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
               <Route path="/my-deals" element={<MyDeals />} />
               <Route path="/influencer-apply" element={<InfluencerApply />} />
               <Route path="/csv-upload" element={<CsvUpload />} />
+              <Route path="/influencer-dashboard" element={<InfluencerDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
