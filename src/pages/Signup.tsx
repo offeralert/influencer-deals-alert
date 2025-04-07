@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import UserSignupForm from "@/components/auth/UserSignupForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import InfluencerApplicationForm from "@/components/auth/InfluencerApplicationForm";
+import InfluencerSignupForm from "@/components/auth/InfluencerSignupForm";
 
 const Signup = () => {
   const [activeTab, setActiveTab] = useState("user");
@@ -24,7 +24,7 @@ const Signup = () => {
         <Tabs defaultValue="user" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
             <TabsTrigger value="user">Sign up as a User</TabsTrigger>
-            <TabsTrigger value="influencer">Apply as an Influencer</TabsTrigger>
+            <TabsTrigger value="influencer">Sign up as an Influencer</TabsTrigger>
           </TabsList>
           
           <TabsContent value="user">
@@ -32,7 +32,7 @@ const Signup = () => {
           </TabsContent>
           
           <TabsContent value="influencer">
-            <InfluencerApplicationForm />
+            <InfluencerSignupForm />
           </TabsContent>
         </Tabs>
         
