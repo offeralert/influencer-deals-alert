@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -127,6 +128,7 @@ const InfluencerApplicationForm = () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
+            is_influencer: false,  // Ensure this matches the actual column name
             pending_influencer: true,
             application_date: new Date().toISOString()
           })
@@ -139,7 +141,7 @@ const InfluencerApplicationForm = () => {
         }
 
         // Insert promo codes
-        const promoCodes = promoEntries
+        const validPromoCodes = promoEntries
           .filter(entry => entry.brandName.trim() && entry.promoCode.trim())
           .map(entry => ({
             user_id: data.user.id,
@@ -150,10 +152,11 @@ const InfluencerApplicationForm = () => {
             affiliate_link: entry.affiliateLink || null
           }));
 
-        if (promoCodes.length > 0) {
+        if (validPromoCodes.length > 0) {
+          // Use the correct table name and respect the expected type format
           const { error: promoError } = await supabase
             .from('promo_codes')
-            .insert(promoCodes);
+            .insert(validPromoCodes);
 
           if (promoError) {
             console.error("Error inserting promo codes:", promoError);
