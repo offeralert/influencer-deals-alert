@@ -11,6 +11,10 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
+import Search from "./pages/Search";
+import Explore from "./pages/Explore";
+import MyDeals from "./pages/MyDeals";
+import InfluencerApply from "./pages/InfluencerApply";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +31,10 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
-              {/* Add more routes as needed */}
+              <Route path="/search" element={<Search />} />
+              <Route path="/explore" element={<Explore />} />
+              <Route path="/my-deals" element={<MyDeals />} />
+              <Route path="/influencer-apply" element={<InfluencerApply />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

@@ -67,7 +67,10 @@ export default {
 					purple: "#7E57C2",
 					pink: "#EC407A",
 					light: "#F5F3FF",
-					dark: "#1A1A2E"
+					dark: "#1A1A2E",
+					green: "#4CAF50", // Adding green for the brand color
+					lightGreen: "#8BC34A",
+					paleGreen: "#F2FCE2"
 				}
 			},
 			borderRadius: {

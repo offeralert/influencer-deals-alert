@@ -17,10 +17,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 271 76% 53%;
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 340 82% 52%;
+    --secondary: 85 50% 53%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 4.8% 95.9%;
@@ -34,7 +34,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 271 76% 53%;
+    --ring: 142 76% 36%;
 
     --radius: 0.5rem;
 
@@ -58,10 +58,10 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 271 76% 53%;
+    --primary: 142 76% 36%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 340 82% 52%;
+    --secondary: 85 50% 53%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
@@ -75,7 +75,7 @@
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 271 76% 53%;
+    --ring: 142 76% 36%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -104,11 +104,11 @@
 
 @layer utilities {
   .gradient-bg {
-    @apply bg-gradient-to-r from-brand-purple to-brand-pink;
+    @apply bg-gradient-to-r from-brand-green to-brand-lightGreen;
   }
   
   .gradient-text {
-    @apply bg-gradient-to-r from-brand-purple to-brand-pink bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-brand-green to-brand-lightGreen bg-clip-text text-transparent;
   }
 }
 
@@ -122,9 +122,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-brand-purple bg-opacity-60 rounded-full;
+  @apply bg-brand-green bg-opacity-60 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-brand-purple;
+  @apply bg-brand-green;
 }

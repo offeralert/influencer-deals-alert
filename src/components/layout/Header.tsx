@@ -32,22 +32,31 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="pt-10">
                 <nav className="flex flex-col gap-4">
-                  <Link to="/" className="text-lg font-medium hover:text-brand-purple">
+                  <Link to="/" className="text-lg font-medium hover:text-brand-green">
                     Home
                   </Link>
-                  <Link to="/explore" className="text-lg font-medium hover:text-brand-purple">
+                  <Link to="/search" className="text-lg font-medium hover:text-brand-green">
+                    Search
+                  </Link>
+                  <Link to="/explore" className="text-lg font-medium hover:text-brand-green">
                     Explore
                   </Link>
-                  <Link to="/brands" className="text-lg font-medium hover:text-brand-purple">
-                    Brands
+                  <Link to="/my-deals" className="text-lg font-medium hover:text-brand-green">
+                    My Deals
                   </Link>
-                  <Link to="/categories" className="text-lg font-medium hover:text-brand-purple">
-                    Categories
-                  </Link>
+                  {profile?.is_influencer ? (
+                    <Link to="/influencer-dashboard" className="text-lg font-medium text-brand-green">
+                      Influencer Dashboard
+                    </Link>
+                  ) : (
+                    <Link to="/influencer-apply" className="text-lg font-medium text-brand-green">
+                      Become an Influencer
+                    </Link>
+                  )}
                   <div className="mt-4 space-y-2">
                     {!user ? (
                       <>
-                        <Button className="w-full" asChild>
+                        <Button className="w-full bg-brand-green hover:bg-brand-green/90" asChild>
                           <Link to="/login">Sign In</Link>
                         </Button>
                         <Button variant="outline" className="w-full" asChild>
@@ -56,7 +65,7 @@ const Header = () => {
                       </>
                     ) : (
                       <>
-                        <Button className="w-full" asChild>
+                        <Button className="w-full bg-brand-green hover:bg-brand-green/90" asChild>
                           <Link to="/profile">My Profile</Link>
                         </Button>
                         <Button variant="outline" className="w-full" onClick={signOut}>
@@ -71,24 +80,33 @@ const Header = () => {
           )}
           
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold gradient-text">Offer Alert</span>
+            <span className="text-xl font-bold text-brand-green">Offer Alert</span>
           </Link>
         </div>
 
         {!isMobile && (
           <nav className="mx-6 flex items-center space-x-4 lg:space-x-6 hidden md:flex">
-            <Link to="/" className="text-sm font-medium hover:text-brand-purple transition-colors">
+            <Link to="/" className="text-sm font-medium hover:text-brand-green transition-colors">
               Home
             </Link>
-            <Link to="/explore" className="text-sm font-medium hover:text-brand-purple transition-colors">
+            <Link to="/search" className="text-sm font-medium hover:text-brand-green transition-colors">
+              Search
+            </Link>
+            <Link to="/explore" className="text-sm font-medium hover:text-brand-green transition-colors">
               Explore
             </Link>
-            <Link to="/brands" className="text-sm font-medium hover:text-brand-purple transition-colors">
-              Brands
+            <Link to="/my-deals" className="text-sm font-medium hover:text-brand-green transition-colors">
+              My Deals
             </Link>
-            <Link to="/categories" className="text-sm font-medium hover:text-brand-purple transition-colors">
-              Categories
-            </Link>
+            {profile?.is_influencer ? (
+              <Link to="/influencer-dashboard" className="text-sm font-medium text-brand-green transition-colors">
+                Influencer Dashboard
+              </Link>
+            ) : (
+              <Link to="/influencer-apply" className="text-sm font-medium hover:text-brand-green transition-colors">
+                Become an Influencer
+              </Link>
+            )}
           </nav>
         )}
 
@@ -133,7 +151,7 @@ const Header = () => {
                 <Button variant="ghost" size="sm" asChild>
                   <Link to="/login">Sign In</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" className="bg-brand-green hover:bg-brand-green/90" asChild>
                   <Link to="/signup">Sign Up</Link>
                 </Button>
               </>
@@ -157,8 +175,13 @@ const Header = () => {
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/saved-deals">Saved Deals</Link>
+                    <Link to="/my-deals">My Deals</Link>
                   </DropdownMenuItem>
+                  {profile?.is_influencer && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/influencer-dashboard">Influencer Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem className="text-red-500" onClick={signOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
