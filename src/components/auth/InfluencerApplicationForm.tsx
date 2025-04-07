@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -113,9 +112,6 @@ const InfluencerApplicationForm = () => {
           data: {
             full_name: formData.fullName,
             username: formData.socialHandle,
-            is_influencer: false, // Will be set to true after admin approval
-            pending_influencer: true, // Indicates this account is waiting for approval
-            promo_codes: promoEntries // Store the promo codes with the user metadata
           },
         },
       });
@@ -124,6 +120,47 @@ const InfluencerApplicationForm = () => {
         toast.error(error.message);
         console.error("Signup error:", error);
         return;
+      }
+
+      // If signup was successful, update the profile with influencer pending status
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            pending_influencer: true,
+            application_date: new Date().toISOString()
+          })
+          .eq('id', data.user.id);
+
+        if (profileError) {
+          console.error("Error updating profile:", profileError);
+          toast.error("Account created but application status couldn't be updated");
+          return;
+        }
+
+        // Insert promo codes
+        const promoCodes = promoEntries
+          .filter(entry => entry.brandName.trim() && entry.promoCode.trim())
+          .map(entry => ({
+            user_id: data.user.id,
+            brand_name: entry.brandName,
+            promo_code: entry.promoCode,
+            description: entry.description,
+            expiration_date: entry.expirationDate || null,
+            affiliate_link: entry.affiliateLink || null
+          }));
+
+        if (promoCodes.length > 0) {
+          const { error: promoError } = await supabase
+            .from('promo_codes')
+            .insert(promoCodes);
+
+          if (promoError) {
+            console.error("Error inserting promo codes:", promoError);
+            toast.error("Application submitted but promo codes couldn't be saved");
+            return;
+          }
+        }
       }
 
       toast.success("Application submitted! We'll review your info and get back to you soon.");

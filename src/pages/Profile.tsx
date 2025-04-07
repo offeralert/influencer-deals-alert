@@ -44,6 +44,12 @@ const Profile = () => {
               <CardTitle className="text-2xl">{profile?.full_name || 'User'}</CardTitle>
               <div className="text-sm text-muted-foreground">@{profile?.username || user.email?.split('@')[0]}</div>
               <div className="text-sm">{user.email}</div>
+              {profile?.pending_influencer && !profile?.is_influencer && (
+                <div className="text-amber-500 font-medium">Influencer Application Pending</div>
+              )}
+              {profile?.is_influencer && (
+                <div className="text-brand-green font-medium">Influencer Account</div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -59,7 +65,7 @@ const Profile = () => {
                     {new Date(user.created_at).toLocaleDateString()}
                   </div>
                   {profile?.is_influencer && (
-                    <div className="text-brand-purple font-medium">Influencer Account</div>
+                    <div className="text-brand-green font-medium">Influencer Account</div>
                   )}
                 </div>
               </div>
