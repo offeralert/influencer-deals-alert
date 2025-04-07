@@ -6,11 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { FileText, Upload, User } from "lucide-react";
+import { FileText, Upload, User, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import InfluencerCsvUploader from "@/components/csv/InfluencerCsvUploader";
 import PromoCodeCsvUploader from "@/components/csv/PromoCodeCsvUploader";
+import UnifiedCsvUploader from "@/components/csv/UnifiedCsvUploader";
 
 const CsvUpload = () => {
   const { user } = useAuth();
@@ -39,8 +40,12 @@ const CsvUpload = () => {
     <div className="container max-w-6xl py-8">
       <h1 className="text-3xl font-bold mb-8">CSV Upload Tool</h1>
       
-      <Tabs defaultValue="influencers" className="w-full">
+      <Tabs defaultValue="unified" className="w-full">
         <TabsList className="mb-6">
+          <TabsTrigger value="unified" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span>Unified Upload</span>
+          </TabsTrigger>
           <TabsTrigger value="influencers" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             <span>Influencers</span>
@@ -50,6 +55,20 @@ const CsvUpload = () => {
             <span>Promo Codes</span>
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="unified">
+          <Card>
+            <CardHeader>
+              <CardTitle>Unified Upload (Influencers + Promo Codes)</CardTitle>
+              <CardDescription>
+                Upload a single CSV file containing both influencer data and their promo codes, with one row per influencer-promo code combination.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UnifiedCsvUploader />
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="influencers">
           <Card>
