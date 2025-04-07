@@ -1,4 +1,3 @@
-
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Search, Menu, X, Bell, User, LogOut } from "lucide-react";
@@ -44,13 +43,9 @@ const Header = () => {
                   <Link to="/my-deals" className="text-lg font-medium hover:text-brand-green">
                     My Deals
                   </Link>
-                  {profile?.is_influencer ? (
+                  {profile?.is_influencer && (
                     <Link to="/influencer-dashboard" className="text-lg font-medium text-brand-green">
                       Influencer Dashboard
-                    </Link>
-                  ) : (
-                    <Link to="/influencer-apply" className="text-lg font-medium text-brand-green">
-                      Become an Influencer
                     </Link>
                   )}
                   <div className="mt-4 space-y-2">
@@ -98,13 +93,9 @@ const Header = () => {
             <Link to="/my-deals" className="text-sm font-medium hover:text-brand-green transition-colors">
               My Deals
             </Link>
-            {profile?.is_influencer ? (
+            {profile?.is_influencer && (
               <Link to="/influencer-dashboard" className="text-sm font-medium text-brand-green transition-colors">
                 Influencer Dashboard
-              </Link>
-            ) : (
-              <Link to="/influencer-apply" className="text-sm font-medium hover:text-brand-green transition-colors">
-                Become an Influencer
               </Link>
             )}
           </nav>
