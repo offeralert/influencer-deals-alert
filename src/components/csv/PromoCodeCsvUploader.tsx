@@ -1,17 +1,17 @@
 
-// This is a read-only file, but we need to update the logic to include categories when parsing and uploading CSV data
-
-import { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { Upload, Check, AlertCircle, Download, FileDown } from "lucide-react";
+import { Database, FileText, Upload, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import Papa from "papaparse";
-import { downloadSampleCsv } from "@/utils/csvUtils";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { downloadSampleCsv, parseAndValidateCsv } from "@/utils/csvUtils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Progress } from "@/components/ui/progress";
 
 interface PromoCode {
   brand_name: string;
@@ -19,146 +19,177 @@ interface PromoCode {
   description: string;
   expiration_date?: string;
   affiliate_link?: string;
-  category: string; // Add category as a required field
-}
-
-interface UploadResult {
-  success: boolean;
-  message: string;
+  category: string;
+  email: string; // Email to match with influencer
+  user_id?: string; // Will be populated based on email match
 }
 
 const PromoCodeCsvUploader = () => {
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [csvData, setCsvData] = useState<PromoCode[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [csvExample, setCsvExample] = useState<string>(
+    "brand_name,promo_code,description,expiration_date,affiliate_link,category,email\nNike,SAVE20,20% off running shoes,2023-12-31,https://nike.example.com/ref123,Sports,influencer@example.com\nSephora,BEAUTY10,10% off beauty products,2023-11-30,https://sephora.example.com/ref456,Beauty,another@example.com"
+  );
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (progress === 100) {
-      setTimeout(() => {
-        setProgress(0);
-        setFile(null);
-        setUploadResult(null);
-      }, 3000);
-    }
-  }, [progress]);
-
-  const uploadPromoCodes = async (file: File) => {
-    if (!user) {
-      setErrorMessage("You must be logged in to upload promo codes.");
-      return;
-    }
-    
-    setErrorMessage(null);
-    setUploadResult(null);
-    setProgress(0);
-    setUploading(true);
-    
-    // Make sure to add category to the parsed data and validation
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        try {
-          setUploading(true);
-          
-          if (!results.data || results.data.length === 0) {
-            setErrorMessage("CSV file contains no data");
-            setUploading(false);
-            return;
-          }
-          
-          const formattedData = results.data.map((item: any) => {
-            // Add default category if not present
-            if (!item.category) {
-              item.category = "Fashion";
-            }
-            
-            return {
-              user_id: user?.id,
-              brand_name: item.brand_name || "",
-              promo_code: item.promo_code || "",
-              description: item.description || "",
-              expiration_date: item.expiration_date || null,
-              affiliate_link: item.affiliate_link || null,
-              category: item.category // Include category in the formatted data
-            };
-          });
-          
-          // Validate that all required fields are present
-          const hasInvalidData = formattedData.some((item: PromoCode) => 
-            !item.brand_name || !item.promo_code || !item.description || !item.category
-          );
-          
-          if (hasInvalidData) {
-            setErrorMessage("CSV file contains rows missing required fields (brand_name, promo_code, description, or category)");
-            setUploading(false);
-            return;
-          }
-          
-          // Continue with upload process
-          const response = await fetch("/api/upload-promo-codes", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ promoCodes: formattedData }),
-          });
-          
-          const data = await response.json();
-          
-          if (data.success) {
-            setUploadResult({ success: true, message: "Promo codes uploaded successfully!" });
-            toast.success("Promo codes uploaded successfully!");
-          } else {
-            setUploadResult({ success: false, message: data.error || "Upload failed." });
-            setErrorMessage(data.error || "Upload failed.");
-            toast.error(data.error || "Upload failed.");
-          }
-          
-          setUploading(false);
-          setProgress(100);
-        } catch (error) {
-          console.error("Error parsing CSV:", error);
-          setErrorMessage("Error parsing CSV file");
-          setUploading(false);
-        }
-      },
-      error: (error) => {
-        console.error("CSV parsing error:", error);
-        setErrorMessage(`CSV parsing error: ${error.message}`);
-        setUploading(false);
-      }
-    });
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setErrorMessage(null);
-    setUploadResult(null);
-    
-    if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
       setFile(selectedFile);
+      setError(null);
+      setIsLoading(true);
+      
+      try {
+        // Parse and validate the CSV file
+        const requiredHeaders = ['brand_name', 'promo_code', 'description', 'category', 'email'];
+        const { data, errors } = await parseAndValidateCsv(selectedFile, requiredHeaders, (row) => {
+          // Validate required fields in each row
+          if (!row.brand_name || !row.promo_code || !row.description || !row.category || !row.email) {
+            return { 
+              valid: false, 
+              error: 'Missing required fields (brand_name, promo_code, description, category, or email)' 
+            };
+          }
+          return { valid: true };
+        });
+        
+        if (errors.length > 0) {
+          setError(errors.join('\n'));
+          setCsvData([]);
+        } else {
+          // Convert to PromoCode objects
+          const promoCodesData = data.map(row => ({
+            brand_name: row.brand_name,
+            promo_code: row.promo_code,
+            description: row.description,
+            expiration_date: row.expiration_date || undefined,
+            affiliate_link: row.affiliate_link || undefined,
+            category: row.category,
+            email: row.email
+          }));
+          
+          setCsvData(promoCodesData);
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || "Failed to parse CSV file");
+        setCsvData([]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  const handleUpload = () => {
-    if (!file) {
-      setErrorMessage("Please select a CSV file to upload.");
+  const handleUpload = async () => {
+    if (csvData.length === 0) {
+      setError("No data to upload");
       return;
     }
     
-    uploadPromoCodes(file);
+    setIsUploading(true);
+    setProgress(10);
+    
+    try {
+      // First, lookup all the influencer emails to get their user_ids
+      const influencerEmails = [...new Set(csvData.map(item => item.email))];
+      const emailLookupResponse = await supabase
+        .from('profiles')
+        .select('id, username, is_influencer')
+        .in('username', influencerEmails)
+        .eq('is_influencer', true);
+      
+      if (emailLookupResponse.error) {
+        throw new Error(emailLookupResponse.error.message);
+      }
+      
+      setProgress(30);
+      
+      // Create a mapping of email to user_id
+      const emailToUserIdMap: Record<string, string> = {};
+      emailLookupResponse.data.forEach(profile => {
+        if (profile.username) {
+          emailToUserIdMap[profile.username] = profile.id;
+        }
+      });
+      
+      // Filter out promo codes with emails that don't match influencers
+      const validPromoCodes: PromoCode[] = [];
+      const invalidEmails: string[] = [];
+      
+      csvData.forEach(promoCode => {
+        if (emailToUserIdMap[promoCode.email]) {
+          validPromoCodes.push({
+            ...promoCode,
+            user_id: emailToUserIdMap[promoCode.email]
+          });
+        } else {
+          invalidEmails.push(promoCode.email);
+        }
+      });
+      
+      if (validPromoCodes.length === 0) {
+        throw new Error("No matching influencer emails found. Please check the email addresses in your CSV.");
+      }
+      
+      if (invalidEmails.length > 0) {
+        toast.warning(`${invalidEmails.length} promo codes skipped due to invalid influencer emails.`);
+      }
+      
+      setProgress(50);
+      
+      // Prepare data for upload (remove email field as it's not needed in the database)
+      const formattedData = validPromoCodes.map(({ email, ...rest }) => rest);
+      
+      // Upload the valid promo codes
+      const response = await fetch("/api/upload-promo-codes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ promoCodes: formattedData }),
+      });
+      
+      setProgress(80);
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success(`Successfully uploaded ${validPromoCodes.length} promo code(s)`);
+        
+        // Reset the form
+        setFile(null);
+        setCsvData([]);
+        
+        // Reset the file input
+        const fileInput = document.getElementById('promo-code-csv-upload') as HTMLInputElement;
+        if (fileInput) {
+          fileInput.value = '';
+        }
+      } else {
+        throw new Error(data.error || "Upload failed");
+      }
+      
+      setProgress(100);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "Failed to upload promo codes");
+      toast.error("Failed to upload promo codes");
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setProgress(0), 3000);
+    }
   };
 
   const handleDownloadSample = () => {
-    const headers = ["brand_name", "promo_code", "description", "expiration_date", "affiliate_link", "category"];
+    const headers = ["brand_name", "promo_code", "description", "expiration_date", "affiliate_link", "category", "email"];
     const sampleRows = [
-      ["Nike", "SAVE20", "20% off running shoes", "2023-12-31", "https://nike.example.com/ref123", "Sports"],
-      ["Sephora", "BEAUTY10", "10% off beauty products", "2023-11-30", "https://sephora.example.com/ref456", "Beauty"],
-      ["Amazon", "BOOKS5", "$5 off books over $20", "", "https://amazon.example.com/deals", "Shopping"]
+      ["Nike", "SAVE20", "20% off running shoes", "2023-12-31", "https://nike.example.com/ref123", "Sports", "influencer@example.com"],
+      ["Sephora", "BEAUTY10", "10% off beauty products", "2023-11-30", "https://sephora.example.com/ref456", "Beauty", "another@example.com"],
+      ["Amazon", "BOOKS5", "$5 off books over $20", "", "https://amazon.example.com/deals", "Shopping", "third@example.com"]
     ];
     
     downloadSampleCsv("sample-promo-codes.csv", headers, sampleRows);
@@ -166,15 +197,12 @@ const PromoCodeCsvUploader = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Upload Promo Codes via CSV</CardTitle>
-        <CardDescription>
-          Upload a CSV file containing promo codes to quickly add multiple deals.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <Label htmlFor="promo-code-csv-upload">Upload CSV File</Label>
+          </div>
           <Button 
             variant="outline" 
             onClick={handleDownloadSample}
@@ -185,36 +213,87 @@ const PromoCodeCsvUploader = () => {
           </Button>
         </div>
         
-        <Input type="file" accept=".csv" onChange={handleFileChange} disabled={uploading} />
-        {errorMessage && (
-          <div className="flex items-center text-sm text-red-500">
-            <AlertCircle className="mr-2 h-4 w-4" />
-            {errorMessage}
-          </div>
+        <Input
+          id="promo-code-csv-upload"
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          disabled={isUploading}
+        />
+        
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
-        {uploadResult && (
-          <div className={`flex items-center text-sm ${uploadResult.success ? "text-green-500" : "text-red-500"}`}>
-            {uploadResult.success ? <Check className="mr-2 h-4 w-4" /> : <AlertCircle className="mr-2 h-4 w-4" />}
-            {uploadResult.message}
-          </div>
-        )}
+        
         {progress > 0 && (
           <Progress value={progress} className="w-full" />
         )}
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleUpload} disabled={uploading || !file}>
-          {uploading ? (
-            <>Uploading...</>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Upload CSV
-            </>
+        
+        <div className="flex justify-end">
+          <Button
+            onClick={handleUpload}
+            disabled={csvData.length === 0 || isUploading}
+            className="flex items-center gap-2"
+          >
+            {isUploading ? (
+              <>Processing...</>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                <span>Upload {csvData.length} Promo Codes</span>
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+      
+      {csvData.length > 0 && (
+        <div className="border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Brand</TableHead>
+                <TableHead>Promo Code</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Influencer Email</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {csvData.slice(0, 5).map((promoCode, index) => (
+                <TableRow key={index}>
+                  <TableCell>{promoCode.brand_name}</TableCell>
+                  <TableCell>{promoCode.promo_code}</TableCell>
+                  <TableCell className="max-w-[200px] truncate">{promoCode.description}</TableCell>
+                  <TableCell>{promoCode.category}</TableCell>
+                  <TableCell>{promoCode.email}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {csvData.length > 5 && (
+            <div className="p-2 text-center text-sm text-muted-foreground">
+              Showing 5 of {csvData.length} records
+            </div>
           )}
-        </Button>
-      </CardFooter>
-    </Card>
+        </div>
+      )}
+      
+      <div className="mt-8 space-y-4">
+        <h3 className="text-lg font-medium">CSV Format Example</h3>
+        <Textarea 
+          value={csvExample}
+          readOnly
+          rows={4}
+          className="font-mono text-xs bg-muted"
+        />
+        <p className="text-sm text-muted-foreground">
+          Your CSV file should include the columns shown above. The <code>email</code> field must match an existing influencer account.
+        </p>
+      </div>
+    </div>
   );
 };
 
