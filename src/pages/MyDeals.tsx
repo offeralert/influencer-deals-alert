@@ -51,6 +51,7 @@ const MyDeals = () => {
     const fetchFollowedInfluencers = async () => {
       setLoadingInfluencers(true);
       try {
+        console.log("Fetching follows for user:", user.id);
         // Get user_id of influencers the current user follows using raw table name
         const { data: followsData, error: followsError } = await supabase
           .from('follows')
@@ -62,6 +63,8 @@ const MyDeals = () => {
           return;
         }
         
+        console.log("Follows data:", followsData);
+        
         if (!followsData || followsData.length === 0) {
           setLoadingInfluencers(false);
           return;
@@ -69,6 +72,8 @@ const MyDeals = () => {
         
         // Get profile information for those influencers
         const influencerIds = followsData.map(follow => follow.influencer_id);
+        console.log("Influencer IDs to fetch:", influencerIds);
+        
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
@@ -80,11 +85,15 @@ const MyDeals = () => {
           return;
         }
         
+        console.log("Profiles data:", profilesData);
         setFollowedInfluencers(profilesData || []);
         
         // Now fetch promo codes from these influencers
         if (profilesData && profilesData.length > 0) {
           fetchPromoCodes(profilesData.map(profile => profile.id));
+        } else {
+          setPromoCodes([]);
+          setLoadingDeals(false);
         }
       } catch (error) {
         console.error("Error in fetchFollowedInfluencers:", error);
@@ -102,6 +111,11 @@ const MyDeals = () => {
     
     setLoadingDeals(true);
     try {
+      console.log("Fetching promo codes for influencers:", influencerIds);
+      
+      // Get current date for expiration filtering
+      const today = new Date().toISOString().split('T')[0];
+      
       const { data, error } = await supabase
         .from('promo_codes')
         .select(`
@@ -121,12 +135,15 @@ const MyDeals = () => {
           )
         `)
         .in('user_id', influencerIds)
+        .or(`expiration_date.gt.${today},expiration_date.is.null`)
         .order('created_at', { ascending: false });
       
       if (error) {
         console.error("Error fetching promo codes:", error);
         return;
       }
+      
+      console.log("Promo codes raw data:", data);
       
       // Transform the data to match the PromoCode interface
       const formattedCodes = data.map(code => ({
@@ -135,12 +152,13 @@ const MyDeals = () => {
         promo_code: code.promo_code,
         description: code.description,
         expiration_date: code.expiration_date,
-        affiliate_link: code.affiliate_link,
+        affiliate_link: code.affiliate_link || '#', // Provide default value
         created_at: code.created_at,
-        influencer_name: code.profiles.full_name,
-        influencer_image: code.profiles.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
+        influencer_name: code.profiles?.full_name || 'Unknown Influencer',
+        influencer_image: code.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
       }));
       
+      console.log("Transformed promo codes:", formattedCodes);
       setPromoCodes(formattedCodes);
     } catch (error) {
       console.error("Error in fetchPromoCodes:", error);
@@ -161,6 +179,7 @@ const MyDeals = () => {
         table: 'follows',
         filter: `user_id=eq.${user.id}`
       }, (payload) => {
+        console.log("Follows table changed:", payload);
         // Refresh the followed influencers when there's a change
         const fetchInfluencers = async () => {
           // Using raw table name since it's not in types yet
@@ -214,7 +233,7 @@ const MyDeals = () => {
     discount: code.promo_code,
     promoCode: code.promo_code,
     expiryDate: code.expiration_date || undefined,
-    affiliateLink: code.affiliate_link || undefined,
+    affiliateLink: code.affiliate_link || '#', // Ensure affiliate_link is not null
     influencerName: code.influencer_name,
     influencerImage: code.influencer_image
   }));
