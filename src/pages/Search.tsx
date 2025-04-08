@@ -3,10 +3,19 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search as SearchIcon } from "lucide-react";
+import { Search as SearchIcon, Filter, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
+import CategoryFilter from "@/components/CategoryFilter";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetFooter
+} from "@/components/ui/sheet";
 
 interface Influencer {
   id: string;
@@ -25,9 +34,10 @@ interface Deal {
   discount: string;
   promoCode: string;
   expiryDate?: string;
-  affiliateLink: string; // Make sure this is required here
+  affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  category: string;
 }
 
 const Search = () => {
@@ -37,6 +47,8 @@ const Search = () => {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     if (searchQuery.trim().length > 2) {
@@ -46,7 +58,7 @@ const Search = () => {
       setDeals([]);
       setBrands([]);
     }
-  }, [searchQuery, activeTab]);
+  }, [searchQuery, activeTab, selectedCategories]);
 
   const performSearch = async () => {
     setIsSearching(true);
@@ -93,7 +105,7 @@ const Search = () => {
   };
   
   const searchDeals = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('promo_codes')
       .select(`
         id,
@@ -102,14 +114,21 @@ const Search = () => {
         description,
         expiration_date,
         affiliate_link,
+        category,
         profiles:user_id (
           full_name,
           username,
           avatar_url
         )
       `)
-      .or(`brand_name.ilike.%${searchQuery}%,promo_code.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`)
-      .order('brand_name');
+      .or(`brand_name.ilike.%${searchQuery}%,promo_code.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+
+    // Apply category filter if categories are selected
+    if (selectedCategories.length > 0) {
+      query = query.in('category', selectedCategories);
+    }
+    
+    const { data, error } = await query.order('brand_name');
     
     if (error) {
       console.error("Error searching deals:", error);
@@ -127,7 +146,8 @@ const Search = () => {
       expiryDate: deal.expiration_date,
       affiliateLink: deal.affiliate_link || "#", // Provide default value
       influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
+      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      category: deal.category || 'Fashion', // Include category
     }));
     
     setDeals(formattedDeals);
@@ -137,27 +157,77 @@ const Search = () => {
     setBrands(uniqueBrands);
   };
 
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setFiltersOpen(false);
+  };
+
+  const getCategoryCount = (category: string) => {
+    return deals.filter(deal => deal.category === category).length;
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Search</h1>
       
-      <div className="relative mb-6">
-        <Input
-          type="text"
-          placeholder="Search influencers, brands, categories..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-brand-green focus:ring-brand-green"
-        />
-        <SearchIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="absolute right-2 top-1.5"
-          onClick={() => setSearchQuery("")}
-        >
-          Clear
-        </Button>
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-grow">
+          <Input
+            type="text"
+            placeholder="Search influencers, brands, categories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:border-brand-green focus:ring-brand-green"
+          />
+          <SearchIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          {searchQuery && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="absolute right-2 top-1.5"
+              onClick={() => setSearchQuery("")}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetTrigger asChild>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="md:w-auto md:px-3 flex items-center gap-2"
+            >
+              <Filter className="h-4 w-4" />
+              <span className="hidden md:inline">Filters</span>
+              {selectedCategories.length > 0 && (
+                <span className="bg-brand-green text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+                  {selectedCategories.length}
+                </span>
+              )}
+            </Button>
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            <div className="py-4">
+              <CategoryFilter 
+                selectedCategories={selectedCategories} 
+                onChange={setSelectedCategories} 
+              />
+            </div>
+            <SheetFooter>
+              <Button variant="outline" onClick={clearFilters}>
+                Clear Filters
+              </Button>
+              <Button onClick={() => setFiltersOpen(false)}>
+                Apply Filters
+              </Button>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
@@ -179,6 +249,9 @@ const Search = () => {
             <div className="text-center py-16 text-gray-500">
               <SearchIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No results found for "{searchQuery}"</p>
+              {selectedCategories.length > 0 && (
+                <p className="mt-2 text-sm">Try adjusting your category filters</p>
+              )}
             </div>
           ) : (
             <div className="space-y-8">
@@ -257,6 +330,9 @@ const Search = () => {
             <div className="text-center py-16 text-gray-500">
               <SearchIcon className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No brands or deals found for "{searchQuery}"</p>
+              {selectedCategories.length > 0 && (
+                <p className="mt-2 text-sm">Try adjusting your category filters</p>
+              )}
             </div>
           ) : (
             <div>
@@ -266,6 +342,20 @@ const Search = () => {
                   {brands.map((brand, index) => (
                     <div key={index} className="bg-brand-light dark:bg-brand-dark px-3 py-1 rounded-full">
                       {brand}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="mb-8">
+                <h2 className="text-xl font-semibold mb-4">Categories</h2>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(new Set(deals.map(deal => deal.category))).map((category) => (
+                    <div key={category} className="bg-brand-light dark:bg-brand-dark px-3 py-1 rounded-full flex items-center gap-2">
+                      <span>{category}</span>
+                      <span className="bg-white dark:bg-gray-800 text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {getCategoryCount(category)}
+                      </span>
                     </div>
                   ))}
                 </div>

@@ -10,12 +10,22 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Compass } from "lucide-react";
+import { Compass, Filter, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
+import { Button } from "@/components/ui/button";
+import CategoryFilter from "@/components/CategoryFilter";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetFooter
+} from "@/components/ui/sheet";
 
-type SortOption = "newest" | "alphabetical" | "discount";
+type SortOption = "newest" | "alphabetical" | "discount" | "category";
 type ExploreTab = "deals" | "influencers";
 
 interface Influencer {
@@ -35,9 +45,10 @@ interface Deal {
   discount: string;
   promoCode: string;
   expiryDate?: string;
-  affiliateLink: string; // Make sure this is required here
+  affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  category: string;
 }
 
 const Explore = () => {
@@ -46,6 +57,8 @@ const Explore = () => {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -61,7 +74,7 @@ const Explore = () => {
     };
     
     fetchData();
-  }, [activeTab, sortOption]);
+  }, [activeTab, sortOption, selectedCategories]);
   
   const fetchInfluencers = async () => {
     try {
@@ -95,7 +108,7 @@ const Explore = () => {
   
   const fetchDeals = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('promo_codes')
         .select(`
           id,
@@ -104,18 +117,32 @@ const Explore = () => {
           description,
           expiration_date,
           affiliate_link,
+          category,
           created_at,
           profiles:user_id (
             full_name,
             username,
             avatar_url
           )
-        `)
-        .order(
-          sortOption === 'alphabetical' ? 'brand_name' : 
-          sortOption === 'discount' ? 'promo_code' : 'created_at',
-          { ascending: sortOption === 'alphabetical' }
-        );
+        `);
+      
+      // Apply category filter if categories are selected
+      if (selectedCategories.length > 0) {
+        query = query.in('category', selectedCategories);
+      }
+      
+      // Apply sorting
+      if (sortOption === 'alphabetical') {
+        query = query.order('brand_name', { ascending: true });
+      } else if (sortOption === 'discount') {
+        query = query.order('promo_code', { ascending: false });
+      } else if (sortOption === 'category') {
+        query = query.order('category', { ascending: true });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+      
+      const { data, error } = await query;
       
       if (error) {
         console.error("Error fetching deals:", error);
@@ -133,13 +160,19 @@ const Explore = () => {
         expiryDate: deal.expiration_date,
         affiliateLink: deal.affiliate_link || "#", // Provide default value
         influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
+        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: deal.category || 'Fashion'
       }));
       
       setDeals(formattedDeals);
     } catch (error) {
       console.error("Error in fetchDeals:", error);
     }
+  };
+
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setFiltersOpen(false);
   };
 
   return (
@@ -159,25 +192,69 @@ const Explore = () => {
             </TabsList>
           </Tabs>
           
-          <Select 
-            value={sortOption} 
-            onValueChange={(value) => setSortOption(value as SortOption)}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="newest">Newly Added</SelectItem>
-                <SelectItem value="alphabetical">
-                  {activeTab === "influencers" ? "Name (A-Z)" : "Brand (A-Z)"}
-                </SelectItem>
-                {activeTab === "deals" && (
-                  <SelectItem value="discount">Discount (High-Low)</SelectItem>
-                )}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2">
+            <Select 
+              value={sortOption} 
+              onValueChange={(value) => setSortOption(value as SortOption)}
+            >
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="newest">Newly Added</SelectItem>
+                  <SelectItem value="alphabetical">
+                    {activeTab === "influencers" ? "Name (A-Z)" : "Brand (A-Z)"}
+                  </SelectItem>
+                  {activeTab === "deals" && (
+                    <>
+                      <SelectItem value="discount">Discount (High-Low)</SelectItem>
+                      <SelectItem value="category">Category</SelectItem>
+                    </>
+                  )}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            
+            {activeTab === "deals" && (
+              <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="md:w-auto md:px-3 flex items-center gap-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden md:inline">Filters</span>
+                    {selectedCategories.length > 0 && (
+                      <span className="bg-brand-green text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+                        {selectedCategories.length}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-4">
+                    <CategoryFilter 
+                      selectedCategories={selectedCategories} 
+                      onChange={setSelectedCategories} 
+                    />
+                  </div>
+                  <SheetFooter>
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear Filters
+                    </Button>
+                    <Button onClick={() => setFiltersOpen(false)}>
+                      Apply Filters
+                    </Button>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
+            )}
+          </div>
         </div>
       </div>
 
@@ -214,17 +291,38 @@ const Explore = () => {
               )
             ) : (
               deals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {deals.map((deal) => (
-                    <DealCard key={deal.id} {...deal} />
-                  ))}
+                <div>
+                  {sortOption === "category" && (
+                    <div className="mb-8">
+                      {Array.from(new Set(deals.map(deal => deal.category))).map(category => (
+                        <div key={category} className="mb-6">
+                          <h2 className="text-xl font-semibold mb-4">{category}</h2>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {deals
+                              .filter(deal => deal.category === category)
+                              .map(deal => (
+                                <DealCard key={deal.id} {...deal} />
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {deals.map((deal) => (
+                        <DealCard key={deal.id} {...deal} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-16 bg-gray-50 rounded-lg">
                   <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                   <h3 className="text-lg font-medium mb-2">No deals found</h3>
                   <p className="text-gray-500">
-                    Check back later for exciting promotions and discounts!
+                    {selectedCategories.length > 0 
+                      ? "Try adjusting your category filters"
+                      : "Check back later for exciting promotions and discounts!"}
                   </p>
                 </div>
               )

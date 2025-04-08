@@ -6,6 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface PromoCode {
   id: string;
@@ -14,6 +21,7 @@ interface PromoCode {
   description: string;
   expiration_date: string | null;
   affiliate_link: string | null;
+  category: string;
 }
 
 interface PromoCodeEditorProps {
@@ -21,6 +29,16 @@ interface PromoCodeEditorProps {
   onSave: () => void;
   onCancel: () => void;
 }
+
+const CATEGORIES = [
+  "Fashion",
+  "Fitness",
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel"
+];
 
 const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -30,12 +48,17 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     expirationDate: promoCode.expiration_date || "",
     affiliateLink: promoCode.affiliate_link || "",
     description: promoCode.description,
+    category: promoCode.category || "Fashion",
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -58,6 +81,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
           description: formData.description,
           expiration_date: formData.expirationDate || null,
           affiliate_link: formData.affiliateLink || null,
+          category: formData.category,
         })
         .eq("id", promoCode.id);
 
@@ -105,6 +129,26 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
         </div>
         
         <div className="space-y-2">
+          <Label htmlFor="category">Category*</Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value) => handleSelectChange("category", value)}
+            disabled={isLoading}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
           <Label htmlFor="expirationDate">Expiration Date</Label>
           <Input
             id="expirationDate"
@@ -116,7 +160,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
           />
         </div>
         
-        <div className="space-y-2">
+        <div className="space-y-2 md:col-span-2">
           <Label htmlFor="affiliateLink">Affiliate Link</Label>
           <Input
             id="affiliateLink"

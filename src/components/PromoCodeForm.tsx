@@ -8,10 +8,27 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface PromoCodeFormProps {
   onPromoCodeAdded: () => void;
 }
+
+const CATEGORIES = [
+  "Fashion",
+  "Fitness",
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel"
+];
 
 const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   const { user } = useAuth();
@@ -22,12 +39,17 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     expirationDate: "",
     affiliateLink: "",
     description: "",
+    category: "Fashion", // Default category
   });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -53,6 +75,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
         description: formData.description,
         expiration_date: formData.expirationDate || null,
         affiliate_link: formData.affiliateLink || null,
+        category: formData.category,
       });
 
       if (error) {
@@ -70,6 +93,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
         expirationDate: "",
         affiliateLink: "",
         description: "",
+        category: "Fashion",
       });
       
       // Notify parent component
@@ -114,6 +138,26 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="category">Category*</Label>
+              <Select
+                value={formData.category}
+                onValueChange={(value) => handleSelectChange("category", value)}
+                disabled={isLoading}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="expirationDate">Expiration Date</Label>
               <Input
                 id="expirationDate"
@@ -125,7 +169,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="affiliateLink">Affiliate Link</Label>
               <Input
                 id="affiliateLink"

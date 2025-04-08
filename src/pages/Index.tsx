@@ -7,6 +7,7 @@ import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { CATEGORIES } from "@/components/CategoryFilter";
 
 // Define interfaces outside of component to avoid circular references
 interface Influencer {
@@ -18,96 +19,31 @@ interface Influencer {
   category?: string;
 }
 
-// Sample data for trending deals
-const trendingDeals = [
-  {
-    id: "1",
-    title: "Summer Collection 2025",
-    brandName: "FashionNova",
-    imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-    discount: "30% OFF",
-    promoCode: "SUMMER30",
-    expiryDate: "2025-08-31",
-    affiliateLink: "https://example.com",
-    influencerName: "Sophia Chen",
-    influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-  },
-  {
-    id: "2",
-    title: "Premium Fitness Tracker",
-    brandName: "FitGear",
-    imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    discount: "25% OFF",
-    promoCode: "FIT25",
-    expiryDate: "2025-07-15",
-    affiliateLink: "https://example.com",
-    influencerName: "Marcus Johnson",
-    influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-  },
-  {
-    id: "3",
-    title: "Gourmet Cooking Set",
-    brandName: "ChefChoice",
-    imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    discount: "20% OFF",
-    promoCode: "CHEF20",
-    expiryDate: "2025-09-10",
-    affiliateLink: "https://example.com",
-    influencerName: "Emma Wilson",
-    influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-  },
-  {
-    id: "4",
-    title: "Smart Home Bundle",
-    brandName: "TechLife",
-    imageUrl: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
-    discount: "15% OFF",
-    promoCode: "SMART15",
-    expiryDate: "2025-07-30",
-    affiliateLink: "https://example.com",
-    influencerName: "Alex Rivera",
-    influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-  },
-];
-
-// Define popularity categories array outside component
-const popularCategories = [
-  {
-    id: "1",
-    name: "Fashion",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-    href: "/category/fashion",
-    count: 156,
-  },
-  {
-    id: "2",
-    name: "Fitness",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
-    href: "/category/fitness",
-    count: 94,
-  },
-  {
-    id: "3",
-    name: "Food",
-    image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
-    href: "/category/food",
-    count: 127,
-  },
-  {
-    id: "4",
-    name: "Tech",
-    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-    href: "/category/tech",
-    count: 83,
-  },
-];
+interface Deal {
+  id: string;
+  title: string;
+  brandName: string;
+  imageUrl: string;
+  discount: string;
+  promoCode: string;
+  expiryDate?: string;
+  affiliateLink: string;
+  influencerName: string;
+  influencerImage: string;
+  category: string;
+}
 
 const Index = () => {
   const [featuredInfluencers, setFeaturedInfluencers] = useState<Influencer[]>([]);
+  const [trendingDeals, setTrendingDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categoryDeals, setCategoryDeals] = useState<Record<string, Deal[]>>({});
+  const [featuredCategory, setFeaturedCategory] = useState("Fashion");
 
   useEffect(() => {
     fetchFeaturedInfluencers();
+    fetchTrendingDeals();
+    fetchCategoryDeals();
   }, []);
 
   const fetchFeaturedInfluencers = async () => {
@@ -194,85 +130,212 @@ const Index = () => {
     setFeaturedInfluencers(formattedInfluencers);
   };
 
-  // Sample data for trending deals and categories
-  const trendingDeals = [
-    {
-      id: "1",
-      title: "Summer Collection 2025",
-      brandName: "FashionNova",
-      imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-      discount: "30% OFF",
-      promoCode: "SUMMER30",
-      expiryDate: "2025-08-31",
-      affiliateLink: "https://example.com",
-      influencerName: "Sophia Chen",
-      influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-    },
-    {
-      id: "2",
-      title: "Premium Fitness Tracker",
-      brandName: "FitGear",
-      imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-      discount: "25% OFF",
-      promoCode: "FIT25",
-      expiryDate: "2025-07-15",
-      affiliateLink: "https://example.com",
-      influencerName: "Marcus Johnson",
-      influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-    },
-    {
-      id: "3",
-      title: "Gourmet Cooking Set",
-      brandName: "ChefChoice",
-      imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-      discount: "20% OFF",
-      promoCode: "CHEF20",
-      expiryDate: "2025-09-10",
-      affiliateLink: "https://example.com",
-      influencerName: "Emma Wilson",
-      influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-    },
-    {
-      id: "4",
-      title: "Smart Home Bundle",
-      brandName: "TechLife",
-      imageUrl: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
-      discount: "15% OFF",
-      promoCode: "SMART15",
-      expiryDate: "2025-07-30",
-      affiliateLink: "https://example.com",
-      influencerName: "Alex Rivera",
-      influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    },
-  ];
+  const fetchTrendingDeals = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select(`
+          id,
+          brand_name,
+          promo_code,
+          description,
+          expiration_date,
+          affiliate_link,
+          category,
+          profiles:user_id (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false })
+        .limit(4);
+      
+      if (error) {
+        console.error("Error fetching trending deals:", error);
+        // Use sample data as fallback
+        useSampleDeals();
+        return;
+      }
+      
+      if (data.length === 0) {
+        useSampleDeals();
+        return;
+      }
+      
+      // Transform data to match the Deal interface
+      const formattedDeals = data.map(deal => ({
+        id: deal.id,
+        title: deal.description,
+        brandName: deal.brand_name,
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+        discount: deal.promo_code,
+        promoCode: deal.promo_code,
+        expiryDate: deal.expiration_date,
+        affiliateLink: deal.affiliate_link || "#", // Provide default value
+        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: deal.category || 'Fashion'
+      }));
+      
+      setTrendingDeals(formattedDeals);
+    } catch (error) {
+      console.error("Error in fetchTrendingDeals:", error);
+      useSampleDeals();
+    }
+  };
 
+  const fetchCategoryDeals = async () => {
+    try {
+      const dealsMap: Record<string, Deal[]> = {};
+      
+      // Fetch 2 deals for each category
+      for (const category of CATEGORIES) {
+        const { data, error } = await supabase
+          .from('promo_codes')
+          .select(`
+            id,
+            brand_name,
+            promo_code,
+            description,
+            expiration_date,
+            affiliate_link,
+            category,
+            profiles:user_id (
+              full_name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('category', category)
+          .order('created_at', { ascending: false })
+          .limit(2);
+        
+        if (!error && data.length > 0) {
+          // Transform data to match the Deal interface
+          const formattedDeals = data.map(deal => ({
+            id: deal.id,
+            title: deal.description,
+            brandName: deal.brand_name,
+            imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+            discount: deal.promo_code,
+            promoCode: deal.promo_code,
+            expiryDate: deal.expiration_date,
+            affiliateLink: deal.affiliate_link || "#",
+            influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+            influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+            category: deal.category
+          }));
+          
+          dealsMap[category] = formattedDeals;
+        }
+      }
+      
+      setCategoryDeals(dealsMap);
+      
+      // Set featured category to the one with most deals
+      let maxDeals = 0;
+      let categoryWithMostDeals = "Fashion";
+      
+      Object.entries(dealsMap).forEach(([category, deals]) => {
+        if (deals.length > maxDeals) {
+          maxDeals = deals.length;
+          categoryWithMostDeals = category;
+        }
+      });
+      
+      setFeaturedCategory(categoryWithMostDeals);
+      
+    } catch (error) {
+      console.error("Error in fetchCategoryDeals:", error);
+    }
+  };
+
+  const useSampleDeals = () => {
+    setTrendingDeals([
+      {
+        id: "1",
+        title: "Summer Collection 2025",
+        brandName: "FashionNova",
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
+        discount: "30% OFF",
+        promoCode: "SUMMER30",
+        expiryDate: "2025-08-31",
+        affiliateLink: "https://example.com",
+        influencerName: "Sophia Chen",
+        influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+        category: "Fashion"
+      },
+      {
+        id: "2",
+        title: "Premium Fitness Tracker",
+        brandName: "FitGear",
+        imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
+        discount: "25% OFF",
+        promoCode: "FIT25",
+        expiryDate: "2025-07-15",
+        affiliateLink: "https://example.com",
+        influencerName: "Marcus Johnson",
+        influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
+        category: "Fitness"
+      },
+      {
+        id: "3",
+        title: "Gourmet Cooking Set",
+        brandName: "ChefChoice",
+        imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+        discount: "20% OFF",
+        promoCode: "CHEF20",
+        expiryDate: "2025-09-10",
+        affiliateLink: "https://example.com",
+        influencerName: "Emma Wilson",
+        influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+        category: "Food"
+      },
+      {
+        id: "4",
+        title: "Smart Home Bundle",
+        brandName: "TechLife",
+        imageUrl: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
+        discount: "15% OFF",
+        promoCode: "SMART15",
+        expiryDate: "2025-07-30",
+        affiliateLink: "https://example.com",
+        influencerName: "Alex Rivera",
+        influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+        category: "Tech"
+      },
+    ]);
+  };
+
+  // Define popularity categories array based on our available categories
   const popularCategories = [
     {
       id: "1",
       name: "Fashion",
       image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
-      href: "/category/fashion",
+      href: "/explore?category=Fashion",
       count: 156,
     },
     {
       id: "2",
       name: "Fitness",
       image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c",
-      href: "/category/fitness",
+      href: "/explore?category=Fitness",
       count: 94,
     },
     {
       id: "3",
       name: "Food",
       image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
-      href: "/category/food",
+      href: "/explore?category=Food",
       count: 127,
     },
     {
       id: "4",
       name: "Tech",
       image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
-      href: "/category/tech",
+      href: "/explore?category=Tech",
       count: 83,
     },
   ];
@@ -366,13 +429,34 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Featured Category */}
+      {categoryDeals[featuredCategory] && categoryDeals[featuredCategory].length > 0 && (
+        <section className="py-12">
+          <div className="container mx-auto px-4">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-bold">Top {featuredCategory} Deals</h2>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to={`/explore?category=${featuredCategory}`} className="flex items-center">
+                  View all <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {categoryDeals[featuredCategory].map((deal) => (
+                <DealCard key={deal.id} {...deal} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Popular Categories */}
-      <section className="py-12">
+      <section className="py-12 bg-brand-light dark:bg-brand-dark">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Popular Categories</h2>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/categories" className="flex items-center">
+              <Link to="/explore" className="flex items-center">
                 View all <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>

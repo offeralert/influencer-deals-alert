@@ -19,6 +19,7 @@ interface PromoCode {
   expiration_date: string | null;
   affiliate_link: string | null;
   created_at: string;
+  category: string;
 }
 
 const InfluencerDashboard = () => {
@@ -137,6 +138,7 @@ const InfluencerDashboard = () => {
                         <TableRow>
                           <TableHead>Brand</TableHead>
                           <TableHead>Code</TableHead>
+                          <TableHead>Category</TableHead>
                           <TableHead>Description</TableHead>
                           <TableHead>Expires</TableHead>
                           <TableHead>Affiliate Link</TableHead>
@@ -147,7 +149,7 @@ const InfluencerDashboard = () => {
                         {promoCodes.map((code) => (
                           <TableRow key={code.id}>
                             {editingPromoCodeId === code.id ? (
-                              <TableCell colSpan={6}>
+                              <TableCell colSpan={7}>
                                 <PromoCodeEditor 
                                   promoCode={code} 
                                   onSave={handlePromoCodeUpdated} 
@@ -158,6 +160,11 @@ const InfluencerDashboard = () => {
                               <>
                                 <TableCell className="font-medium">{code.brand_name}</TableCell>
                                 <TableCell className="font-mono">{code.promo_code}</TableCell>
+                                <TableCell>
+                                  <span className="px-2 py-1 bg-brand-light dark:bg-brand-dark rounded-full text-xs">
+                                    {code.category}
+                                  </span>
+                                </TableCell>
                                 <TableCell className="max-w-[200px] truncate">{code.description}</TableCell>
                                 <TableCell>
                                   {code.expiration_date 
