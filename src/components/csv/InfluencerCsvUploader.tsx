@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Database, FileText, Upload } from "lucide-react";
+import { Database, FileText, Upload, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { downloadSampleCsv } from "@/utils/csvUtils";
 
 interface CsvInfluencer {
   fullName: string;
@@ -132,19 +133,42 @@ const InfluencerCsvUploader = () => {
     }
   };
 
+  const handleDownloadSample = () => {
+    const headers = ["fullName", "socialMediaHandle", "email", "profileImageUrl"];
+    const sampleRows = [
+      ["John Smith", "@johnsmith", "john@example.com", "https://example.com/john.jpg"],
+      ["Jane Doe", "@janedoe", "jane@example.com", ""],
+      ["Alex Johnson", "@alexj", "alex@example.com", "https://example.com/alex.jpg"]
+    ];
+    
+    downloadSampleCsv("sample-influencers.csv", headers, sampleRows);
+    toast.success("Sample CSV file downloaded");
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="influencer-csv-upload">Upload CSV File</Label>
-          <Input
-            id="influencer-csv-upload"
-            type="file"
-            accept=".csv"
-            onChange={handleFileChange}
-            disabled={isUploading}
-          />
+        <div className="flex justify-between items-center">
+          <div className="space-y-2">
+            <Label htmlFor="influencer-csv-upload">Upload CSV File</Label>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadSample}
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Sample CSV
+          </Button>
         </div>
+        
+        <Input
+          id="influencer-csv-upload"
+          type="file"
+          accept=".csv"
+          onChange={handleFileChange}
+          disabled={isUploading}
+        />
         
         {error && (
           <Alert variant="destructive">

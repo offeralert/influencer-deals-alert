@@ -1,3 +1,4 @@
+
 // This is a read-only file, but we need to update the logic to include categories when parsing and uploading CSV data
 
 import { useEffect, useState } from "react";
@@ -7,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { Upload, Check, AlertCircle } from "lucide-react";
+import { Upload, Check, AlertCircle, Download, FileDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import Papa from "papaparse";
+import { downloadSampleCsv } from "@/utils/csvUtils";
 
 interface PromoCode {
   brand_name: string;
@@ -151,6 +153,18 @@ const PromoCodeCsvUploader = () => {
     uploadPromoCodes(file);
   };
 
+  const handleDownloadSample = () => {
+    const headers = ["brand_name", "promo_code", "description", "expiration_date", "affiliate_link", "category"];
+    const sampleRows = [
+      ["Nike", "SAVE20", "20% off running shoes", "2023-12-31", "https://nike.example.com/ref123", "Sports"],
+      ["Sephora", "BEAUTY10", "10% off beauty products", "2023-11-30", "https://sephora.example.com/ref456", "Beauty"],
+      ["Amazon", "BOOKS5", "$5 off books over $20", "", "https://amazon.example.com/deals", "Shopping"]
+    ];
+    
+    downloadSampleCsv("sample-promo-codes.csv", headers, sampleRows);
+    toast.success("Sample CSV file downloaded");
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -160,6 +174,17 @@ const PromoCodeCsvUploader = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex justify-between items-center">
+          <Button 
+            variant="outline" 
+            onClick={handleDownloadSample}
+            className="flex items-center gap-2"
+          >
+            <FileDown className="h-4 w-4" />
+            Download Sample CSV
+          </Button>
+        </div>
+        
         <Input type="file" accept=".csv" onChange={handleFileChange} disabled={uploading} />
         {errorMessage && (
           <div className="flex items-center text-sm text-red-500">
