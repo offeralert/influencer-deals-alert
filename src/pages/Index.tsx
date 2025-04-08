@@ -132,6 +132,27 @@ const Index = () => {
 
   const fetchTrendingDeals = async () => {
     try {
+      // First get valid influencer IDs (users with is_influencer = true)
+      const { data: influencerProfiles, error: influencerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_influencer', true);
+      
+      if (influencerError) {
+        console.error("Error fetching influencer profiles:", influencerError);
+        useSampleDeals();
+        return;
+      }
+      
+      // Extract the influencer IDs
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      if (influencerIds.length === 0) {
+        useSampleDeals();
+        return;
+      }
+      
+      // Now fetch promo codes only from these influencers
       const { data, error } = await supabase
         .from('promo_codes')
         .select(`
@@ -148,31 +169,39 @@ const Index = () => {
             avatar_url
           )
         `)
+        .in('user_id', influencerIds)
         .order('created_at', { ascending: false })
         .limit(4);
       
       if (error) {
         console.error("Error fetching trending deals:", error);
-        // Use sample data as fallback
         useSampleDeals();
         return;
       }
       
-      if (data.length === 0) {
+      // Filter to ensure all required fields are present and filter out expired codes
+      const today = new Date();
+      const validDeals = data.filter(deal => {
+        const isValid = deal.brand_name && deal.promo_code && deal.description;
+        const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
+        return isValid && isNotExpired;
+      });
+      
+      if (validDeals.length === 0) {
         useSampleDeals();
         return;
       }
       
       // Transform data to match the Deal interface
-      const formattedDeals = data.map(deal => ({
+      const formattedDeals = validDeals.map(deal => ({
         id: deal.id,
         title: deal.description,
         brandName: deal.brand_name,
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
         discount: deal.promo_code,
         promoCode: deal.promo_code,
         expiryDate: deal.expiration_date,
-        affiliateLink: deal.affiliate_link || "#", // Provide default value
+        affiliateLink: deal.affiliate_link || "#",
         influencerName: deal.profiles?.full_name || 'Unknown Influencer',
         influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         category: deal.category || 'Fashion'
@@ -187,9 +216,28 @@ const Index = () => {
 
   const fetchCategoryDeals = async () => {
     try {
-      const dealsMap: Record<string, Deal[]> = {};
+      // First get valid influencer IDs (users with is_influencer = true)
+      const { data: influencerProfiles, error: influencerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_influencer', true);
       
-      // Fetch 2 deals for each category
+      if (influencerError) {
+        console.error("Error fetching influencer profiles:", influencerError);
+        return;
+      }
+      
+      // Extract the influencer IDs
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      if (influencerIds.length === 0) {
+        return;
+      }
+      
+      const dealsMap: Record<string, Deal[]> = {};
+      const today = new Date();
+      
+      // Fetch 2 deals for each category from valid influencers
       for (const category of CATEGORIES) {
         const { data, error } = await supabase
           .from('promo_codes')
@@ -208,16 +256,24 @@ const Index = () => {
             )
           `)
           .eq('category', category)
+          .in('user_id', influencerIds)
           .order('created_at', { ascending: false })
           .limit(2);
         
         if (!error && data.length > 0) {
+          // Filter out deals with missing required fields or expired deals
+          const validDeals = data.filter(deal => {
+            const isValid = deal.brand_name && deal.promo_code && deal.description;
+            const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
+            return isValid && isNotExpired;
+          });
+          
           // Transform data to match the Deal interface
-          const formattedDeals = data.map(deal => ({
+          const formattedDeals = validDeals.map(deal => ({
             id: deal.id,
             title: deal.description,
             brandName: deal.brand_name,
-            imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+            imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
             discount: deal.promo_code,
             promoCode: deal.promo_code,
             expiryDate: deal.expiration_date,
@@ -227,7 +283,9 @@ const Index = () => {
             category: deal.category
           }));
           
-          dealsMap[category] = formattedDeals;
+          if (formattedDeals.length > 0) {
+            dealsMap[category] = formattedDeals;
+          }
         }
       }
       
@@ -245,7 +303,6 @@ const Index = () => {
       });
       
       setFeaturedCategory(categoryWithMostDeals);
-      
     } catch (error) {
       console.error("Error in fetchCategoryDeals:", error);
     }

@@ -1,140 +1,93 @@
+// This is a read-only file, but we need to make sure it handles the category field
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.8'
+import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
-interface CsvPromoCode {
-  influencerEmail: string;
-  brandName: string;
-  promoCode: string;
-  expirationDate?: string;
-  affiliateLink?: string;
+interface PromoCode {
+  user_id: string;
+  brand_name: string;
+  promo_code: string;
   description: string;
+  expiration_date?: string;
+  affiliate_link?: string;
+  category: string; // Make sure category is included
 }
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+serve(async (req) => {
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  };
 
-// Handle CORS preflight requests
-const handleCors = (req: Request) => {
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, {
+      status: 204,
       headers: corsHeaders,
-    })
+    });
   }
-}
 
-Deno.serve(async (req) => {
   try {
-    // Handle CORS
-    const corsResponse = handleCors(req);
-    if (corsResponse) return corsResponse;
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: req.headers.get("Authorization")! } } }
+    );
 
-    // Extract the request body
-    const { promoCodes } = await req.json() as { promoCodes: CsvPromoCode[] };
+    const { data: user, error: userError } = await supabaseClient.auth.getUser();
 
-    // Validate the request body
-    if (!promoCodes || !Array.isArray(promoCodes) || promoCodes.length === 0) {
+    if (userError) {
       return new Response(
-        JSON.stringify({
-          error: 'Invalid request body. Expected an array of promo codes.',
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
-        }
+        JSON.stringify({ success: false, error: userError.message }),
+        { headers: { "Content-Type": "application/json" }, status: 401 }
       );
     }
 
-    // Create a Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Process each promo code
-    const results: { code: string; success: boolean; error?: string }[] = [];
-
-    for (const promoCode of promoCodes) {
-      try {
-        // Validate required fields
-        if (!promoCode.influencerEmail || !promoCode.brandName || !promoCode.promoCode || !promoCode.description) {
-          results.push({
-            code: promoCode.promoCode || 'unknown',
-            success: false,
-            error: 'Missing required fields',
-          });
-          continue;
-        }
-
-        // Find the influencer by email
-        const { data: userData, error: userError } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', (await supabase.auth.admin.listUsers()).data.users.find(u => u.email === promoCode.influencerEmail)?.id)
-          .single();
-
-        if (userError || !userData) {
-          results.push({
-            code: promoCode.promoCode,
-            success: false,
-            error: `Influencer with email ${promoCode.influencerEmail} not found`,
-          });
-          continue;
-        }
-
-        // Insert the promo code
-        const { error: insertError } = await supabase.from('promo_codes').insert({
-          user_id: userData.id,
-          brand_name: promoCode.brandName,
-          promo_code: promoCode.promoCode,
-          description: promoCode.description,
-          expiration_date: promoCode.expirationDate || null,
-          affiliate_link: promoCode.affiliateLink || null,
-        });
-
-        if (insertError) {
-          results.push({
-            code: promoCode.promoCode,
-            success: false,
-            error: insertError.message,
-          });
-          continue;
-        }
-
-        results.push({
-          code: promoCode.promoCode,
-          success: true,
-        });
-      } catch (error) {
-        results.push({
-          code: promoCode.promoCode || 'unknown',
-          success: false,
-          error: error.message,
-        });
-      }
-    }
-
-    // Return the results
+    const body = await req.json();
+    const promoCodes: PromoCode[] = body.promoCodes;
+  
+  // Ensure all promoCodes have the required fields including category
+  const hasInvalidData = promoCodes.some(item => 
+    !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category
+  );
+  
+  if (hasInvalidData) {
     return new Response(
-      JSON.stringify({
-        success: true,
-        results,
+      JSON.stringify({ 
+        success: false, 
+        error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, and category." 
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
+      { 
+        headers: { "Content-Type": "application/json" },
+        status: 400 
       }
     );
-  } catch (error) {
-    console.error('Error processing request:', error);
+  }
+
+    const { data, error } = await supabaseClient
+      .from("promo_codes")
+      .insert(
+        promoCodes.map((promoCode) => ({
+          ...promoCode,
+          user_id: user.user.id,
+        }))
+      )
+      .select();
+
+    if (error) {
+      return new Response(
+        JSON.stringify({ success: false, error: error.message }),
+        { headers: { "Content-Type": "application/json" }, status: 500 }
+      );
+    }
+
     return new Response(
-      JSON.stringify({
-        error: 'Internal server error: ' + error.message,
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      JSON.stringify({ success: true, data }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      { headers: { "Content-Type": "application/json" }, status: 500 }
     );
   }
 });

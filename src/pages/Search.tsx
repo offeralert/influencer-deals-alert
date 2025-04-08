@@ -97,14 +97,34 @@ const Search = () => {
       full_name: profile.full_name || 'Unnamed Influencer',
       username: profile.username || 'unknown',
       avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      followers_count: Math.floor(Math.random() * 100000), // Placeholder
-      category: 'Lifestyle' // Placeholder
+      followers_count: Math.floor(Math.random() * 100000),
+      category: 'Lifestyle'
     }));
     
     setInfluencers(formattedInfluencers);
   };
   
   const searchDeals = async () => {
+    // First get valid influencer IDs (users with is_influencer = true)
+    const { data: influencerProfiles, error: influencerError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('is_influencer', true);
+    
+    if (influencerError) {
+      console.error("Error fetching influencer profiles:", influencerError);
+      return;
+    }
+    
+    // Extract the influencer IDs
+    const influencerIds = influencerProfiles.map(profile => profile.id);
+    
+    if (influencerIds.length === 0) {
+      setDeals([]);
+      setBrands([]);
+      return;
+    }
+    
     let query = supabase
       .from('promo_codes')
       .select(`
@@ -121,7 +141,12 @@ const Search = () => {
           avatar_url
         )
       `)
-      .or(`brand_name.ilike.%${searchQuery}%,promo_code.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
+      .in('user_id', influencerIds)
+      .or(`brand_name.ilike.%${searchQuery}%,promo_code.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
+
+    // Filter out expired codes
+    const today = new Date().toISOString().split('T')[0];
+    query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
 
     // Apply category filter if categories are selected
     if (selectedCategories.length > 0) {
@@ -135,25 +160,30 @@ const Search = () => {
       return;
     }
     
+    // Filter to ensure all required fields are present
+    const validDeals = data.filter(deal => 
+      deal.brand_name && deal.promo_code && deal.description
+    );
+    
     // Transform data to match the Deal interface
-    const formattedDeals = data.map(deal => ({
+    const formattedDeals = validDeals.map(deal => ({
       id: deal.id,
       title: deal.description,
       brandName: deal.brand_name,
-      imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+      imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
       discount: deal.promo_code,
       promoCode: deal.promo_code,
       expiryDate: deal.expiration_date,
-      affiliateLink: deal.affiliate_link || "#", // Provide default value
+      affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.profiles?.full_name || 'Unknown Influencer',
       influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      category: deal.category || 'Fashion', // Include category
+      category: deal.category || 'Fashion'
     }));
     
     setDeals(formattedDeals);
     
     // Extract unique brand names
-    const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))];
+    const uniqueBrands = [...new Set(validDeals.map(deal => deal.brand_name))];
     setBrands(uniqueBrands);
   };
 

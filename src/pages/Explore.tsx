@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -8,8 +9,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Compass, Filter, X } from "lucide-react";
+import { Compass, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
@@ -106,6 +106,26 @@ const Explore = () => {
   
   const fetchDeals = async () => {
     try {
+      // First get valid influencer IDs (users with is_influencer = true)
+      const { data: influencerProfiles, error: influencerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_influencer', true);
+      
+      if (influencerError) {
+        console.error("Error fetching influencer profiles:", influencerError);
+        return;
+      }
+      
+      // Extract the influencer IDs
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      if (influencerIds.length === 0) {
+        setDeals([]);
+        return;
+      }
+      
+      // Now fetch promo codes only from these influencers
       let query = supabase
         .from('promo_codes')
         .select(`
@@ -118,16 +138,24 @@ const Explore = () => {
           category,
           created_at,
           profiles:user_id (
+            id,
             full_name,
             username,
             avatar_url
           )
-        `);
+        `)
+        .in('user_id', influencerIds);
       
+      // Filter out expired codes
+      const today = new Date().toISOString().split('T')[0];
+      query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
+      
+      // Apply category filter if categories are selected
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
       }
       
+      // Apply sorting
       if (sortOption === 'alphabetical') {
         query = query.order('brand_name', { ascending: true });
       } else if (sortOption === 'discount') {
@@ -145,19 +173,22 @@ const Explore = () => {
         return;
       }
       
-      const formattedDeals = data.map(deal => ({
-        id: deal.id,
-        title: deal.description,
-        brandName: deal.brand_name,
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-        discount: deal.promo_code,
-        promoCode: deal.promo_code,
-        expiryDate: deal.expiration_date,
-        affiliateLink: deal.affiliate_link || "#",
-        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        category: deal.category || 'Fashion'
-      }));
+      // Transform data to match the Deal interface
+      const formattedDeals = data
+        .filter(deal => deal.brand_name && deal.promo_code && deal.description)
+        .map(deal => ({
+          id: deal.id,
+          title: deal.description,
+          brandName: deal.brand_name,
+          imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
+          discount: deal.promo_code,
+          promoCode: deal.promo_code,
+          expiryDate: deal.expiration_date,
+          affiliateLink: deal.affiliate_link || "#",
+          influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+          influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+          category: deal.category || 'Fashion'
+        }));
       
       setDeals(formattedDeals);
     } catch (error) {

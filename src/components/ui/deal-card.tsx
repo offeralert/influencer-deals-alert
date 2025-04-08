@@ -17,6 +17,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  category: string;
 }
 
 export function DealCard({
@@ -30,6 +31,7 @@ export function DealCard({
   affiliateLink = "#", // Default value for affiliateLink
   influencerName,
   influencerImage,
+  category,
 }: DealCardProps) {
   const [copied, setCopied] = useState(false);
   
@@ -74,6 +76,12 @@ export function DealCard({
         
         <h3 className="font-semibold">{title}</h3>
         <p className="text-sm text-muted-foreground mb-3">{brandName}</p>
+        
+        {category && (
+          <Badge variant="outline" className="mb-3">
+            {category}
+          </Badge>
+        )}
         
         {expiryDate && (
           <p className="text-xs text-muted-foreground mb-4">
