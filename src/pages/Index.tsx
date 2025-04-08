@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { InfluencerCard } from "@/components/ui/influencer-card";
+import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
-import { CategoryCard } from "@/components/ui/category-card";
+import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
