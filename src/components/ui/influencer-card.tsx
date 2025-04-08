@@ -37,6 +37,7 @@ const InfluencerCard = ({
       if (!user) return;
       
       try {
+        // We need to call the raw table name since follows is not in the types yet
         const { data, error } = await supabase
           .from('follows')
           .select('*')
@@ -71,7 +72,7 @@ const InfluencerCard = ({
     
     try {
       if (!following) {
-        // Follow the influencer
+        // Follow the influencer using raw table name
         const { error } = await supabase
           .from('follows')
           .insert({
@@ -90,7 +91,7 @@ const InfluencerCard = ({
           description: "You'll see their deals in your feed."
         });
       } else {
-        // Unfollow the influencer
+        // Unfollow the influencer using raw table name
         const { error } = await supabase
           .from('follows')
           .delete()

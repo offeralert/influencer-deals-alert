@@ -51,7 +51,7 @@ const MyDeals = () => {
     const fetchFollowedInfluencers = async () => {
       setLoadingInfluencers(true);
       try {
-        // Get user_id of influencers the current user follows
+        // Get user_id of influencers the current user follows using raw table name
         const { data: followsData, error: followsError } = await supabase
           .from('follows')
           .select('influencer_id')
@@ -154,7 +154,7 @@ const MyDeals = () => {
     if (!user) return;
     
     const channel = supabase
-      .channel('public:follows')
+      .channel('follows-changes')
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
@@ -163,6 +163,7 @@ const MyDeals = () => {
       }, (payload) => {
         // Refresh the followed influencers when there's a change
         const fetchInfluencers = async () => {
+          // Using raw table name since it's not in types yet
           const { data, error } = await supabase
             .from('follows')
             .select('influencer_id')
