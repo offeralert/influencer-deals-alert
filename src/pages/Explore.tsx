@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -90,14 +89,13 @@ const Explore = () => {
         return;
       }
       
-      // Transform data to match the Influencer interface
       const formattedInfluencers = data.map(profile => ({
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
         avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        followers_count: Math.floor(Math.random() * 100000), // Placeholder
-        category: 'Lifestyle' // Placeholder
+        followers_count: Math.floor(Math.random() * 100000),
+        category: 'Lifestyle'
       }));
       
       setInfluencers(formattedInfluencers);
@@ -126,12 +124,10 @@ const Explore = () => {
           )
         `);
       
-      // Apply category filter if categories are selected
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
       }
       
-      // Apply sorting
       if (sortOption === 'alphabetical') {
         query = query.order('brand_name', { ascending: true });
       } else if (sortOption === 'discount') {
@@ -149,16 +145,15 @@ const Explore = () => {
         return;
       }
       
-      // Transform data to match the Deal interface
       const formattedDeals = data.map(deal => ({
         id: deal.id,
         title: deal.description,
         brandName: deal.brand_name,
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9", // Placeholder
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
         discount: deal.promo_code,
         promoCode: deal.promo_code,
         expiryDate: deal.expiration_date,
-        affiliateLink: deal.affiliate_link || "#", // Provide default value
+        affiliateLink: deal.affiliate_link || "#",
         influencerName: deal.profiles?.full_name || 'Unknown Influencer',
         influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         category: deal.category || 'Fashion'
@@ -292,7 +287,7 @@ const Explore = () => {
             ) : (
               deals.length > 0 ? (
                 <div>
-                  {sortOption === "category" && (
+                  {sortOption === "category" ? (
                     <div className="mb-8">
                       {Array.from(new Set(deals.map(deal => deal.category))).map(category => (
                         <div key={category} className="mb-6">
