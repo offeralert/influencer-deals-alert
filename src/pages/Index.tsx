@@ -5,9 +5,10 @@ import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
 import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define interfaces outside of component to avoid circular references
 interface Influencer {
@@ -34,6 +35,7 @@ interface Deal {
 }
 
 const Index = () => {
+  const { user } = useAuth();
   const [featuredInfluencers, setFeaturedInfluencers] = useState<Influencer[]>([]);
   const [trendingDeals, setTrendingDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -412,7 +414,14 @@ const Index = () => {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" asChild>
-                  <Link to="/signup">Create Account</Link>
+                  {user ? (
+                    <Link to="/extension-download">
+                      <Download className="mr-2 h-5 w-5" />
+                      Download Extension
+                    </Link>
+                  ) : (
+                    <Link to="/signup">Create Account</Link>
+                  )}
                 </Button>
                 <Button size="lg" variant="outline" asChild>
                   <Link to="/explore">Explore Deals</Link>
@@ -541,11 +550,20 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold">Ready to Start Saving?</h2>
             <p className="text-lg text-muted-foreground">
-              Create an account today to follow your favorite influencers and get access to exclusive deals and promo codes.
+              {user 
+                ? "Download our browser extension to automatically apply the best promo codes when you shop online."
+                : "Create an account today to follow your favorite influencers and get access to exclusive deals and promo codes."}
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button size="lg" asChild>
-                <Link to="/signup">Sign Up Now</Link>
+                {user ? (
+                  <Link to="/extension-download">
+                    <Download className="mr-2 h-5 w-5" />
+                    Download Extension
+                  </Link>
+                ) : (
+                  <Link to="/signup">Sign Up Now</Link>
+                )}
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/influencer-apply">Apply as Influencer</Link>
