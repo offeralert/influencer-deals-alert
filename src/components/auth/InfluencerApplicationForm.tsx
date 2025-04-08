@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ const InfluencerApplicationForm = () => {
     agreeToTerms: false,
   });
   
-  // State for promo code entries
   const [promoEntries, setPromoEntries] = useState<PromoCodeEntry[]>([
     {
       id: "1",
@@ -92,7 +90,6 @@ const InfluencerApplicationForm = () => {
       return;
     }
     
-    // Check if at least one promo entry has required fields
     const hasValidPromo = promoEntries.some(
       entry => entry.brandName.trim() && entry.promoCode.trim() && entry.description.trim()
     );
@@ -105,7 +102,6 @@ const InfluencerApplicationForm = () => {
     setIsLoading(true);
     
     try {
-      // Create the user account with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -123,12 +119,11 @@ const InfluencerApplicationForm = () => {
         return;
       }
 
-      // If signup was successful, update the profile with influencer pending status
       if (data.user) {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
-            is_influencer: false,  // Ensure this matches the actual column name
+            is_influencer: false,
             pending_influencer: true,
             application_date: new Date().toISOString()
           })
@@ -140,7 +135,6 @@ const InfluencerApplicationForm = () => {
           return;
         }
 
-        // Insert promo codes
         const validPromoCodes = promoEntries
           .filter(entry => entry.brandName.trim() && entry.promoCode.trim())
           .map(entry => ({
@@ -149,11 +143,11 @@ const InfluencerApplicationForm = () => {
             promo_code: entry.promoCode,
             description: entry.description,
             expiration_date: entry.expirationDate || null,
-            affiliate_link: entry.affiliateLink || null
+            affiliate_link: entry.affiliateLink || null,
+            category: "Fashion"
           }));
 
         if (validPromoCodes.length > 0) {
-          // Use the correct table name and respect the expected type format
           const { error: promoError } = await supabase
             .from('promo_codes')
             .insert(validPromoCodes);
