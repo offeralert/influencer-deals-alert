@@ -27,7 +27,7 @@ export function DealCard({
   discount,
   promoCode,
   expiryDate,
-  affiliateLink,
+  affiliateLink = "#", // Default value for affiliateLink
   influencerName,
   influencerImage,
 }: DealCardProps) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -35,7 +34,7 @@ interface Deal {
   discount: string;
   promoCode: string;
   expiryDate?: string;
-  affiliateLink?: string;
+  affiliateLink: string; // Make sure this is required here
   influencerName: string;
   influencerImage: string;
 }
@@ -131,7 +130,7 @@ const Explore = () => {
         discount: deal.promo_code,
         promoCode: deal.promo_code,
         expiryDate: deal.expiration_date,
-        affiliateLink: deal.affiliate_link,
+        affiliateLink: deal.affiliate_link || "#", // Provide default value
         influencerName: deal.profiles?.full_name || 'Unknown Influencer',
         influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
       }));
