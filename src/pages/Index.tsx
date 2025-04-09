@@ -178,6 +178,8 @@ const Index = () => {
 
   const fetchTrendingDeals = async () => {
     try {
+      setLoading(true);
+      
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -196,6 +198,8 @@ const Index = () => {
         return;
       }
       
+      const today = new Date().toISOString().split('T')[0];
+      
       const { data, error } = await supabase
         .from('promo_codes')
         .select(`
@@ -207,14 +211,15 @@ const Index = () => {
           affiliate_link,
           category,
           profiles:user_id (
+            id,
             full_name,
             username,
             avatar_url
           )
         `)
         .in('user_id', influencerIds)
-        .order('created_at', { ascending: false })
-        .limit(4);
+        .or(`expiration_date.gt.${today},expiration_date.is.null`)
+        .limit(8);
       
       if (error) {
         console.error("Error fetching trending deals:", error);
@@ -222,20 +227,21 @@ const Index = () => {
         return;
       }
       
-      const today = new Date();
-      
-      const validDeals = data.filter(deal => {
-        const isValid = deal.brand_name && deal.promo_code && deal.description;
-        const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
-        return isValid && isNotExpired;
-      });
+      const validDeals = data.filter(deal => 
+        deal.brand_name && 
+        deal.promo_code && 
+        deal.profiles?.full_name
+      );
       
       if (validDeals.length === 0) {
         useSampleDeals();
         return;
       }
       
-      const formattedDeals = validDeals.map(deal => ({
+      const shuffledDeals = validDeals.sort(() => 0.5 - Math.random());
+      const selectedDeals = shuffledDeals.slice(0, 4);
+      
+      const formattedDeals = selectedDeals.map(deal => ({
         id: deal.id,
         title: deal.description,
         brandName: deal.brand_name,
@@ -253,6 +259,8 @@ const Index = () => {
     } catch (error) {
       console.error("Error in fetchTrendingDeals:", error);
       useSampleDeals();
+    } finally {
+      setLoading(false);
     }
   };
 

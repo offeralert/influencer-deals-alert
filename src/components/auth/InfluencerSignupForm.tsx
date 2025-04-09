@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface PromoCodeEntry {
   id: string;
@@ -15,7 +23,19 @@ interface PromoCodeEntry {
   expirationDate: string;
   affiliateLink: string;
   description: string;
+  category: string;
 }
+
+const CATEGORIES = [
+  "Fashion",
+  "Fitness",
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel",
+  "Beauty"
+];
 
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
@@ -27,6 +47,7 @@ const InfluencerSignupForm = () => {
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
+    category: "" // Default empty category that user must select
   });
   
   const [promoEntries, setPromoEntries] = useState<PromoCodeEntry[]>([
@@ -37,12 +58,17 @@ const InfluencerSignupForm = () => {
       expirationDate: "",
       affiliateLink: "",
       description: "",
+      category: ""
     }
   ]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, category: value }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -58,7 +84,8 @@ const InfluencerSignupForm = () => {
         promoCode: "",
         expirationDate: "",
         affiliateLink: "",
-        description: ""
+        description: "",
+        category: formData.category
       }
     ]);
   };
@@ -90,6 +117,11 @@ const InfluencerSignupForm = () => {
       return;
     }
     
+    if (!formData.category) {
+      toast.error("Please select your primary content category");
+      return;
+    }
+    
     const hasValidPromo = promoEntries.some(
       entry => entry.brandName.trim() && entry.promoCode.trim() && entry.description.trim()
     );
@@ -109,6 +141,7 @@ const InfluencerSignupForm = () => {
           data: {
             full_name: formData.fullName,
             username: formData.socialHandle,
+            category: formData.category,
           },
         },
       });
@@ -124,6 +157,7 @@ const InfluencerSignupForm = () => {
           .from('profiles')
           .update({ 
             is_influencer: true,
+            category: formData.category,
           })
           .eq('id', data.user.id);
 
@@ -142,7 +176,7 @@ const InfluencerSignupForm = () => {
             description: entry.description,
             expiration_date: entry.expirationDate || null,
             affiliate_link: entry.affiliateLink || null,
-            category: "Fashion"
+            category: entry.category || formData.category
           }));
 
         if (validPromoCodes.length > 0) {
@@ -156,10 +190,23 @@ const InfluencerSignupForm = () => {
             return;
           }
         }
-      }
 
-      toast.success("Your influencer account has been created successfully!");
-      navigate("/login");
+        // Auto-login after signup
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          console.error("Auto-login error:", signInError);
+          toast.success("Your influencer account has been created successfully! Please log in.");
+          navigate("/login");
+          return;
+        }
+
+        toast.success("Your influencer account has been created successfully!");
+        navigate("/");
+      }
     } catch (error) {
       console.error("Unexpected error during signup:", error);
       toast.error("An unexpected error occurred. Please try again.");
@@ -194,6 +241,29 @@ const InfluencerSignupForm = () => {
           onChange={handleChange}
           disabled={isLoading}
         />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="category">Primary Content Category</Label>
+        <Select
+          value={formData.category}
+          onValueChange={handleSelectChange}
+          required
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select your main category" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORIES.map((category) => (
+              <SelectItem key={category} value={category}>
+                {category}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          This helps users find your content and promo codes
+        </p>
       </div>
       
       <div className="space-y-2">
@@ -294,6 +364,25 @@ const InfluencerSignupForm = () => {
                   required
                   disabled={isLoading}
                 />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`category-${entry.id}`} className="text-xs">Category</Label>
+                <Select
+                  value={entry.category || formData.category}
+                  onValueChange={(value) => updatePromoEntry(entry.id, "category", value)}
+                  disabled={isLoading}
+                >
+                  <SelectTrigger className="h-8 text-sm">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1">
                 <Label htmlFor={`expiry-${entry.id}`} className="text-xs">Expiration Date</Label>

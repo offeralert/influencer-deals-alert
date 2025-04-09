@@ -27,7 +27,8 @@ const CATEGORIES = [
   "Tech",
   "Home",
   "Jewelry",
-  "Travel"
+  "Travel",
+  "Beauty"
 ];
 
 const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {

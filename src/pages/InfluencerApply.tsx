@@ -9,6 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 
 interface PromoCodeEntry {
   id: string;
@@ -17,13 +24,26 @@ interface PromoCodeEntry {
   expirationDate: string;
   affiliateLink: string;
   description: string;
+  category: string;
 }
+
+const CATEGORIES = [
+  "Fashion",
+  "Fitness",
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel",
+  "Beauty"
+];
 
 const InfluencerApply = () => {
   const { user, profile, isLoading } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState(profile?.full_name || "");
   const [socialHandle, setSocialHandle] = useState(profile?.username || "");
+  const [category, setCategory] = useState(profile?.category || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // State for promo code entries
@@ -35,6 +55,7 @@ const InfluencerApply = () => {
       expirationDate: "",
       affiliateLink: "",
       description: "",
+      category: ""
     }
   ]);
 
@@ -61,7 +82,8 @@ const InfluencerApply = () => {
         promoCode: "",
         expirationDate: "",
         affiliateLink: "",
-        description: ""
+        description: "",
+        category: category || ""
       }
     ]);
   };
@@ -90,6 +112,11 @@ const InfluencerApply = () => {
         return;
       }
 
+      if (!category) {
+        toast.error("Please select your primary content category");
+        return;
+      }
+
       // For now, this will just update the user profile to mark them as an influencer
       // In a real app, this would go through an approval process
       const { error } = await supabase
@@ -97,11 +124,37 @@ const InfluencerApply = () => {
         .update({ 
           full_name: fullName,
           username: socialHandle,
+          category: category,
           is_influencer: true 
         })
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // Handle promo code entries
+      const validPromoCodes = promoEntries
+        .filter(entry => entry.brandName.trim() && entry.promoCode.trim() && entry.description.trim())
+        .map(entry => ({
+          user_id: user.id,
+          brand_name: entry.brandName,
+          promo_code: entry.promoCode,
+          description: entry.description,
+          expiration_date: entry.expirationDate || null,
+          affiliate_link: entry.affiliateLink || null,
+          category: entry.category || category
+        }));
+
+      if (validPromoCodes.length > 0) {
+        const { error: promoError } = await supabase
+          .from('promo_codes')
+          .insert(validPromoCodes);
+
+        if (promoError) {
+          console.error("Error inserting promo codes:", promoError);
+          toast.error("Application submitted, but promo codes couldn't be saved");
+          return;
+        }
+      }
 
       toast.success("Application submitted successfully! You are now an influencer.");
       navigate("/profile");
@@ -148,6 +201,29 @@ const InfluencerApply = () => {
                   placeholder="@yourusername"
                   required
                 />
+              </div>
+              
+              <div>
+                <Label htmlFor="category">Primary Content Category</Label>
+                <Select
+                  value={category}
+                  onValueChange={setCategory}
+                  required
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select your main category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-sm text-muted-foreground mt-1">
+                  This helps users find your promo codes
+                </p>
               </div>
               
               <div>
@@ -216,6 +292,24 @@ const InfluencerApply = () => {
                           placeholder="e.g. SAVE20"
                           required
                         />
+                      </div>
+                      <div>
+                        <Label htmlFor={`category-${entry.id}`}>Category</Label>
+                        <Select
+                          value={entry.category || category}
+                          onValueChange={(value) => updatePromoEntry(entry.id, "category", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.map((cat) => (
+                              <SelectItem key={cat} value={cat}>
+                                {cat}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div>
                         <Label htmlFor={`expiry-${entry.id}`}>Expiration Date (Optional)</Label>
