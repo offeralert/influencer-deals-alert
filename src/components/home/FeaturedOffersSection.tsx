@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -18,23 +19,6 @@ interface Deal {
   category: string;
 }
 
-interface PromoCodeRecord {
-  id: string;
-  brand_name: string;
-  promo_code: string;
-  description: string;
-  expiration_date: string | null;
-  affiliate_link: string | null;
-  category: string;
-  is_featured: boolean | null;
-  profiles: {
-    id: string;
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
-}
-
 const FeaturedOffersSection = () => {
   const [featuredOffers, setFeaturedOffers] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,78 +31,25 @@ const FeaturedOffersSection = () => {
     try {
       setLoading(true);
       
-      // First, get valid influencer IDs (users with is_influencer = true)
-      const { data: influencerProfiles, error: influencerError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('is_influencer', true);
-      
-      if (influencerError) {
-        console.error("Error fetching influencer profiles:", influencerError);
-        setFeaturedOffers([]);
-        setLoading(false);
-        return;
-      }
-      
-      // Extract the influencer IDs
-      const influencerIds = influencerProfiles.map(profile => profile.id);
-      
-      if (influencerIds.length === 0) {
-        console.log("No influencers found");
-        setFeaturedOffers([]);
-        setLoading(false);
-        return;
-      }
-      
-      // Try to get featured promo codes first (if column exists)
-      let query = supabase
-        .from('promo_codes')
-        .select(`
-          id,
-          brand_name,
-          promo_code,
-          description,
-          expiration_date,
-          affiliate_link,
-          category,
-          is_featured,
-          profiles:user_id (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .in('user_id', influencerIds);
-      
-      // Get featured offers first, if available
-      const { data: featuredData, error: featuredError } = await query
+      // Get featured offers from the universal_promo_codes view
+      const { data, error } = await supabase
+        .from('universal_promo_codes')
+        .select('*')
         .eq('is_featured', true)
         .limit(4);
       
-      // If error about is_featured not existing, or no featured data, get most recent offers
-      if (featuredError || !featuredData || featuredData.length === 0) {
-        console.log("No featured offers found or is_featured doesn't exist, getting recent offers");
-        
-        // Get most recent offers instead - no expiration filtering
+      if (error) {
+        console.error("Error fetching featured offers:", error);
+        setFeaturedOffers([]);
+        setLoading(false);
+        return;
+      }
+      
+      // If no featured offers found, get the most recent ones
+      if (!data || data.length === 0) {
         const { data: recentData, error: recentError } = await supabase
-          .from('promo_codes')
-          .select(`
-            id,
-            brand_name,
-            promo_code,
-            description,
-            expiration_date,
-            affiliate_link,
-            category,
-            profiles:user_id (
-              id,
-              full_name,
-              username,
-              avatar_url
-            )
-          `)
-          .in('user_id', influencerIds)
+          .from('universal_promo_codes')
+          .select('*')
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -130,15 +61,15 @@ const FeaturedOffersSection = () => {
         }
         
         if (!recentData || recentData.length === 0) {
-          console.log("No recent offers found");
+          console.log("No offers found");
           setFeaturedOffers([]);
           setLoading(false);
           return;
         }
         
-        transformAndSetOffers(recentData as PromoCodeRecord[]);
+        transformAndSetOffers(recentData);
       } else {
-        transformAndSetOffers(featuredData as PromoCodeRecord[]);
+        transformAndSetOffers(data);
       }
     } catch (error) {
       console.error("Error in fetchFeaturedOffers:", error);
@@ -148,25 +79,9 @@ const FeaturedOffersSection = () => {
     }
   };
 
-  const transformAndSetOffers = (data: PromoCodeRecord[]) => {
-    // Filter out incomplete deals
-    const validOffers = data.filter(offer => 
-      offer.brand_name && 
-      offer.promo_code && 
-      offer.description &&
-      offer.profiles?.full_name
-    );
-    
-    if (validOffers.length === 0) {
-      console.log("No valid offers found after filtering");
-      setFeaturedOffers([]);
-      return;
-    }
-    
-    console.log(`Found ${validOffers.length} valid offers`);
-    
+  const transformAndSetOffers = (data: any[]) => {
     // Transform to our Deal interface
-    const formattedOffers = validOffers.map(offer => ({
+    const formattedOffers = data.map(offer => ({
       id: offer.id,
       title: offer.description,
       brandName: offer.brand_name,
@@ -174,8 +89,8 @@ const FeaturedOffersSection = () => {
       promoCode: offer.promo_code,
       expiryDate: offer.expiration_date,
       affiliateLink: offer.affiliate_link || "#",
-      influencerName: offer.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: offer.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerName: offer.influencer_name || 'Unknown Influencer',
+      influencerImage: offer.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
       category: offer.category || 'Fashion'
     }));
     

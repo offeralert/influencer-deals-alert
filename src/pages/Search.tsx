@@ -116,56 +116,20 @@ const Search = () => {
   
   const searchDeals = async () => {
     try {
-      const { data: influencerProfiles, error: influencerError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('is_influencer', true);
-      
-      if (influencerError) {
-        console.error("Error fetching influencer profiles:", influencerError);
-        setDeals([]);
-        setBrands([]);
-        return;
-      }
-      
-      const influencerIds = influencerProfiles.map(profile => profile.id);
-      
-      if (influencerIds.length === 0) {
-        console.log("No influencers found");
-        setDeals([]);
-        setBrands([]);
-        return;
-      }
-      
       let query = supabase
-        .from('promo_codes')
-        .select(`
-          id,
-          brand_name,
-          promo_code,
-          description,
-          expiration_date,
-          affiliate_link,
-          category,
-          profiles:user_id (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .in('user_id', influencerIds);
+        .from('universal_promo_codes')
+        .select('*');
       
       const searchTerms = [
         `brand_name.ilike.%${searchQuery}%`, 
         `promo_code.ilike.%${searchQuery}%`, 
         `description.ilike.%${searchQuery}%`, 
-        `category.ilike.%${searchQuery}%`
+        `category.ilike.%${searchQuery}%`,
+        `influencer_name.ilike.%${searchQuery}%`,
+        `influencer_username.ilike.%${searchQuery}%`
       ];
       
       query = query.or(searchTerms.join(','));
-
-      // No more expiration date filtering - show all promo codes regardless of expiration
       
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
@@ -189,13 +153,7 @@ const Search = () => {
       
       console.log(`Found ${data.length} deals matching search query`);
       
-      const validDeals = data.filter(deal => 
-        deal.brand_name && 
-        deal.promo_code && 
-        deal.description
-      );
-      
-      const formattedDeals = validDeals.map(deal => ({
+      const formattedDeals = data.map(deal => ({
         id: deal.id,
         title: deal.description,
         brandName: deal.brand_name,
@@ -204,14 +162,14 @@ const Search = () => {
         promoCode: deal.promo_code,
         expiryDate: deal.expiration_date,
         affiliateLink: deal.affiliate_link || "#",
-        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerName: deal.influencer_name || 'Unknown Influencer',
+        influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         category: deal.category || 'Fashion'
       }));
       
       setDeals(formattedDeals);
       
-      const uniqueBrands = [...new Set(validDeals.map(deal => deal.brand_name))];
+      const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))];
       setBrands(uniqueBrands);
     } catch (error) {
       console.error("Error in searchDeals:", error);

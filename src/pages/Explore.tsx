@@ -113,44 +113,9 @@ const Explore = () => {
   
   const fetchDeals = async () => {
     try {
-      const { data: influencerProfiles, error: influencerError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('is_influencer', true);
-      
-      if (influencerError) {
-        console.error("Error fetching influencer profiles:", influencerError);
-        setDeals([]);
-        return;
-      }
-      
-      const influencerIds = influencerProfiles.map(profile => profile.id);
-      
-      if (influencerIds.length === 0) {
-        console.log("No influencers found");
-        setDeals([]);
-        return;
-      }
-      
       let query = supabase
-        .from('promo_codes')
-        .select(`
-          id,
-          brand_name,
-          promo_code,
-          description,
-          expiration_date,
-          affiliate_link,
-          category,
-          created_at,
-          profiles:user_id (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
-        .in('user_id', influencerIds);
+        .from('universal_promo_codes')
+        .select('*');
       
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
@@ -180,25 +145,23 @@ const Explore = () => {
         return;
       }
       
-      console.log(`Found ${data.length} deals before validation`);
+      console.log(`Found ${data.length} deals`);
       
-      const formattedDeals = data
-        .filter(deal => deal.brand_name && deal.promo_code && deal.description)
-        .map(deal => ({
-          id: deal.id,
-          title: deal.description,
-          brandName: deal.brand_name,
-          imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-          discount: deal.promo_code,
-          promoCode: deal.promo_code,
-          expiryDate: deal.expiration_date,
-          affiliateLink: deal.affiliate_link || "#",
-          influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-          influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-          category: deal.category || 'Fashion'
-        }));
+      const formattedDeals = data.map(deal => ({
+        id: deal.id,
+        title: deal.description,
+        brandName: deal.brand_name,
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
+        discount: deal.promo_code,
+        promoCode: deal.promo_code,
+        expiryDate: deal.expiration_date,
+        affiliateLink: deal.affiliate_link || "#",
+        influencerName: deal.influencer_name || 'Unknown Influencer',
+        influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: deal.category || 'Fashion'
+      }));
       
-      console.log(`Found ${formattedDeals.length} valid deals after filtering`);
+      console.log(`Formatted ${formattedDeals.length} deals`);
       setDeals(formattedDeals);
     } catch (error) {
       console.error("Error in fetchDeals:", error);

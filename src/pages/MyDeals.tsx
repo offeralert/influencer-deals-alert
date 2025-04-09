@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -84,24 +85,10 @@ const MyDeals = () => {
       
       const influencerIds = followedInfluencers.map(follow => follow.influencer_id);
       
-      // Get promo codes from followed influencers - without filtering by expiration date
+      // Get promo codes from followed influencers using the universal_promo_codes view
       const { data: promoCodes, error: promoError } = await supabase
-        .from('promo_codes')
-        .select(`
-          id,
-          brand_name,
-          promo_code,
-          description,
-          expiration_date,
-          affiliate_link,
-          category,
-          user_id,
-          profiles:user_id (
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
+        .from('universal_promo_codes')
+        .select('*')
         .in('user_id', influencerIds)
         .order('created_at', { ascending: false });
       
@@ -112,7 +99,7 @@ const MyDeals = () => {
         return;
       }
       
-      // Transform the data - keep all promo codes regardless of expiration
+      // Transform the data
       const deals = promoCodes.map(promo => ({
         id: promo.id,
         title: promo.description,
@@ -121,8 +108,8 @@ const MyDeals = () => {
         promoCode: promo.promo_code,
         expiryDate: promo.expiration_date,
         affiliateLink: promo.affiliate_link || "#",
-        influencerName: promo.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: promo.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerName: promo.influencer_name || 'Unknown Influencer',
+        influencerImage: promo.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         category: promo.category
       }));
       

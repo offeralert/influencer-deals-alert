@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -18,23 +19,6 @@ interface Deal {
   category: string;
 }
 
-interface PromoCodeRecord {
-  id: string;
-  brand_name: string;
-  promo_code: string;
-  description: string;
-  expiration_date: string | null;
-  affiliate_link: string | null;
-  category: string;
-  is_trending: boolean | null;
-  profiles: {
-    id: string;
-    full_name: string | null;
-    username: string | null;
-    avatar_url: string | null;
-  } | null;
-}
-
 const TrendingDealsSection = () => {
   const [trendingDeals, setTrendingDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,31 +31,12 @@ const TrendingDealsSection = () => {
     try {
       setLoading(true);
       
-      // Get today's date for filtering expired codes
-      const today = new Date().toISOString().split('T')[0];
-      
       // First try to get trending promo codes
       const { data: trendingData, error: trendingError } = await supabase
-        .from('promo_codes')
-        .select(`
-          id,
-          brand_name,
-          promo_code,
-          description,
-          expiration_date,
-          affiliate_link,
-          category,
-          is_trending,
-          profiles:user_id (
-            id,
-            full_name,
-            username,
-            avatar_url
-          )
-        `)
+        .from('universal_promo_codes')
+        .select('*')
         .eq('is_trending', true)
-        .or(`expiration_date.gt.${today},expiration_date.is.null`)
-        .order('created_at', { ascending: false });
+        .limit(4);
       
       if (trendingError) {
         console.error("Error fetching trending deals:", trendingError);
@@ -82,24 +47,8 @@ const TrendingDealsSection = () => {
       // If no trending deals found, get the most recent ones
       if (!trendingData || trendingData.length === 0) {
         const { data: recentData, error: recentError } = await supabase
-          .from('promo_codes')
-          .select(`
-            id,
-            brand_name,
-            promo_code,
-            description,
-            expiration_date,
-            affiliate_link,
-            category,
-            is_trending,
-            profiles:user_id (
-              id,
-              full_name,
-              username,
-              avatar_url
-            )
-          `)
-          .or(`expiration_date.gt.${today},expiration_date.is.null`)
+          .from('universal_promo_codes')
+          .select('*')
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -114,9 +63,9 @@ const TrendingDealsSection = () => {
           return;
         }
         
-        transformAndSetDeals(recentData as PromoCodeRecord[]);
+        transformAndSetDeals(recentData);
       } else {
-        transformAndSetDeals(trendingData as PromoCodeRecord[]);
+        transformAndSetDeals(trendingData);
       }
     } catch (error) {
       console.error("Error in fetchTrendingDeals:", error);
@@ -126,25 +75,9 @@ const TrendingDealsSection = () => {
     }
   };
 
-  const transformAndSetDeals = (data: PromoCodeRecord[]) => {
-    // Filter out incomplete deals
-    const validDeals = data.filter(deal => 
-      deal.brand_name && 
-      deal.promo_code && 
-      deal.description &&
-      deal.profiles?.full_name
-    );
-    
-    if (validDeals.length === 0) {
-      useSampleDeals();
-      return;
-    }
-    
-    // Limit to 4 deals maximum
-    const selectedDeals = validDeals.slice(0, 4);
-    
+  const transformAndSetDeals = (data: any[]) => {
     // Transform to our Deal interface
-    const formattedDeals = selectedDeals.map(deal => ({
+    const formattedDeals = data.map(deal => ({
       id: deal.id,
       title: deal.description,
       brandName: deal.brand_name,
@@ -152,8 +85,8 @@ const TrendingDealsSection = () => {
       promoCode: deal.promo_code,
       expiryDate: deal.expiration_date,
       affiliateLink: deal.affiliate_link || "#",
-      influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerName: deal.influencer_name || 'Unknown Influencer',
+      influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
       category: deal.category || 'Fashion'
     }));
     
@@ -225,9 +158,15 @@ const TrendingDealsSection = () => {
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {trendingDeals.map((deal) => (
-            <DealCard key={deal.id} {...deal} />
-          ))}
+          {loading ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">Loading deals...</p>
+            </div>
+          ) : (
+            trendingDeals.map((deal) => (
+              <DealCard key={deal.id} {...deal} />
+            ))
+          )}
         </div>
       </div>
     </section>
