@@ -10,7 +10,8 @@ export const CATEGORIES = [
   "Tech",
   "Home",
   "Jewelry",
-  "Travel"
+  "Travel",
+  "Beauty"
 ];
 
 interface CategoryFilterProps {

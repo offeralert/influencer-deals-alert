@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Users, Check, ExternalLink } from "lucide-react";
+import { Users, Check, ExternalLink, Copy, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,7 @@ const InfluencerProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [followersCount, setFollowersCount] = useState(0);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -209,6 +210,26 @@ const InfluencerProfile = () => {
     });
   };
 
+  const copyPromoCode = async (promoCode: string, id: string) => {
+    setCopyingId(id);
+    try {
+      await navigator.clipboard.writeText(promoCode);
+      toast({
+        title: "Copied!",
+        description: `${promoCode} copied to clipboard`,
+      });
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast({
+        title: "Copy failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setTimeout(() => setCopyingId(null), 1500);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -287,9 +308,22 @@ const InfluencerProfile = () => {
                       
                       <p className="text-sm text-muted-foreground mb-2">{promoCode.description}</p>
                       
+                      <div className="bg-muted p-2 rounded mb-3 flex justify-between items-center">
+                        <span className="font-medium">{promoCode.promo_code}</span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0 text-muted-foreground"
+                          onClick={() => copyPromoCode(promoCode.promo_code, promoCode.id)}
+                        >
+                          {copyingId === promoCode.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                      
                       <div className="flex justify-between items-center mt-2">
-                        <div className="text-xs text-muted-foreground">
-                          Expires: {formatDate(promoCode.expiration_date)}
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          <span>Expires: {formatDate(promoCode.expiration_date)}</span>
                         </div>
                         
                         {promoCode.affiliate_link && (

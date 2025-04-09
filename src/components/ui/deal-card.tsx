@@ -1,10 +1,12 @@
 
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Calendar } from "lucide-react";
+import { Copy, Check, ExternalLink, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 export interface DealCardProps {
   id: string;
@@ -31,6 +33,9 @@ export function DealCard({
   influencerImage,
   category,
 }: DealCardProps) {
+  const { toast } = useToast();
+  const [copying, setCopying] = useState(false);
+
   const formatExpiryDate = (date?: string) => {
     if (!date) return "No expiration";
     
@@ -43,6 +48,29 @@ export function DealCard({
     if (diffDays === 0) return "Expires today";
     if (diffDays === 1) return "Expires tomorrow";
     return `Expires in ${diffDays} days`;
+  };
+
+  const copyPromoCode = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setCopying(true);
+    try {
+      await navigator.clipboard.writeText(promoCode);
+      toast({
+        title: "Copied!",
+        description: `${promoCode} copied to clipboard`,
+      });
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      toast({
+        title: "Copy failed",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setTimeout(() => setCopying(false), 1500);
+    }
   };
 
   return (
@@ -59,6 +87,14 @@ export function DealCard({
         
         <div className="bg-muted p-2 rounded mb-3 flex justify-between items-center">
           <span className="font-medium">{promoCode}</span>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0 text-muted-foreground"
+            onClick={copyPromoCode}
+          >
+            {copying ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </Button>
         </div>
         
         <div className="flex justify-between items-center mb-3">

@@ -72,6 +72,7 @@ const MyDeals = () => {
           expiration_date,
           affiliate_link,
           category,
+          user_id,
           profiles:user_id (
             full_name,
             username,
@@ -95,7 +96,7 @@ const MyDeals = () => {
       
       // Transform the data
       const deals = validPromoCodes.map(promo => ({
-        id: promo.id,
+        id: `${promo.user_id}-${promo.id}`,
         title: promo.description,
         brandName: promo.brand_name,
         discount: promo.promo_code,
