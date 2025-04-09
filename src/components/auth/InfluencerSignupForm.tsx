@@ -63,12 +63,10 @@ const InfluencerSignupForm = () => {
       }
 
       if (data.user) {
+        // Update the profile to set is_influencer to true, without trying to set application_date
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ 
-            is_influencer: true,
-            application_date: new Date().toISOString()
-          })
+          .update({ is_influencer: true })
           .eq('id', data.user.id);
 
         if (profileError) {
