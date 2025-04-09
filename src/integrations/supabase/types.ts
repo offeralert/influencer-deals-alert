@@ -72,6 +72,7 @@ export type Database = {
           description: string
           expiration_date: string | null
           id: string
+          is_featured: boolean | null
           is_trending: boolean | null
           promo_code: string
           updated_at: string
@@ -85,6 +86,7 @@ export type Database = {
           description: string
           expiration_date?: string | null
           id?: string
+          is_featured?: boolean | null
           is_trending?: boolean | null
           promo_code: string
           updated_at?: string
@@ -98,6 +100,7 @@ export type Database = {
           description?: string
           expiration_date?: string | null
           id?: string
+          is_featured?: boolean | null
           is_trending?: boolean | null
           promo_code?: string
           updated_at?: string

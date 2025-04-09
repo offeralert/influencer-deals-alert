@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
 import FeaturedInfluencersSection from "@/components/home/FeaturedInfluencersSection";
-import TrendingDealsSection from "@/components/home/TrendingDealsSection";
+import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
 
@@ -13,7 +13,7 @@ const Index = () => {
     <div className="min-h-screen">
       <HeroSection />
       <FeaturedInfluencersSection />
-      <TrendingDealsSection />
+      <FeaturedOffersSection />
       <PopularCategoriesSection />
       <CallToActionSection />
     </div>
