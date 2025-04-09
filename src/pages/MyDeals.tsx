@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface SavedDeal {
   id: string;
@@ -27,8 +28,30 @@ const MyDeals = () => {
   useEffect(() => {
     if (user) {
       fetchSavedDeals();
+      
+      // Set up realtime subscription for follows table changes
+      const followsChannel = supabase
+        .channel('follows_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'follows',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchSavedDeals();
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(followsChannel);
+      };
     } else {
       setIsLoading(false);
+      setSavedDeals([]);
     }
   }, [user]);
 
@@ -49,6 +72,7 @@ const MyDeals = () => {
       
       if (followError) {
         console.error("Error fetching followed influencers:", followError);
+        toast.error("Error loading your deals");
         setIsLoading(false);
         return;
       }
@@ -84,6 +108,7 @@ const MyDeals = () => {
       
       if (promoError) {
         console.error("Error fetching promo codes:", promoError);
+        toast.error("Error loading promo codes");
         setIsLoading(false);
         return;
       }
@@ -96,7 +121,7 @@ const MyDeals = () => {
       
       // Transform the data
       const deals = validPromoCodes.map(promo => ({
-        id: `${promo.user_id}-${promo.id}`,
+        id: promo.id,
         title: promo.description,
         brandName: promo.brand_name,
         discount: promo.promo_code,
@@ -111,6 +136,7 @@ const MyDeals = () => {
       setSavedDeals(deals);
     } catch (error) {
       console.error("Error fetching saved deals:", error);
+      toast.error("Error loading your deals");
     } finally {
       setIsLoading(false);
     }

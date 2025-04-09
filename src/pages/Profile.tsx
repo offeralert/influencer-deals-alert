@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PromoCodeForm from "@/components/PromoCodeForm";
+import EditProfileForm from "@/components/EditProfileForm";
 
 interface PromoCode {
   id: string;
@@ -26,6 +27,7 @@ const Profile = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [editingProfile, setEditingProfile] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -67,6 +69,13 @@ const Profile = () => {
     fetchPromoCodes();
   };
 
+  const toggleEditProfile = () => {
+    setEditingProfile(!editingProfile);
+    if (editingProfile) {
+      setActiveTab("profile");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
@@ -104,8 +113,9 @@ const Profile = () => {
           <CardContent className="space-y-6">
             {profile?.is_influencer ? (
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="profile">Profile</TabsTrigger>
+                  <TabsTrigger value="edit">Edit Profile</TabsTrigger>
                   <TabsTrigger value="influencer">Influencer Dashboard</TabsTrigger>
                 </TabsList>
                 
@@ -130,13 +140,17 @@ const Profile = () => {
                   </div>
 
                   <div className="flex flex-col gap-2 sm:flex-row mt-6">
-                    <Button variant="outline" asChild>
-                      <a href="/edit-profile">Edit Profile</a>
+                    <Button variant="outline" onClick={() => setActiveTab("edit")}>
+                      Edit Profile
                     </Button>
                     <Button variant="destructive" onClick={signOut}>
                       Sign Out
                     </Button>
                   </div>
+                </TabsContent>
+                
+                <TabsContent value="edit">
+                  <EditProfileForm />
                 </TabsContent>
                 
                 <TabsContent value="influencer">
@@ -202,31 +216,42 @@ const Profile = () => {
                 </TabsContent>
               </Tabs>
             ) : (
-              <>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div>
-                    <h3 className="text-lg font-medium">Account Information</h3>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <div>
-                        <span className="font-medium">Email:</span> {user.email}
-                      </div>
-                      <div>
-                        <span className="font-medium">Account created:</span>{" "}
-                        {new Date(user.created_at).toLocaleDateString()}
+              <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="profile">Profile</TabsTrigger>
+                  <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="profile">
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                    <div>
+                      <h3 className="text-lg font-medium">Account Information</h3>
+                      <div className="mt-2 space-y-1 text-sm">
+                        <div>
+                          <span className="font-medium">Email:</span> {user.email}
+                        </div>
+                        <div>
+                          <span className="font-medium">Account created:</span>{" "}
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button variant="outline" asChild>
-                    <a href="/edit-profile">Edit Profile</a>
-                  </Button>
-                  <Button variant="destructive" onClick={signOut}>
-                    Sign Out
-                  </Button>
-                </div>
-              </>
+                  <div className="flex flex-col gap-2 sm:flex-row mt-6">
+                    <Button variant="outline" onClick={() => setActiveTab("edit")}>
+                      Edit Profile
+                    </Button>
+                    <Button variant="destructive" onClick={signOut}>
+                      Sign Out
+                    </Button>
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="edit">
+                  <EditProfileForm />
+                </TabsContent>
+              </Tabs>
             )}
           </CardContent>
         </Card>

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Menu, X, Bell, User, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
@@ -17,13 +17,20 @@ const Header = () => {
   const isMobile = useIsMobile();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    setIsSheetOpen(false);
+    navigate(path);
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur-sm bg-background/75">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           {isMobile && (
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="mr-1">
                   <Menu className="h-5 w-5" />
@@ -32,37 +39,62 @@ const Header = () => {
               </SheetTrigger>
               <SheetContent side="left" className="pt-10">
                 <nav className="flex flex-col gap-4">
-                  <Link to="/" className="text-lg font-medium hover:text-brand-green">
+                  <button 
+                    onClick={() => handleNavigation("/")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
                     Home
-                  </Link>
-                  <Link to="/search" className="text-lg font-medium hover:text-brand-green">
+                  </button>
+                  <button 
+                    onClick={() => handleNavigation("/search")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
                     Search
-                  </Link>
-                  <Link to="/explore" className="text-lg font-medium hover:text-brand-green">
+                  </button>
+                  <button 
+                    onClick={() => handleNavigation("/explore")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
                     Explore
-                  </Link>
-                  <Link to="/my-deals" className="text-lg font-medium hover:text-brand-green">
+                  </button>
+                  <button 
+                    onClick={() => handleNavigation("/my-deals")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
                     My Deals
-                  </Link>
+                  </button>
                   {profile?.is_influencer && (
-                    <Link to="/influencer-dashboard" className="text-lg font-medium text-brand-green">
+                    <button 
+                      onClick={() => handleNavigation("/influencer-dashboard")} 
+                      className="text-left text-lg font-medium text-brand-green"
+                    >
                       Influencer Dashboard
-                    </Link>
+                    </button>
                   )}
                   <div className="mt-4 space-y-2">
                     {!user ? (
                       <>
-                        <Button className="w-full bg-brand-green hover:bg-brand-green/90" asChild>
-                          <Link to="/login">Sign In</Link>
+                        <Button 
+                          className="w-full bg-brand-green hover:bg-brand-green/90" 
+                          onClick={() => handleNavigation("/login")}
+                        >
+                          Sign In
                         </Button>
-                        <Button variant="outline" className="w-full" asChild>
-                          <Link to="/signup">Sign Up</Link>
+                        <Button 
+                          variant="outline" 
+                          className="w-full" 
+                          onClick={() => handleNavigation("/signup")}
+                        >
+                          Sign Up
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button className="w-full bg-brand-green hover:bg-brand-green/90" asChild>
-                          <Link to="/profile">My Profile</Link>
+                        <Button 
+                          className="w-full bg-brand-green hover:bg-brand-green/90" 
+                          onClick={() => handleNavigation("/profile")}
+                        >
+                          My Profile
                         </Button>
                         <Button variant="outline" className="w-full" onClick={signOut}>
                           Sign Out

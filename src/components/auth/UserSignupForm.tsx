@@ -45,6 +45,7 @@ const UserSignupForm = () => {
     setIsLoading(true);
     
     try {
+      // Sign up the user
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -62,8 +63,21 @@ const UserSignupForm = () => {
         return;
       }
 
-      toast.success("Account created successfully! Please check your email to verify your account.");
-      navigate("/login");
+      // Automatically sign in the user
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (signInError) {
+        toast.error(signInError.message);
+        console.error("Auto sign-in error:", signInError);
+        navigate("/login");
+        return;
+      }
+
+      toast.success("Account created successfully! You've been signed in.");
+      navigate("/");
     } catch (error) {
       console.error("Unexpected error during signup:", error);
       toast.error("An unexpected error occurred. Please try again.");
