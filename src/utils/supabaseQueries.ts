@@ -24,10 +24,5 @@ export interface UniversalPromoCode {
 export const getUniversalPromoCodes = () => {
   return supabase
     .from('universal_promo_codes')
-    .select('*') as PostgrestFilterBuilder<
-      {
-        Row: UniversalPromoCode;
-      },
-      UniversalPromoCode
-    >;
+    .select('*') as PostgrestFilterBuilder<any, any, UniversalPromoCode>;
 };
