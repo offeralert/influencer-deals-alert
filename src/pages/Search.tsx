@@ -168,7 +168,9 @@ const Search = () => {
       
       setDeals(formattedDeals);
       
-      const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))];
+      const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))].filter(
+        (brandName): brandName is string => typeof brandName === 'string'
+      );
       setBrands(uniqueBrands);
     } catch (error) {
       console.error("Error in searchDeals:", error);

@@ -58,7 +58,8 @@ const Explore = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  
+  const [brands, setBrands] = useState<string[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -144,7 +145,7 @@ const Explore = () => {
         return;
       }
       
-      console.log(`Found ${data.length} deals`);
+      console.log(`Found ${data.length} deals matching search query`);
       
       const formattedDeals = data.map((deal: UniversalPromoCode) => ({
         id: deal.id || "",
@@ -160,8 +161,12 @@ const Explore = () => {
         category: deal.category || 'Fashion'
       }));
       
-      console.log(`Formatted ${formattedDeals.length} deals`);
       setDeals(formattedDeals);
+      
+      const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))].filter(
+        (brandName): brandName is string => typeof brandName === 'string'
+      );
+      setBrands(uniqueBrands);
     } catch (error) {
       console.error("Error in fetchDeals:", error);
       setDeals([]);

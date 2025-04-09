@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { PostgrestFilterBuilder } from "@supabase/supabase-js";
 
 export interface UniversalPromoCode {
   id: string;
@@ -19,8 +20,14 @@ export interface UniversalPromoCode {
   influencer_image?: string;
 }
 
-// Helper function to access the universal_promo_codes view
+// Helper function to access the universal_promo_codes view with proper typing
 export const getUniversalPromoCodes = () => {
-  // Type assertion to allow using the view with proper typing
-  return supabase.from('universal_promo_codes').select('*') as unknown as ReturnType<typeof supabase.from<UniversalPromoCode>>;
+  return supabase
+    .from('universal_promo_codes')
+    .select('*') as PostgrestFilterBuilder<
+      {
+        Row: UniversalPromoCode;
+      },
+      UniversalPromoCode
+    >;
 };
