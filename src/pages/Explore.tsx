@@ -40,7 +40,6 @@ interface Deal {
   id: string;
   title: string;
   brandName: string;
-  imageUrl: string;
   discount: string;
   promoCode: string;
   expiryDate?: string;
@@ -151,7 +150,6 @@ const Explore = () => {
         id: deal.id || "",
         title: deal.description || "",
         brandName: deal.brand_name || "",
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
         discount: deal.promo_code || "",
         promoCode: deal.promo_code || "",
         expiryDate: deal.expiration_date,

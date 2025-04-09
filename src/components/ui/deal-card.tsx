@@ -11,7 +11,6 @@ interface DealCardProps {
   id: string;
   title: string;
   brandName: string;
-  imageUrl: string;
   discount: string;
   promoCode: string;
   expiryDate?: string;
@@ -25,7 +24,6 @@ export function DealCard({
   id,
   title,
   brandName,
-  imageUrl,
   discount,
   promoCode,
   expiryDate,
@@ -63,18 +61,13 @@ export function DealCard({
   };
 
   return (
-    <Card className="overflow-hidden h-full flex flex-col">
-      <div className="aspect-[3/2] w-full relative overflow-hidden">
-        <img
-          alt={brandName}
-          className="object-cover w-full h-full"
-          src={imageUrl || "https://images.unsplash.com/photo-1567722066597-2bdf36d13481"}
-        />
-        <div className="absolute top-0 right-0 bg-brand-green text-white px-3 py-1 text-sm font-medium">
+    <Card className="h-full flex flex-col">
+      <div className="relative">
+        <div className="absolute top-0 right-0 bg-brand-green text-white px-3 py-1 text-sm font-medium rounded-bl-md">
           {title}
         </div>
       </div>
-      <CardContent className="p-4 flex-grow flex flex-col justify-between">
+      <CardContent className="p-4 flex-grow flex flex-col justify-between pt-8">
         <div>
           <h3 className="font-semibold text-lg mb-1">{brandName}</h3>
           
