@@ -62,22 +62,13 @@ const EditProfileForm = () => {
 
       // Upload avatar if a new one was selected
       if (avatar) {
-        // Check if storage bucket exists or create it
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const avatarsBucketExists = buckets?.some(bucket => bucket.name === 'avatars');
+        // Create a file path that includes the user ID as a folder
+        // This matches the structure expected by our RLS policies
+        const filePath = `${user.id}/${Date.now()}-${avatar.name.replace(/\s+/g, '-')}`;
         
-        if (!avatarsBucketExists) {
-          // Create avatars bucket
-          await supabase.storage.createBucket('avatars', {
-            public: true
-          });
-        }
-
-        // Upload the avatar
-        const fileName = `${user.id}-${Date.now()}`;
         const { data, error } = await supabase.storage
           .from('avatars')
-          .upload(fileName, avatar, {
+          .upload(filePath, avatar, {
             upsert: true,
           });
 
@@ -88,7 +79,7 @@ const EditProfileForm = () => {
         // Get the public URL
         const { data: publicURL } = supabase.storage
           .from('avatars')
-          .getPublicUrl(fileName);
+          .getPublicUrl(filePath);
 
         if (publicURL) {
           avatarUrl = publicURL.publicUrl;
@@ -102,7 +93,7 @@ const EditProfileForm = () => {
           full_name: formData.fullName,
           username: formData.username,
           avatar_url: avatarUrl,
-          updated_at: new Date().toISOString() // Convert Date to string
+          updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
 
