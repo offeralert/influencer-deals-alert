@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -100,7 +99,6 @@ const FeaturedOffersSection = () => {
               avatar_url
             )
           `)
-          .eq('is_featured', false)
           .or(`expiration_date.gt.${today},expiration_date.is.null`)
           .order('created_at', { ascending: false })
           .limit(4);
@@ -116,9 +114,9 @@ const FeaturedOffersSection = () => {
           return;
         }
         
-        transformAndSetOffers(recentData as PromoCodeRecord[]);
+        transformAndSetOffers(recentData as unknown as PromoCodeRecord[]);
       } else {
-        transformAndSetOffers(featuredData as PromoCodeRecord[]);
+        transformAndSetOffers(featuredData as unknown as PromoCodeRecord[]);
       }
     } catch (error) {
       console.error("Error in fetchFeaturedOffers:", error);
