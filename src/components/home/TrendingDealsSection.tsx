@@ -10,7 +10,6 @@ interface Deal {
   id: string;
   title: string;
   brandName: string;
-  imageUrl: string;
   discount: string;
   promoCode: string;
   expiryDate?: string;
@@ -32,6 +31,7 @@ const TrendingDealsSection = () => {
     try {
       setLoading(true);
       
+      // Get all influencer IDs
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -43,16 +43,18 @@ const TrendingDealsSection = () => {
         return;
       }
       
-      const influencerIds = influencerProfiles.map(profile => profile.id);
-      
-      if (influencerIds.length === 0) {
+      if (!influencerProfiles || influencerProfiles.length === 0) {
         useSampleDeals();
         return;
       }
       
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      // Get today's date for filtering expired codes
       const today = new Date().toISOString().split('T')[0];
       
-      const { data, error } = await supabase
+      // First try to get trending promo codes
+      const { data: trendingData, error: trendingError } = await supabase
         .from('promo_codes')
         .select(`
           id,
@@ -62,6 +64,7 @@ const TrendingDealsSection = () => {
           expiration_date,
           affiliate_link,
           category,
+          is_trending,
           profiles:user_id (
             id,
             full_name,
@@ -70,44 +73,56 @@ const TrendingDealsSection = () => {
           )
         `)
         .in('user_id', influencerIds)
+        .eq('is_trending', true)
         .or(`expiration_date.gt.${today},expiration_date.is.null`)
-        .limit(8);
+        .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error("Error fetching trending deals:", error);
+      if (trendingError) {
+        console.error("Error fetching trending deals:", trendingError);
         useSampleDeals();
         return;
       }
       
-      const validDeals = data.filter(deal => 
-        deal.brand_name && 
-        deal.promo_code && 
-        deal.profiles?.full_name
-      );
-      
-      if (validDeals.length === 0) {
-        useSampleDeals();
-        return;
+      // If no trending deals found, get the most recent ones
+      if (!trendingData || trendingData.length === 0) {
+        const { data: recentData, error: recentError } = await supabase
+          .from('promo_codes')
+          .select(`
+            id,
+            brand_name,
+            promo_code,
+            description,
+            expiration_date,
+            affiliate_link,
+            category,
+            is_trending,
+            profiles:user_id (
+              id,
+              full_name,
+              username,
+              avatar_url
+            )
+          `)
+          .in('user_id', influencerIds)
+          .or(`expiration_date.gt.${today},expiration_date.is.null`)
+          .order('created_at', { ascending: false })
+          .limit(4);
+        
+        if (recentError) {
+          console.error("Error fetching recent deals:", recentError);
+          useSampleDeals();
+          return;
+        }
+        
+        if (!recentData || recentData.length === 0) {
+          useSampleDeals();
+          return;
+        }
+        
+        transformAndSetDeals(recentData);
+      } else {
+        transformAndSetDeals(trendingData);
       }
-      
-      const shuffledDeals = validDeals.sort(() => 0.5 - Math.random());
-      const selectedDeals = shuffledDeals.slice(0, 4);
-      
-      const formattedDeals = selectedDeals.map(deal => ({
-        id: deal.id,
-        title: deal.description,
-        brandName: deal.brand_name,
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-        discount: deal.promo_code,
-        promoCode: deal.promo_code,
-        expiryDate: deal.expiration_date,
-        affiliateLink: deal.affiliate_link || "#",
-        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        category: deal.category || 'Fashion'
-      }));
-      
-      setTrendingDeals(formattedDeals);
     } catch (error) {
       console.error("Error in fetchTrendingDeals:", error);
       useSampleDeals();
@@ -116,13 +131,46 @@ const TrendingDealsSection = () => {
     }
   };
 
+  const transformAndSetDeals = (data: any[]) => {
+    // Filter out incomplete deals
+    const validDeals = data.filter(deal => 
+      deal.brand_name && 
+      deal.promo_code && 
+      deal.description &&
+      deal.profiles?.full_name
+    );
+    
+    if (validDeals.length === 0) {
+      useSampleDeals();
+      return;
+    }
+    
+    // Limit to 4 deals maximum
+    const selectedDeals = validDeals.slice(0, 4);
+    
+    // Transform to our Deal interface
+    const formattedDeals = selectedDeals.map(deal => ({
+      id: deal.id,
+      title: deal.description,
+      brandName: deal.brand_name,
+      discount: deal.promo_code,
+      promoCode: deal.promo_code,
+      expiryDate: deal.expiration_date,
+      affiliateLink: deal.affiliate_link || "#",
+      influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      category: deal.category || 'Fashion'
+    }));
+    
+    setTrendingDeals(formattedDeals);
+  };
+
   const useSampleDeals = () => {
     setTrendingDeals([
       {
         id: "1",
         title: "Summer Collection 2025",
         brandName: "FashionNova",
-        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
         discount: "30% OFF",
         promoCode: "SUMMER30",
         expiryDate: "2025-08-31",
@@ -135,7 +183,6 @@ const TrendingDealsSection = () => {
         id: "2",
         title: "Premium Fitness Tracker",
         brandName: "FitGear",
-        imageUrl: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
         discount: "25% OFF",
         promoCode: "FIT25",
         expiryDate: "2025-07-15",
@@ -148,7 +195,6 @@ const TrendingDealsSection = () => {
         id: "3",
         title: "Gourmet Cooking Set",
         brandName: "ChefChoice",
-        imageUrl: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
         discount: "20% OFF",
         promoCode: "CHEF20",
         expiryDate: "2025-09-10",
@@ -161,7 +207,6 @@ const TrendingDealsSection = () => {
         id: "4",
         title: "Smart Home Bundle",
         brandName: "TechLife",
-        imageUrl: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b",
         discount: "15% OFF",
         promoCode: "SMART15",
         expiryDate: "2025-07-30",
