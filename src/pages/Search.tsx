@@ -78,136 +78,146 @@ const Search = () => {
   };
   
   const searchInfluencers = async () => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('is_influencer', true)
-      .or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
-      .order('full_name');
-    
-    if (error) {
-      console.error("Error searching influencers:", error);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_influencer', true)
+        .or(`full_name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`)
+        .order('full_name');
+      
+      if (error) {
+        console.error("Error searching influencers:", error);
+        setInfluencers([]);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("No influencers found matching the search query");
+        setInfluencers([]);
+        return;
+      }
+      
+      const formattedInfluencers = data.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name || 'Unnamed Influencer',
+        username: profile.username || 'unknown',
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        followers_count: Math.floor(Math.random() * 100000),
+        category: 'Lifestyle'
+      }));
+      
+      setInfluencers(formattedInfluencers);
+    } catch (error) {
+      console.error("Error in searchInfluencers:", error);
       setInfluencers([]);
-      return;
     }
-    
-    if (!data || data.length === 0) {
-      console.log("No influencers found matching the search query");
-      setInfluencers([]);
-      return;
-    }
-    
-    const formattedInfluencers = data.map(profile => ({
-      id: profile.id,
-      full_name: profile.full_name || 'Unnamed Influencer',
-      username: profile.username || 'unknown',
-      avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      followers_count: Math.floor(Math.random() * 100000),
-      category: 'Lifestyle'
-    }));
-    
-    setInfluencers(formattedInfluencers);
   };
   
   const searchDeals = async () => {
-    const { data: influencerProfiles, error: influencerError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('is_influencer', true);
-    
-    if (influencerError) {
-      console.error("Error fetching influencer profiles:", influencerError);
-      setDeals([]);
-      setBrands([]);
-      return;
-    }
-    
-    const influencerIds = influencerProfiles.map(profile => profile.id);
-    
-    if (influencerIds.length === 0) {
-      console.log("No influencers found");
-      setDeals([]);
-      setBrands([]);
-      return;
-    }
-    
-    let query = supabase
-      .from('promo_codes')
-      .select(`
-        id,
-        brand_name,
-        promo_code,
-        description,
-        expiration_date,
-        affiliate_link,
-        category,
-        profiles:user_id (
-          id,
-          full_name,
-          username,
-          avatar_url
-        )
-      `)
-      .in('user_id', influencerIds);
+    try {
+      const { data: influencerProfiles, error: influencerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_influencer', true);
       
-    const searchTerms = [
-      `brand_name.ilike.%${searchQuery}%`, 
-      `promo_code.ilike.%${searchQuery}%`, 
-      `description.ilike.%${searchQuery}%`, 
-      `category.ilike.%${searchQuery}%`
-    ];
-    
-    query = query.or(searchTerms.join(','));
+      if (influencerError) {
+        console.error("Error fetching influencer profiles:", influencerError);
+        setDeals([]);
+        setBrands([]);
+        return;
+      }
+      
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      if (influencerIds.length === 0) {
+        console.log("No influencers found");
+        setDeals([]);
+        setBrands([]);
+        return;
+      }
+      
+      let query = supabase
+        .from('promo_codes')
+        .select(`
+          id,
+          brand_name,
+          promo_code,
+          description,
+          expiration_date,
+          affiliate_link,
+          category,
+          profiles:user_id (
+            id,
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .in('user_id', influencerIds);
+      
+      const searchTerms = [
+        `brand_name.ilike.%${searchQuery}%`, 
+        `promo_code.ilike.%${searchQuery}%`, 
+        `description.ilike.%${searchQuery}%`, 
+        `category.ilike.%${searchQuery}%`
+      ];
+      
+      query = query.or(searchTerms.join(','));
 
-    const today = new Date().toISOString().split('T')[0];
-    query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
-
-    if (selectedCategories.length > 0) {
-      query = query.in('category', selectedCategories);
-    }
-    
-    const { data, error } = await query.order('brand_name');
-    
-    if (error) {
-      console.error("Error searching deals:", error);
+      // No more expiration date filtering - show all promo codes regardless of expiration
+      
+      if (selectedCategories.length > 0) {
+        query = query.in('category', selectedCategories);
+      }
+      
+      const { data, error } = await query.order('brand_name');
+      
+      if (error) {
+        console.error("Error searching deals:", error);
+        setDeals([]);
+        setBrands([]);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("No deals found matching the search query");
+        setDeals([]);
+        setBrands([]);
+        return;
+      }
+      
+      console.log(`Found ${data.length} deals matching search query`);
+      
+      const validDeals = data.filter(deal => 
+        deal.brand_name && 
+        deal.promo_code && 
+        deal.description
+      );
+      
+      const formattedDeals = validDeals.map(deal => ({
+        id: deal.id,
+        title: deal.description,
+        brandName: deal.brand_name,
+        imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
+        discount: deal.promo_code,
+        promoCode: deal.promo_code,
+        expiryDate: deal.expiration_date,
+        affiliateLink: deal.affiliate_link || "#",
+        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: deal.category || 'Fashion'
+      }));
+      
+      setDeals(formattedDeals);
+      
+      const uniqueBrands = [...new Set(validDeals.map(deal => deal.brand_name))];
+      setBrands(uniqueBrands);
+    } catch (error) {
+      console.error("Error in searchDeals:", error);
       setDeals([]);
       setBrands([]);
-      return;
     }
-    
-    if (!data || data.length === 0) {
-      console.log("No deals found matching the search query");
-      setDeals([]);
-      setBrands([]);
-      return;
-    }
-    
-    console.log(`Found ${data.length} deals matching search query`);
-    
-    const validDeals = data.filter(deal => 
-      deal.brand_name && 
-      deal.promo_code && 
-      deal.description
-    );
-    
-    const formattedDeals = validDeals.map(deal => ({
-      id: deal.id,
-      title: deal.description,
-      brandName: deal.brand_name,
-      imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-      discount: deal.promo_code,
-      promoCode: deal.promo_code,
-      expiryDate: deal.expiration_date,
-      affiliateLink: deal.affiliate_link || "#",
-      influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      category: deal.category || 'Fashion'
-    }));
-    
-    setDeals(formattedDeals);
-    
-    const uniqueBrands = [...new Set(validDeals.map(deal => deal.brand_name))];
-    setBrands(uniqueBrands);
   };
 
   const clearFilters = () => {

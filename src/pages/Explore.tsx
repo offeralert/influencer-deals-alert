@@ -113,7 +113,6 @@ const Explore = () => {
   
   const fetchDeals = async () => {
     try {
-      // First get valid influencer IDs (users with is_influencer = true)
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -125,7 +124,6 @@ const Explore = () => {
         return;
       }
       
-      // Extract the influencer IDs
       const influencerIds = influencerProfiles.map(profile => profile.id);
       
       if (influencerIds.length === 0) {
@@ -134,7 +132,6 @@ const Explore = () => {
         return;
       }
       
-      // Now fetch promo codes only from these influencers
       let query = supabase
         .from('promo_codes')
         .select(`
@@ -155,16 +152,10 @@ const Explore = () => {
         `)
         .in('user_id', influencerIds);
       
-      // Filter out expired codes
-      const today = new Date().toISOString().split('T')[0];
-      query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
-      
-      // Apply category filter if categories are selected
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
       }
       
-      // Apply sorting
       if (sortOption === 'alphabetical') {
         query = query.order('brand_name', { ascending: true });
       } else if (sortOption === 'discount') {
@@ -191,7 +182,6 @@ const Explore = () => {
       
       console.log(`Found ${data.length} deals before validation`);
       
-      // Transform data to match the Deal interface
       const formattedDeals = data
         .filter(deal => deal.brand_name && deal.promo_code && deal.description)
         .map(deal => ({

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -48,9 +47,6 @@ const FeaturedOffersSection = () => {
     try {
       setLoading(true);
       
-      // Get today's date for filtering expired codes
-      const today = new Date().toISOString().split('T')[0];
-      
       // First, get valid influencer IDs (users with is_influencer = true)
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
@@ -93,8 +89,7 @@ const FeaturedOffersSection = () => {
             avatar_url
           )
         `)
-        .in('user_id', influencerIds)
-        .or(`expiration_date.gt.${today},expiration_date.is.null`);
+        .in('user_id', influencerIds);
       
       // Get featured offers first, if available
       const { data: featuredData, error: featuredError } = await query
@@ -105,7 +100,7 @@ const FeaturedOffersSection = () => {
       if (featuredError || !featuredData || featuredData.length === 0) {
         console.log("No featured offers found or is_featured doesn't exist, getting recent offers");
         
-        // Get most recent offers instead
+        // Get most recent offers instead - no expiration filtering
         const { data: recentData, error: recentError } = await supabase
           .from('promo_codes')
           .select(`
@@ -124,7 +119,6 @@ const FeaturedOffersSection = () => {
             )
           `)
           .in('user_id', influencerIds)
-          .or(`expiration_date.gt.${today},expiration_date.is.null`)
           .order('created_at', { ascending: false })
           .limit(4);
         

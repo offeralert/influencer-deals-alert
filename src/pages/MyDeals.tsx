@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ const MyDeals = () => {
       
       const influencerIds = followedInfluencers.map(follow => follow.influencer_id);
       
-      // Get promo codes from followed influencers
+      // Get promo codes from followed influencers - without filtering by expiration date
       const { data: promoCodes, error: promoError } = await supabase
         .from('promo_codes')
         .select(`
@@ -113,14 +112,8 @@ const MyDeals = () => {
         return;
       }
       
-      // Filter out expired promo codes
-      const today = new Date();
-      const validPromoCodes = promoCodes.filter(promo => {
-        return !promo.expiration_date || new Date(promo.expiration_date) >= today;
-      });
-      
-      // Transform the data
-      const deals = validPromoCodes.map(promo => ({
+      // Transform the data - keep all promo codes regardless of expiration
+      const deals = promoCodes.map(promo => ({
         id: promo.id,
         title: promo.description,
         brandName: promo.brand_name,
