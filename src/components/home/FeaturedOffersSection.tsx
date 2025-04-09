@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -75,7 +76,8 @@ const FeaturedOffersSection = () => {
       
       if (featuredError) {
         console.error("Error fetching featured offers:", featuredError);
-        useSampleOffers();
+        setFeaturedOffers([]);
+        setLoading(false);
         return;
       }
       
@@ -105,12 +107,14 @@ const FeaturedOffersSection = () => {
         
         if (recentError) {
           console.error("Error fetching recent offers:", recentError);
-          useSampleOffers();
+          setFeaturedOffers([]);
+          setLoading(false);
           return;
         }
         
         if (!recentData || recentData.length === 0) {
-          useSampleOffers();
+          setFeaturedOffers([]);
+          setLoading(false);
           return;
         }
         
@@ -120,7 +124,7 @@ const FeaturedOffersSection = () => {
       }
     } catch (error) {
       console.error("Error in fetchFeaturedOffers:", error);
-      useSampleOffers();
+      setFeaturedOffers([]);
     } finally {
       setLoading(false);
     }
@@ -136,7 +140,7 @@ const FeaturedOffersSection = () => {
     );
     
     if (validOffers.length === 0) {
-      useSampleOffers();
+      setFeaturedOffers([]);
       return;
     }
     
@@ -160,59 +164,6 @@ const FeaturedOffersSection = () => {
     setFeaturedOffers(formattedOffers);
   };
 
-  const useSampleOffers = () => {
-    setFeaturedOffers([
-      {
-        id: "1",
-        title: "Summer Collection 2025",
-        brandName: "FashionNova",
-        discount: "30% OFF",
-        promoCode: "SUMMER30",
-        expiryDate: "2025-08-31",
-        affiliateLink: "https://example.com",
-        influencerName: "Sophia Chen",
-        influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-        category: "Fashion"
-      },
-      {
-        id: "2",
-        title: "Premium Fitness Tracker",
-        brandName: "FitGear",
-        discount: "25% OFF",
-        promoCode: "FIT25",
-        expiryDate: "2025-07-15",
-        affiliateLink: "https://example.com",
-        influencerName: "Marcus Johnson",
-        influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-        category: "Fitness"
-      },
-      {
-        id: "3",
-        title: "Gourmet Cooking Set",
-        brandName: "ChefChoice",
-        discount: "20% OFF",
-        promoCode: "CHEF20",
-        expiryDate: "2025-09-10",
-        affiliateLink: "https://example.com",
-        influencerName: "Emma Wilson",
-        influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-        category: "Food"
-      },
-      {
-        id: "4",
-        title: "Smart Home Bundle",
-        brandName: "TechLife",
-        discount: "15% OFF",
-        promoCode: "SMART15",
-        expiryDate: "2025-07-30",
-        affiliateLink: "https://example.com",
-        influencerName: "Alex Rivera",
-        influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-        category: "Tech"
-      },
-    ]);
-  };
-
   return (
     <section className="py-12 bg-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-4">
@@ -225,9 +176,15 @@ const FeaturedOffersSection = () => {
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {featuredOffers.map((offer) => (
-            <DealCard key={offer.id} {...offer} />
-          ))}
+          {featuredOffers.length > 0 ? (
+            featuredOffers.map((offer) => (
+              <DealCard key={offer.id} {...offer} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">No featured offers available right now.</p>
+            </div>
+          )}
         </div>
       </div>
     </section>
