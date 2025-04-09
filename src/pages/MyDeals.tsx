@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,6 @@ interface SavedDeal {
   id: string;
   title: string;
   brandName: string;
-  imageUrl: string;
   discount: string;
   promoCode: string;
   expiryDate?: string;
@@ -36,55 +36,78 @@ const MyDeals = () => {
     try {
       setIsLoading(true);
       
-      // In a real app, you would fetch the user's saved deals from the database
-      // For now, we'll use placeholder data
+      if (!user) {
+        setSavedDeals([]);
+        return;
+      }
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Get all influencers that the user follows
+      const { data: followedInfluencers, error: followError } = await supabase
+        .from('follows')
+        .select('influencer_id')
+        .eq('user_id', user.id);
       
-      // Sample data
-      const mockDeals: SavedDeal[] = [
-        {
-          id: "1",
-          title: "20% off all shoes",
-          brandName: "Nike",
-          imageUrl: "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
-          discount: "20% OFF",
-          promoCode: "NIKE20",
-          expiryDate: "2023-12-31",
-          affiliateLink: "https://nike.com",
-          influencerName: "John Runner",
-          influencerImage: "https://randomuser.me/api/portraits/men/32.jpg",
-          category: "Fashion"
-        },
-        {
-          id: "2",
-          title: "Buy one get one free",
-          brandName: "Starbucks",
-          imageUrl: "https://images.unsplash.com/photo-1504753793650-d4a2b783c15e",
-          discount: "BOGO",
-          promoCode: "COFFEEDAY",
-          expiryDate: "2023-11-15",
-          affiliateLink: "https://starbucks.com",
-          influencerName: "Coffee Lover",
-          influencerImage: "https://randomuser.me/api/portraits/women/44.jpg",
-          category: "Food"
-        },
-        {
-          id: "3",
-          title: "15% off your first order",
-          brandName: "Amazon",
-          imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-          discount: "15% OFF",
-          promoCode: "WELCOME15",
-          affiliateLink: "https://amazon.com",
-          influencerName: "Tech Deals",
-          influencerImage: "https://randomuser.me/api/portraits/men/62.jpg",
-          category: "Tech"
-        }
-      ];
+      if (followError) {
+        console.error("Error fetching followed influencers:", followError);
+        setIsLoading(false);
+        return;
+      }
       
-      setSavedDeals(mockDeals);
+      if (!followedInfluencers || followedInfluencers.length === 0) {
+        setSavedDeals([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      const influencerIds = followedInfluencers.map(follow => follow.influencer_id);
+      
+      // Get promo codes from followed influencers
+      const { data: promoCodes, error: promoError } = await supabase
+        .from('promo_codes')
+        .select(`
+          id,
+          brand_name,
+          promo_code,
+          description,
+          expiration_date,
+          affiliate_link,
+          category,
+          profiles:user_id (
+            full_name,
+            username,
+            avatar_url
+          )
+        `)
+        .in('user_id', influencerIds)
+        .order('created_at', { ascending: false });
+      
+      if (promoError) {
+        console.error("Error fetching promo codes:", promoError);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Filter out expired promo codes
+      const today = new Date();
+      const validPromoCodes = promoCodes.filter(promo => {
+        return !promo.expiration_date || new Date(promo.expiration_date) >= today;
+      });
+      
+      // Transform the data
+      const deals = validPromoCodes.map(promo => ({
+        id: promo.id,
+        title: promo.description,
+        brandName: promo.brand_name,
+        discount: promo.promo_code,
+        promoCode: promo.promo_code,
+        expiryDate: promo.expiration_date,
+        affiliateLink: promo.affiliate_link || "#",
+        influencerName: promo.profiles?.full_name || 'Unknown Influencer',
+        influencerImage: promo.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: promo.category
+      }));
+      
+      setSavedDeals(deals);
     } catch (error) {
       console.error("Error fetching saved deals:", error);
     } finally {
@@ -108,7 +131,6 @@ const MyDeals = () => {
               id={deal.id}
               title={deal.title}
               brandName={deal.brandName}
-              imageUrl={deal.imageUrl}
               discount={deal.discount}
               promoCode={deal.promoCode}
               expiryDate={deal.expiryDate}
@@ -123,11 +145,16 @@ const MyDeals = () => {
         <div className="text-center py-16 bg-gray-50 rounded-lg">
           <h3 className="text-lg font-medium mb-2">You haven't saved any deals yet</h3>
           <p className="text-gray-500 mb-4">
-            Start exploring and save deals you're interested in.
+            Follow influencers to see their deals here, or explore all deals.
           </p>
-          <Button asChild>
-            <Link to="/explore">Explore Deals</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild>
+              <Link to="/explore">Explore Deals</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/explore?tab=influencers">Find Influencers</Link>
+            </Button>
+          </div>
         </div>
       )}
     </div>

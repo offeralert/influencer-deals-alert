@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -22,6 +21,7 @@ import Categories from "./pages/Categories";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
+import InfluencerProfile from "./pages/InfluencerProfile";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +49,7 @@ const App = () => (
               <Route path="/about" element={<About />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/influencer/:id" element={<InfluencerProfile />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

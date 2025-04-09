@@ -1,18 +1,17 @@
 
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clipboard, ExternalLink } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { ExternalLink, Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 
-interface DealCardProps {
+export interface DealCardProps {
   id: string;
   title: string;
   brandName: string;
-  imageUrl: string;
   discount: string;
-  promoCode?: string;
+  promoCode: string;
   expiryDate?: string;
   affiliateLink: string;
   influencerName: string;
@@ -24,95 +23,71 @@ export function DealCard({
   id,
   title,
   brandName,
-  imageUrl,
   discount,
   promoCode,
   expiryDate,
-  affiliateLink = "#", // Default value for affiliateLink
+  affiliateLink,
   influencerName,
   influencerImage,
   category,
 }: DealCardProps) {
-  const [copied, setCopied] = useState(false);
-  
-  const handleCopyPromoCode = () => {
-    if (promoCode) {
-      navigator.clipboard.writeText(promoCode);
-      setCopied(true);
-      toast.success("Promo code copied to clipboard!");
-      
-      setTimeout(() => {
-        setCopied(false);
-      }, 2000);
-    }
-  };
-  
-  const openAffiliateLink = () => {
-    window.open(affiliateLink, "_blank");
-    toast.info("Opening brand website...");
+  const formatExpiryDate = (date?: string) => {
+    if (!date) return "No expiration";
+    
+    const expiryDate = new Date(date);
+    const today = new Date();
+    const diffTime = expiryDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return "Expired";
+    if (diffDays === 0) return "Expires today";
+    if (diffDays === 1) return "Expires tomorrow";
+    return `Expires in ${diffDays} days`;
   };
 
   return (
-    <Card className="overflow-hidden transition-all duration-200 hover:shadow-md">
-      <div className="relative pb-[100%]">
-        <img
-          src={imageUrl}
-          alt={title}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <Badge variant="secondary" className="absolute top-2 right-2 bg-white/90 dark:bg-black/70">
-          {discount}
-        </Badge>
-      </div>
-      <div className="p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <img
-            src={influencerImage}
-            alt={influencerName}
-            className="h-6 w-6 rounded-full object-cover"
-          />
-          <span className="text-xs text-muted-foreground">{influencerName}</span>
+    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <h3 className="font-semibold text-lg">{brandName}</h3>
+          <Badge variant="outline" className="bg-primary/10 border-none text-primary">
+            {discount}
+          </Badge>
         </div>
         
-        <h3 className="font-semibold">{title}</h3>
-        <p className="text-sm text-muted-foreground mb-3">{brandName}</p>
+        <p className="text-sm text-muted-foreground mb-3">{title}</p>
         
-        {category && (
-          <Badge variant="outline" className="mb-3">
-            {category}
-          </Badge>
-        )}
+        <div className="bg-muted p-2 rounded mb-3 flex justify-between items-center">
+          <span className="font-medium">{promoCode}</span>
+        </div>
         
-        {expiryDate && (
-          <p className="text-xs text-muted-foreground mb-4">
-            Expires: {new Date(expiryDate).toLocaleDateString()}
-          </p>
-        )}
-        
-        <div className="space-y-2">
-          {promoCode && (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 bg-muted p-2 rounded text-sm font-mono">
-                {promoCode}
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                onClick={handleCopyPromoCode}
-              >
-                <Clipboard className="h-4 w-4" />
-                <span className="sr-only">Copy code</span>
-              </Button>
-            </div>
-          )}
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center text-xs text-muted-foreground">
+            <Calendar className="h-3 w-3 mr-1" />
+            <span>{formatExpiryDate(expiryDate)}</span>
+          </div>
           
-          <Button className="w-full" onClick={openAffiliateLink}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Shop Now
+          <Button size="sm" variant="outline" asChild>
+            <a href={affiliateLink} target="_blank" rel="noopener noreferrer" className="flex items-center">
+              Shop <ExternalLink className="ml-1 h-3 w-3" />
+            </a>
           </Button>
         </div>
-      </div>
+        
+        <div className="flex justify-between items-center">
+          <Link to={`/explore?category=${category}`} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
+            {category}
+          </Link>
+          
+          <Link to={`/influencer/${id.split('-')[0]}`} className="flex items-center gap-2">
+            <Avatar className="h-6 w-6">
+              <AvatarImage src={influencerImage} alt={influencerName} />
+              <AvatarFallback>{influencerName[0]}</AvatarFallback>
+            </Avatar>
+            <span className="text-xs">{influencerName}</span>
+          </Link>
+        </div>
+      </CardContent>
     </Card>
   );
 }
