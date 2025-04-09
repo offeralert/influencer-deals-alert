@@ -164,8 +164,6 @@ const Search = () => {
       ];
       
       query = query.or(searchTerms.join(','));
-
-      // No more expiration date filtering - show all promo codes regardless of expiration
       
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
