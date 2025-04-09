@@ -102,7 +102,7 @@ const EditProfileForm = () => {
           full_name: formData.fullName,
           username: formData.username,
           avatar_url: avatarUrl,
-          updated_at: new Date()
+          updated_at: new Date().toISOString() // Convert Date to string
         })
         .eq('id', user.id);
 
