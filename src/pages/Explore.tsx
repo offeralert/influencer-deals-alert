@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Select, 
@@ -86,6 +85,13 @@ const Explore = () => {
       
       if (error) {
         console.error("Error fetching influencers:", error);
+        setInfluencers([]);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("No influencers found");
+        setInfluencers([]);
         return;
       }
       
@@ -101,6 +107,7 @@ const Explore = () => {
       setInfluencers(formattedInfluencers);
     } catch (error) {
       console.error("Error in fetchInfluencers:", error);
+      setInfluencers([]);
     }
   };
   
@@ -114,6 +121,7 @@ const Explore = () => {
       
       if (influencerError) {
         console.error("Error fetching influencer profiles:", influencerError);
+        setDeals([]);
         return;
       }
       
@@ -121,6 +129,7 @@ const Explore = () => {
       const influencerIds = influencerProfiles.map(profile => profile.id);
       
       if (influencerIds.length === 0) {
+        console.log("No influencers found");
         setDeals([]);
         return;
       }
@@ -170,8 +179,17 @@ const Explore = () => {
       
       if (error) {
         console.error("Error fetching deals:", error);
+        setDeals([]);
         return;
       }
+      
+      if (!data || data.length === 0) {
+        console.log("No deals found");
+        setDeals([]);
+        return;
+      }
+      
+      console.log(`Found ${data.length} deals before validation`);
       
       // Transform data to match the Deal interface
       const formattedDeals = data
@@ -190,9 +208,11 @@ const Explore = () => {
           category: deal.category || 'Fashion'
         }));
       
+      console.log(`Found ${formattedDeals.length} valid deals after filtering`);
       setDeals(formattedDeals);
     } catch (error) {
       console.error("Error in fetchDeals:", error);
+      setDeals([]);
     }
   };
 

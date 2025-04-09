@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -88,6 +87,13 @@ const Search = () => {
     
     if (error) {
       console.error("Error searching influencers:", error);
+      setInfluencers([]);
+      return;
+    }
+    
+    if (!data || data.length === 0) {
+      console.log("No influencers found matching the search query");
+      setInfluencers([]);
       return;
     }
     
@@ -113,6 +119,8 @@ const Search = () => {
     
     if (influencerError) {
       console.error("Error fetching influencer profiles:", influencerError);
+      setDeals([]);
+      setBrands([]);
       return;
     }
     
@@ -120,11 +128,13 @@ const Search = () => {
     const influencerIds = influencerProfiles.map(profile => profile.id);
     
     if (influencerIds.length === 0) {
+      console.log("No influencers found");
       setDeals([]);
       setBrands([]);
       return;
     }
     
+    // Expanded search to include matches in more fields and joins with profiles table
     let query = supabase
       .from('promo_codes')
       .select(`
@@ -136,17 +146,28 @@ const Search = () => {
         affiliate_link,
         category,
         profiles:user_id (
+          id,
           full_name,
           username,
           avatar_url
         )
       `)
-      .in('user_id', influencerIds)
-      .or(`brand_name.ilike.%${searchQuery}%,promo_code.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,category.ilike.%${searchQuery}%`);
+      .in('user_id', influencerIds);
+      
+    // Build the search query
+    const searchTerms = [
+      `brand_name.ilike.%${searchQuery}%`, 
+      `promo_code.ilike.%${searchQuery}%`, 
+      `description.ilike.%${searchQuery}%`, 
+      `category.ilike.%${searchQuery}%`
+    ];
+    
+    // Add search for influencer names and usernames
+    query = query.or(searchTerms.join(','));
 
     // Filter out expired codes
     const today = new Date().toISOString().split('T')[0];
-    query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
+    query = query.and(`(expiration_date.gt.${today},expiration_date.is.null)`);
 
     // Apply category filter if categories are selected
     if (selectedCategories.length > 0) {
@@ -157,12 +178,25 @@ const Search = () => {
     
     if (error) {
       console.error("Error searching deals:", error);
+      setDeals([]);
+      setBrands([]);
       return;
     }
     
+    if (!data || data.length === 0) {
+      console.log("No deals found matching the search query");
+      setDeals([]);
+      setBrands([]);
+      return;
+    }
+    
+    console.log(`Found ${data.length} deals matching search query`);
+    
     // Filter to ensure all required fields are present
     const validDeals = data.filter(deal => 
-      deal.brand_name && deal.promo_code && deal.description
+      deal.brand_name && 
+      deal.promo_code && 
+      deal.description
     );
     
     // Transform data to match the Deal interface

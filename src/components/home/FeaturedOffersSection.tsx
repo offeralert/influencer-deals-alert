@@ -51,8 +51,31 @@ const FeaturedOffersSection = () => {
       // Get today's date for filtering expired codes
       const today = new Date().toISOString().split('T')[0];
       
-      // Get featured promo codes from influencers
-      const { data: featuredData, error: featuredError } = await supabase
+      // First, get valid influencer IDs (users with is_influencer = true)
+      const { data: influencerProfiles, error: influencerError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_influencer', true);
+      
+      if (influencerError) {
+        console.error("Error fetching influencer profiles:", influencerError);
+        setFeaturedOffers([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Extract the influencer IDs
+      const influencerIds = influencerProfiles.map(profile => profile.id);
+      
+      if (influencerIds.length === 0) {
+        console.log("No influencers found");
+        setFeaturedOffers([]);
+        setLoading(false);
+        return;
+      }
+      
+      // Try to get featured promo codes first (if column exists)
+      let query = supabase
         .from('promo_codes')
         .select(`
           id,
@@ -70,19 +93,19 @@ const FeaturedOffersSection = () => {
             avatar_url
           )
         `)
+        .in('user_id', influencerIds)
+        .or(`expiration_date.gt.${today},expiration_date.is.null`);
+      
+      // Get featured offers first, if available
+      const { data: featuredData, error: featuredError } = await query
         .eq('is_featured', true)
-        .or(`expiration_date.gt.${today},expiration_date.is.null`)
-        .order('created_at', { ascending: false });
+        .limit(4);
       
-      if (featuredError) {
-        console.error("Error fetching featured offers:", featuredError);
-        setFeaturedOffers([]);
-        setLoading(false);
-        return;
-      }
-      
-      // If no featured offers found, get the most recent ones from influencers
-      if (!featuredData || featuredData.length === 0) {
+      // If error about is_featured not existing, or no featured data, get most recent offers
+      if (featuredError || !featuredData || featuredData.length === 0) {
+        console.log("No featured offers found or is_featured doesn't exist, getting recent offers");
+        
+        // Get most recent offers instead
         const { data: recentData, error: recentError } = await supabase
           .from('promo_codes')
           .select(`
@@ -93,7 +116,6 @@ const FeaturedOffersSection = () => {
             expiration_date,
             affiliate_link,
             category,
-            is_featured,
             profiles:user_id (
               id,
               full_name,
@@ -101,6 +123,7 @@ const FeaturedOffersSection = () => {
               avatar_url
             )
           `)
+          .in('user_id', influencerIds)
           .or(`expiration_date.gt.${today},expiration_date.is.null`)
           .order('created_at', { ascending: false })
           .limit(4);
@@ -113,14 +136,15 @@ const FeaturedOffersSection = () => {
         }
         
         if (!recentData || recentData.length === 0) {
+          console.log("No recent offers found");
           setFeaturedOffers([]);
           setLoading(false);
           return;
         }
         
-        transformAndSetOffers(recentData as unknown as PromoCodeRecord[]);
+        transformAndSetOffers(recentData as PromoCodeRecord[]);
       } else {
-        transformAndSetOffers(featuredData as unknown as PromoCodeRecord[]);
+        transformAndSetOffers(featuredData as PromoCodeRecord[]);
       }
     } catch (error) {
       console.error("Error in fetchFeaturedOffers:", error);
@@ -140,15 +164,15 @@ const FeaturedOffersSection = () => {
     );
     
     if (validOffers.length === 0) {
+      console.log("No valid offers found after filtering");
       setFeaturedOffers([]);
       return;
     }
     
-    // Limit to 4 offers maximum
-    const selectedOffers = validOffers.slice(0, 4);
+    console.log(`Found ${validOffers.length} valid offers`);
     
     // Transform to our Deal interface
-    const formattedOffers = selectedOffers.map(offer => ({
+    const formattedOffers = validOffers.map(offer => ({
       id: offer.id,
       title: offer.description,
       brandName: offer.brand_name,
@@ -176,7 +200,11 @@ const FeaturedOffersSection = () => {
           </Button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {featuredOffers.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full text-center py-12">
+              <p className="text-muted-foreground">Loading offers...</p>
+            </div>
+          ) : featuredOffers.length > 0 ? (
             featuredOffers.map((offer) => (
               <DealCard key={offer.id} {...offer} />
             ))
