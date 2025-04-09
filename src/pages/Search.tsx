@@ -97,7 +97,6 @@ const Search = () => {
       return;
     }
     
-    // Transform data to match the Influencer interface
     const formattedInfluencers = data.map(profile => ({
       id: profile.id,
       full_name: profile.full_name || 'Unnamed Influencer',
@@ -111,7 +110,6 @@ const Search = () => {
   };
   
   const searchDeals = async () => {
-    // First get valid influencer IDs (users with is_influencer = true)
     const { data: influencerProfiles, error: influencerError } = await supabase
       .from('profiles')
       .select('id')
@@ -124,7 +122,6 @@ const Search = () => {
       return;
     }
     
-    // Extract the influencer IDs
     const influencerIds = influencerProfiles.map(profile => profile.id);
     
     if (influencerIds.length === 0) {
@@ -134,7 +131,6 @@ const Search = () => {
       return;
     }
     
-    // Expanded search to include matches in more fields and joins with profiles table
     let query = supabase
       .from('promo_codes')
       .select(`
@@ -154,7 +150,6 @@ const Search = () => {
       `)
       .in('user_id', influencerIds);
       
-    // Build the search query
     const searchTerms = [
       `brand_name.ilike.%${searchQuery}%`, 
       `promo_code.ilike.%${searchQuery}%`, 
@@ -162,14 +157,11 @@ const Search = () => {
       `category.ilike.%${searchQuery}%`
     ];
     
-    // Add search for influencer names and usernames
     query = query.or(searchTerms.join(','));
 
-    // Filter out expired codes
     const today = new Date().toISOString().split('T')[0];
-    query = query.and(`(expiration_date.gt.${today},expiration_date.is.null)`);
+    query = query.or(`expiration_date.gt.${today},expiration_date.is.null`);
 
-    // Apply category filter if categories are selected
     if (selectedCategories.length > 0) {
       query = query.in('category', selectedCategories);
     }
@@ -192,14 +184,12 @@ const Search = () => {
     
     console.log(`Found ${data.length} deals matching search query`);
     
-    // Filter to ensure all required fields are present
     const validDeals = data.filter(deal => 
       deal.brand_name && 
       deal.promo_code && 
       deal.description
     );
     
-    // Transform data to match the Deal interface
     const formattedDeals = validDeals.map(deal => ({
       id: deal.id,
       title: deal.description,
@@ -216,7 +206,6 @@ const Search = () => {
     
     setDeals(formattedDeals);
     
-    // Extract unique brand names
     const uniqueBrands = [...new Set(validDeals.map(deal => deal.brand_name))];
     setBrands(uniqueBrands);
   };
