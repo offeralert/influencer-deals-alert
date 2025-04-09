@@ -47,6 +47,9 @@ const TrendingDealsSection = () => {
     try {
       setLoading(true);
       
+      // Get today's date for filtering expired codes
+      const today = new Date().toISOString().split('T')[0];
+      
       // First try to get trending promo codes
       const { data: trendingData, error: trendingError } = await supabase
         .from('promo_codes')
@@ -67,6 +70,7 @@ const TrendingDealsSection = () => {
           )
         `)
         .eq('is_trending', true)
+        .or(`expiration_date.gt.${today},expiration_date.is.null`)
         .order('created_at', { ascending: false });
       
       if (trendingError) {
@@ -95,6 +99,7 @@ const TrendingDealsSection = () => {
               avatar_url
             )
           `)
+          .or(`expiration_date.gt.${today},expiration_date.is.null`)
           .order('created_at', { ascending: false })
           .limit(4);
         
