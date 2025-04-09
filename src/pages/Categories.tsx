@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CATEGORIES } from "@/components/CategoryFilter";
@@ -61,7 +60,6 @@ const Categories = () => {
                 <CategoryCard
                   key={category}
                   name={category}
-                  image={`https://images.unsplash.com/photo-1555041469-a586c61ea9bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1770&q=80`}
                   href={`/explore?category=${category}`}
                   count={categoryCounts[category] || 0}
                 />

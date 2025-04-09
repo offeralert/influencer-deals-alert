@@ -39,12 +39,38 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
   const [categoryDeals, setCategoryDeals] = useState<Record<string, Deal[]>>({});
   const [featuredCategory, setFeaturedCategory] = useState("Fashion");
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
     fetchFeaturedInfluencers();
     fetchTrendingDeals();
     fetchCategoryDeals();
+    fetchCategoryCounts();
   }, []);
+
+  const fetchCategoryCounts = async () => {
+    try {
+      const counts: Record<string, number> = {};
+      
+      for (const category of [...CATEGORIES, "Beauty"]) {
+        const { count, error } = await supabase
+          .from('promo_codes')
+          .select('id', { count: 'exact', head: true })
+          .eq('category', category);
+        
+        if (error) {
+          console.error(`Error fetching count for category ${category}:`, error);
+          counts[category] = 0;
+        } else {
+          counts[category] = count || 0;
+        }
+      }
+      
+      setCategoryCounts(counts);
+    } catch (error) {
+      console.error("Error in fetchCategoryCounts:", error);
+    }
+  };
 
   const fetchFeaturedInfluencers = async () => {
     try {
@@ -531,19 +557,18 @@ const Index = () => {
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-2xl font-bold">Popular Categories</h2>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/explore" className="flex items-center">
+              <Link to="/categories" className="flex items-center">
                 View all <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {popularCategories.map((category) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {[...CATEGORIES, "Beauty"].slice(0, 5).map((category) => (
               <CategoryCard
-                key={category.id}
-                name={category.name}
-                image={category.image}
-                href={category.href}
-                count={category.count}
+                key={category}
+                name={category}
+                href={`/explore?category=${category}`}
+                count={categoryCounts[category] || 0}
               />
             ))}
           </div>
