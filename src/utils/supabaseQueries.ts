@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { PostgrestFilterBuilder } from "@supabase/postgrest-js";
+import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
 export interface UniversalPromoCode {
   id: string;
@@ -24,5 +24,5 @@ export interface UniversalPromoCode {
 export const getUniversalPromoCodes = () => {
   return supabase
     .from('universal_promo_codes')
-    .select('*') as PostgrestFilterBuilder<any, any, UniversalPromoCode>;
+    .select('*') as unknown as PostgrestFilterBuilder<any, any, UniversalPromoCode[]>;
 };

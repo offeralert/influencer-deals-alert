@@ -8,10 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 const EditProfileForm = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -110,6 +110,9 @@ const EditProfileForm = () => {
         throw error;
       }
 
+      // Refresh the profile in the auth context to update UI across the site
+      refreshProfile();
+      
       toast.success("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
@@ -136,8 +139,9 @@ const EditProfileForm = () => {
             </Avatar>
             
             <div className="flex flex-col items-center">
-              <Label htmlFor="avatar" className="cursor-pointer text-brand-green hover:underline">
-                Change Profile Picture
+              <Label htmlFor="avatar" className="cursor-pointer text-brand-green hover:underline flex items-center gap-1">
+                <Upload className="h-4 w-4" />
+                {avatar ? "Change Selected Image" : "Upload Profile Picture"}
               </Label>
               <Input 
                 id="avatar" 

@@ -1,17 +1,17 @@
 
-import { useState } from "react";
+import { Copy, Check, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Copy, Check, ExternalLink, Calendar } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 
-export interface DealCardProps {
+interface DealCardProps {
   id: string;
   title: string;
   brandName: string;
+  imageUrl: string;
   discount: string;
   promoCode: string;
   expiryDate?: string;
@@ -25,6 +25,7 @@ export function DealCard({
   id,
   title,
   brandName,
+  imageUrl,
   discount,
   promoCode,
   expiryDate,
@@ -33,95 +34,83 @@ export function DealCard({
   influencerImage,
   category,
 }: DealCardProps) {
-  const { toast } = useToast();
-  const [copying, setCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-  const formatExpiryDate = (date?: string) => {
-    if (!date) return "No expiration";
-    
-    const expiryDate = new Date(date);
-    const today = new Date();
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return "Expired";
-    if (diffDays === 0) return "Expires today";
-    if (diffDays === 1) return "Expires tomorrow";
-    return `Expires in ${diffDays} days`;
-  };
-
-  const copyPromoCode = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    setCopying(true);
+  const handleCopyCode = async () => {
     try {
       await navigator.clipboard.writeText(promoCode);
-      toast({
-        title: "Copied!",
-        description: `${promoCode} copied to clipboard`,
+      setCopied(true);
+      toast.success(`${promoCode} copied to clipboard`);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error("Failed to copy code to clipboard");
+    }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "No expiration";
+    
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        month: "short", 
+        day: "numeric", 
+        year: "numeric"
       });
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      toast({
-        title: "Copy failed",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setTimeout(() => setCopying(false), 1500);
+    } catch (e) {
+      return "Invalid date";
     }
   };
 
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-3">
-          <h3 className="font-semibold text-lg">{brandName}</h3>
-          <Badge variant="outline" className="bg-primary/10 border-none text-primary">
-            {discount}
-          </Badge>
+    <Card className="overflow-hidden h-full flex flex-col">
+      <div className="aspect-[3/2] w-full relative overflow-hidden">
+        <img
+          alt={brandName}
+          className="object-cover w-full h-full"
+          src={imageUrl || "https://images.unsplash.com/photo-1567722066597-2bdf36d13481"}
+        />
+        <div className="absolute top-0 right-0 bg-brand-green text-white px-3 py-1 text-sm font-medium">
+          {title}
         </div>
-        
-        <p className="text-sm text-muted-foreground mb-3">{title}</p>
-        
-        <div className="bg-muted p-2 rounded mb-3 flex justify-between items-center">
-          <span className="font-medium">{promoCode}</span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 text-muted-foreground"
-            onClick={copyPromoCode}
-          >
-            {copying ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-          </Button>
-        </div>
-        
-        <div className="flex justify-between items-center mb-3">
-          <div className="flex items-center text-xs text-muted-foreground">
-            <Calendar className="h-3 w-3 mr-1" />
-            <span>{formatExpiryDate(expiryDate)}</span>
+      </div>
+      <CardContent className="p-4 flex-grow flex flex-col justify-between">
+        <div>
+          <h3 className="font-semibold text-lg mb-1">{brandName}</h3>
+          
+          <div className="bg-muted rounded-md p-2 flex justify-between items-center mb-3">
+            <code className="text-sm font-mono">{promoCode}</code>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={handleCopyCode}
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
           </div>
           
-          <Button size="sm" variant="outline" asChild>
-            <a href={affiliateLink} target="_blank" rel="noopener noreferrer" className="flex items-center">
-              Shop <ExternalLink className="ml-1 h-3 w-3" />
-            </a>
-          </Button>
+          <div className="mb-3 text-sm text-muted-foreground">
+            Expires: {formatDate(expiryDate)}
+          </div>
         </div>
         
-        <div className="flex justify-between items-center">
-          <Link to={`/explore?category=${category}`} className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
-            {category}
+        <div className="flex justify-between items-center mt-auto pt-2 border-t">
+          <Link to={`/influencer/${id}`} className="flex items-center gap-2">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={influencerImage} alt={influencerName} />
+              <AvatarFallback>{influencerName.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <span className="text-sm">{influencerName}</span>
           </Link>
           
-          <Link to={`/influencer/${id.split('-')[0]}`} className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={influencerImage} alt={influencerName} />
-              <AvatarFallback>{influencerName[0]}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs">{influencerName}</span>
-          </Link>
+          {affiliateLink && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={affiliateLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                Shop <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
