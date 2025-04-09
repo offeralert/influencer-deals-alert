@@ -5,6 +5,7 @@ import FeaturedInfluencersSection from "@/components/home/FeaturedInfluencersSec
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
+import TrendingDealsSection from "@/components/home/TrendingDealsSection";
 
 const Index = () => {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ const Index = () => {
       <HeroSection />
       <FeaturedInfluencersSection />
       <FeaturedOffersSection />
+      <TrendingDealsSection />
       <PopularCategoriesSection />
       <CallToActionSection />
     </div>
