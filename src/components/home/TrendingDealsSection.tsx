@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -19,6 +18,23 @@ interface Deal {
   category: string;
 }
 
+interface PromoCodeRecord {
+  id: string;
+  brand_name: string;
+  promo_code: string;
+  description: string;
+  expiration_date: string | null;
+  affiliate_link: string | null;
+  category: string;
+  is_trending: boolean | null;
+  profiles: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  } | null;
+}
+
 const TrendingDealsSection = () => {
   const [trendingDeals, setTrendingDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,25 +46,6 @@ const TrendingDealsSection = () => {
   const fetchTrendingDeals = async () => {
     try {
       setLoading(true);
-      
-      // Get all influencer IDs
-      const { data: influencerProfiles, error: influencerError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('is_influencer', true);
-      
-      if (influencerError) {
-        console.error("Error fetching influencer profiles:", influencerError);
-        useSampleDeals();
-        return;
-      }
-      
-      if (!influencerProfiles || influencerProfiles.length === 0) {
-        useSampleDeals();
-        return;
-      }
-      
-      const influencerIds = influencerProfiles.map(profile => profile.id);
       
       // Get today's date for filtering expired codes
       const today = new Date().toISOString().split('T')[0];
@@ -72,7 +69,6 @@ const TrendingDealsSection = () => {
             avatar_url
           )
         `)
-        .in('user_id', influencerIds)
         .eq('is_trending', true)
         .or(`expiration_date.gt.${today},expiration_date.is.null`)
         .order('created_at', { ascending: false });
@@ -103,7 +99,6 @@ const TrendingDealsSection = () => {
               avatar_url
             )
           `)
-          .in('user_id', influencerIds)
           .or(`expiration_date.gt.${today},expiration_date.is.null`)
           .order('created_at', { ascending: false })
           .limit(4);
@@ -119,9 +114,9 @@ const TrendingDealsSection = () => {
           return;
         }
         
-        transformAndSetDeals(recentData);
+        transformAndSetDeals(recentData as PromoCodeRecord[]);
       } else {
-        transformAndSetDeals(trendingData);
+        transformAndSetDeals(trendingData as PromoCodeRecord[]);
       }
     } catch (error) {
       console.error("Error in fetchTrendingDeals:", error);
@@ -131,7 +126,7 @@ const TrendingDealsSection = () => {
     }
   };
 
-  const transformAndSetDeals = (data: any[]) => {
+  const transformAndSetDeals = (data: PromoCodeRecord[]) => {
     // Filter out incomplete deals
     const validDeals = data.filter(deal => 
       deal.brand_name && 
