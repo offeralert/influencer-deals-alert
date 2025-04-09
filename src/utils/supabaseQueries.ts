@@ -22,5 +22,5 @@ export interface UniversalPromoCode {
 // Helper function to access the universal_promo_codes view
 export const getUniversalPromoCodes = () => {
   // Type assertion to allow using the view with proper typing
-  return supabase.from('universal_promo_codes').select('*') as unknown as ReturnType<typeof supabase.from<UniversalPromoCode>>('universal_promo_codes');
+  return supabase.from('universal_promo_codes').select('*') as unknown as ReturnType<typeof supabase.from<UniversalPromoCode>>;
 };
