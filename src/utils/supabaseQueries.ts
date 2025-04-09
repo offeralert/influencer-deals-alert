@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { PostgrestFilterBuilder } from "@supabase/supabase-js";
+import type { PostgrestFilterBuilder } from "@supabase/supabase-js";
 
 export interface UniversalPromoCode {
   id: string;
