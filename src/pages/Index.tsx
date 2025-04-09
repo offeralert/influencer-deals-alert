@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
@@ -10,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Define interfaces outside of component to avoid circular references
 interface Influencer {
   id: string;
   full_name: string;
@@ -61,7 +59,6 @@ const Index = () => {
       if (error) {
         console.error("Error fetching featured influencers:", error);
       } else {
-        // If we don't have any featured influencers, fallback to regular influencers
         if (data.length === 0) {
           const { data: regularData, error: regularError } = await supabase
             .from('profiles')
@@ -72,7 +69,6 @@ const Index = () => {
           if (!regularError && regularData.length > 0) {
             transformAndSetInfluencers(regularData);
           } else {
-            // Fallback to sample data if no real influencers are available
             setFeaturedInfluencers([
               {
                 id: "1",
@@ -119,22 +115,43 @@ const Index = () => {
     }
   };
 
-  const transformAndSetInfluencers = (data: any[]) => {
-    const formattedInfluencers = data.map(profile => ({
+  const transformAndSetInfluencers = async (data: any[]) => {
+    const baseInfluencers = data.map(profile => ({
       id: profile.id,
       full_name: profile.full_name || 'Unnamed Influencer',
       username: profile.username || 'influencer',
       avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      followers_count: Math.floor(Math.random() * 100000) + 5000, // Placeholder
-      category: 'Lifestyle' // Placeholder
+      followers_count: 0,
+      category: 'Lifestyle'
     }));
     
-    setFeaturedInfluencers(formattedInfluencers);
+    const influencersWithFollowers = await Promise.all(
+      baseInfluencers.map(async (influencer) => {
+        try {
+          const { count, error } = await supabase
+            .from('follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('influencer_id', influencer.id);
+          
+          if (!error) {
+            return {
+              ...influencer,
+              followers_count: count || 0
+            };
+          }
+          return influencer;
+        } catch (error) {
+          console.error(`Error getting followers for ${influencer.id}:`, error);
+          return influencer;
+        }
+      })
+    );
+    
+    setFeaturedInfluencers(influencersWithFollowers);
   };
 
   const fetchTrendingDeals = async () => {
     try {
-      // First get valid influencer IDs (users with is_influencer = true)
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -146,7 +163,6 @@ const Index = () => {
         return;
       }
       
-      // Extract the influencer IDs
       const influencerIds = influencerProfiles.map(profile => profile.id);
       
       if (influencerIds.length === 0) {
@@ -154,7 +170,6 @@ const Index = () => {
         return;
       }
       
-      // Now fetch promo codes only from these influencers
       const { data, error } = await supabase
         .from('promo_codes')
         .select(`
@@ -181,8 +196,8 @@ const Index = () => {
         return;
       }
       
-      // Filter to ensure all required fields are present and filter out expired codes
       const today = new Date();
+      
       const validDeals = data.filter(deal => {
         const isValid = deal.brand_name && deal.promo_code && deal.description;
         const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
@@ -194,7 +209,6 @@ const Index = () => {
         return;
       }
       
-      // Transform data to match the Deal interface
       const formattedDeals = validDeals.map(deal => ({
         id: deal.id,
         title: deal.description,
@@ -218,7 +232,6 @@ const Index = () => {
 
   const fetchCategoryDeals = async () => {
     try {
-      // First get valid influencer IDs (users with is_influencer = true)
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -229,7 +242,6 @@ const Index = () => {
         return;
       }
       
-      // Extract the influencer IDs
       const influencerIds = influencerProfiles.map(profile => profile.id);
       
       if (influencerIds.length === 0) {
@@ -239,7 +251,6 @@ const Index = () => {
       const dealsMap: Record<string, Deal[]> = {};
       const today = new Date();
       
-      // Fetch 2 deals for each category from valid influencers
       for (const category of CATEGORIES) {
         const { data, error } = await supabase
           .from('promo_codes')
@@ -263,14 +274,12 @@ const Index = () => {
           .limit(2);
         
         if (!error && data.length > 0) {
-          // Filter out deals with missing required fields or expired deals
           const validDeals = data.filter(deal => {
             const isValid = deal.brand_name && deal.promo_code && deal.description;
             const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
             return isValid && isNotExpired;
           });
           
-          // Transform data to match the Deal interface
           const formattedDeals = validDeals.map(deal => ({
             id: deal.id,
             title: deal.description,
@@ -293,7 +302,6 @@ const Index = () => {
       
       setCategoryDeals(dealsMap);
       
-      // Set featured category to the one with most deals
       let maxDeals = 0;
       let categoryWithMostDeals = "Fashion";
       
@@ -367,7 +375,6 @@ const Index = () => {
     ]);
   };
 
-  // Define popularity categories array based on our available categories
   const popularCategories = [
     {
       id: "1",
@@ -397,11 +404,17 @@ const Index = () => {
       href: "/explore?category=Tech",
       count: 83,
     },
+    {
+      id: "5",
+      name: "Beauty",
+      image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9",
+      href: "/explore?category=Beauty",
+      count: 67,
+    },
   ];
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <section className="relative bg-brand-light dark:bg-brand-dark">
         <div className="container mx-auto px-4 py-16 md:py-24">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -445,7 +458,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Influencers */}
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -476,7 +488,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Trending Deals */}
       <section className="py-12 bg-brand-light dark:bg-brand-dark">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -495,7 +506,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Featured Category */}
       {categoryDeals[featuredCategory] && categoryDeals[featuredCategory].length > 0 && (
         <section className="py-12">
           <div className="container mx-auto px-4">
@@ -516,7 +526,6 @@ const Index = () => {
         </section>
       )}
 
-      {/* Popular Categories */}
       <section className="py-12 bg-brand-light dark:bg-brand-dark">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center mb-8">
@@ -541,7 +550,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 gradient-bg" />

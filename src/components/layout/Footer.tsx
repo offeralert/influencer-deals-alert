@@ -1,5 +1,5 @@
 
-import { Instagram, Twitter, Facebook, Mail } from "lucide-react";
+import { Instagram, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -13,16 +13,10 @@ const Footer = () => {
               Connect with your favorite influencers and discover exclusive deals and promo codes.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-500 hover:text-brand-purple">
+              <a href="https://www.instagram.com/offeralert.io/" className="text-gray-500 hover:text-brand-purple">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-gray-500 hover:text-brand-purple">
-                <Twitter size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-brand-purple">
-                <Facebook size={20} />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-brand-purple">
+              <a href="mailto:hello@offeralert.io" className="text-gray-500 hover:text-brand-purple">
                 <Mail size={20} />
               </a>
             </div>
@@ -41,7 +35,7 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">For Influencers</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/apply" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Apply as Influencer</Link></li>
+              <li><Link to="/influencer-apply" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Apply as Influencer</Link></li>
               <li><Link to="/pricing" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Pricing</Link></li>
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
               <li><Link to="/resources" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Resources</Link></li>
