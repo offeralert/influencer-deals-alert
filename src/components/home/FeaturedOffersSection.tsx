@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 
 interface Deal {
   id: string;
@@ -32,9 +31,7 @@ const FeaturedOffersSection = () => {
       setLoading(true);
       
       // Get featured offers from the universal_promo_codes view
-      const { data, error } = await supabase
-        .from('universal_promo_codes')
-        .select('*')
+      const { data, error } = await getUniversalPromoCodes()
         .eq('is_featured', true)
         .limit(4);
       
@@ -47,9 +44,7 @@ const FeaturedOffersSection = () => {
       
       // If no featured offers found, get the most recent ones
       if (!data || data.length === 0) {
-        const { data: recentData, error: recentError } = await supabase
-          .from('universal_promo_codes')
-          .select('*')
+        const { data: recentData, error: recentError } = await getUniversalPromoCodes()
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -79,14 +74,14 @@ const FeaturedOffersSection = () => {
     }
   };
 
-  const transformAndSetOffers = (data: any[]) => {
+  const transformAndSetOffers = (data: UniversalPromoCode[]) => {
     // Transform to our Deal interface
     const formattedOffers = data.map(offer => ({
-      id: offer.id,
-      title: offer.description,
-      brandName: offer.brand_name,
-      discount: offer.promo_code,
-      promoCode: offer.promo_code,
+      id: offer.id || "",
+      title: offer.description || "",
+      brandName: offer.brand_name || "",
+      discount: offer.promo_code || "",
+      promoCode: offer.promo_code || "",
       expiryDate: offer.expiration_date,
       affiliateLink: offer.affiliate_link || "#",
       influencerName: offer.influencer_name || 'Unknown Influencer',

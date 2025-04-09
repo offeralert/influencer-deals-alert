@@ -15,6 +15,7 @@ import {
   SheetTrigger,
   SheetFooter
 } from "@/components/ui/sheet";
+import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 
 interface Influencer {
   id: string;
@@ -116,9 +117,7 @@ const Search = () => {
   
   const searchDeals = async () => {
     try {
-      let query = supabase
-        .from('universal_promo_codes')
-        .select('*');
+      let query = getUniversalPromoCodes();
       
       const searchTerms = [
         `brand_name.ilike.%${searchQuery}%`, 
@@ -153,13 +152,13 @@ const Search = () => {
       
       console.log(`Found ${data.length} deals matching search query`);
       
-      const formattedDeals = data.map(deal => ({
-        id: deal.id,
-        title: deal.description,
-        brandName: deal.brand_name,
+      const formattedDeals = data.map((deal: UniversalPromoCode) => ({
+        id: deal.id || "",
+        title: deal.description || "",
+        brandName: deal.brand_name || "",
         imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-        discount: deal.promo_code,
-        promoCode: deal.promo_code,
+        discount: deal.promo_code || "",
+        promoCode: deal.promo_code || "",
         expiryDate: deal.expiration_date,
         affiliateLink: deal.affiliate_link || "#",
         influencerName: deal.influencer_name || 'Unknown Influencer',

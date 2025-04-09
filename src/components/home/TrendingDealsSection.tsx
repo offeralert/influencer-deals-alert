@@ -1,10 +1,9 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 
 interface Deal {
   id: string;
@@ -32,9 +31,7 @@ const TrendingDealsSection = () => {
       setLoading(true);
       
       // First try to get trending promo codes
-      const { data: trendingData, error: trendingError } = await supabase
-        .from('universal_promo_codes')
-        .select('*')
+      const { data: trendingData, error: trendingError } = await getUniversalPromoCodes()
         .eq('is_trending', true)
         .limit(4);
       
@@ -46,9 +43,7 @@ const TrendingDealsSection = () => {
       
       // If no trending deals found, get the most recent ones
       if (!trendingData || trendingData.length === 0) {
-        const { data: recentData, error: recentError } = await supabase
-          .from('universal_promo_codes')
-          .select('*')
+        const { data: recentData, error: recentError } = await getUniversalPromoCodes()
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -75,14 +70,14 @@ const TrendingDealsSection = () => {
     }
   };
 
-  const transformAndSetDeals = (data: any[]) => {
+  const transformAndSetDeals = (data: UniversalPromoCode[]) => {
     // Transform to our Deal interface
     const formattedDeals = data.map(deal => ({
-      id: deal.id,
-      title: deal.description,
-      brandName: deal.brand_name,
-      discount: deal.promo_code,
-      promoCode: deal.promo_code,
+      id: deal.id || "",
+      title: deal.description || "",
+      brandName: deal.brand_name || "",
+      discount: deal.promo_code || "",
+      promoCode: deal.promo_code || "",
       expiryDate: deal.expiration_date,
       affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.influencer_name || 'Unknown Influencer',

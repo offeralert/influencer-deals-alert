@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { DealCard } from "@/components/ui/deal-card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 
 interface SavedDeal {
   id: string;
@@ -86,9 +86,7 @@ const MyDeals = () => {
       const influencerIds = followedInfluencers.map(follow => follow.influencer_id);
       
       // Get promo codes from followed influencers using the universal_promo_codes view
-      const { data: promoCodes, error: promoError } = await supabase
-        .from('universal_promo_codes')
-        .select('*')
+      const { data: promoCodes, error: promoError } = await getUniversalPromoCodes()
         .in('user_id', influencerIds)
         .order('created_at', { ascending: false });
       
@@ -100,17 +98,17 @@ const MyDeals = () => {
       }
       
       // Transform the data
-      const deals = promoCodes.map(promo => ({
-        id: promo.id,
-        title: promo.description,
-        brandName: promo.brand_name,
-        discount: promo.promo_code,
-        promoCode: promo.promo_code,
+      const deals = (promoCodes || []).map(promo => ({
+        id: promo.id || "",
+        title: promo.description || "",
+        brandName: promo.brand_name || "",
+        discount: promo.promo_code || "",
+        promoCode: promo.promo_code || "",
         expiryDate: promo.expiration_date,
         affiliateLink: promo.affiliate_link || "#",
         influencerName: promo.influencer_name || 'Unknown Influencer',
         influencerImage: promo.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        category: promo.category
+        category: promo.category || ""
       }));
       
       setSavedDeals(deals);
