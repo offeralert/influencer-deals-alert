@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -9,7 +10,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Compass, Filter } from "lucide-react";
+import { Compass, Filter, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
@@ -24,9 +25,11 @@ import {
   SheetFooter
 } from "@/components/ui/sheet";
 import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 
 type SortOption = "newest" | "alphabetical" | "discount" | "category";
-type ExploreTab = "deals" | "influencers";
+type ExploreTab = "deals" | "influencers" | "brands";
 
 interface Influencer {
   id: string;
@@ -50,21 +53,27 @@ interface Deal {
   category: string;
 }
 
+interface Brand {
+  name: string;
+  dealCount: number;
+}
+
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialTab = searchParams.get("tab") === "influencers" ? "influencers" : "deals";
+  const initialTab = searchParams.get("tab") as ExploreTab || "deals";
   const initialCategory = searchParams.get("category") || "";
   
   const [activeTab, setActiveTab] = useState<ExploreTab>(initialTab);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialCategory ? [initialCategory] : []
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [brands, setBrands] = useState<string[]>([]);
+  const [brandSearch, setBrandSearch] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,8 +81,10 @@ const Explore = () => {
       
       if (activeTab === "influencers") {
         await fetchInfluencers();
-      } else {
+      } else if (activeTab === "deals") {
         await fetchDeals();
+      } else if (activeTab === "brands") {
+        await fetchBrands();
       }
       
       setLoading(false);
@@ -103,16 +114,26 @@ const Explore = () => {
         return;
       }
       
-      const formattedInfluencers = data.map(profile => ({
-        id: profile.id,
-        full_name: profile.full_name || 'Unnamed Influencer',
-        username: profile.username || 'unknown',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        followers_count: Math.floor(Math.random() * 100000),
-        category: 'Lifestyle'
-      }));
+      // For each influencer, fetch their follower count
+      const influencersWithFollowers = await Promise.all(
+        data.map(async (profile) => {
+          const { count, error: countError } = await supabase
+            .from('follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('influencer_id', profile.id);
+          
+          return {
+            id: profile.id,
+            full_name: profile.full_name || 'Unnamed Influencer',
+            username: profile.username || 'unknown',
+            avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+            followers_count: countError ? 0 : (count || 0),
+            category: 'Lifestyle'
+          };
+        })
+      );
       
-      setInfluencers(formattedInfluencers);
+      setInfluencers(influencersWithFollowers);
     } catch (error) {
       console.error("Error in fetchInfluencers:", error);
       setInfluencers([]);
@@ -167,16 +188,72 @@ const Explore = () => {
       }));
       
       setDeals(formattedDeals);
-      
-      const uniqueBrands = [...new Set(data.map(deal => deal.brand_name))].filter(
-        (brandName): brandName is string => typeof brandName === 'string'
-      );
-      setBrands(uniqueBrands);
     } catch (error) {
       console.error("Error in fetchDeals:", error);
       setDeals([]);
     }
   };
+
+  const fetchBrands = async () => {
+    try {
+      let query = getUniversalPromoCodes();
+      
+      if (selectedCategories.length > 0) {
+        query = query.in('category', selectedCategories);
+      }
+      
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error("Error fetching brands:", error);
+        setBrands([]);
+        return;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log("No brands found");
+        setBrands([]);
+        return;
+      }
+      
+      // Group by brand name and count deals
+      const brandMap = new Map<string, number>();
+      
+      data.forEach((deal: UniversalPromoCode) => {
+        if (deal.brand_name) {
+          const currentCount = brandMap.get(deal.brand_name) || 0;
+          brandMap.set(deal.brand_name, currentCount + 1);
+        }
+      });
+      
+      // Convert to array of brand objects
+      let brandsArray: Brand[] = Array.from(brandMap).map(([name, count]) => ({
+        name,
+        dealCount: count
+      }));
+      
+      // Sort brands based on selected sort option
+      if (sortOption === 'alphabetical') {
+        brandsArray.sort((a, b) => a.name.localeCompare(b.name));
+      } else if (sortOption === 'discount') {
+        brandsArray.sort((a, b) => b.dealCount - a.dealCount);
+      } else {
+        // Default sorting by deal count
+        brandsArray.sort((a, b) => b.dealCount - a.dealCount);
+      }
+      
+      setBrands(brandsArray);
+    } catch (error) {
+      console.error("Error in fetchBrands:", error);
+      setBrands([]);
+    }
+  };
+
+  const filteredBrands = brandSearch 
+    ? brands.filter(brand => 
+        brand.name.toLowerCase().includes(brandSearch.toLowerCase())
+      )
+    : brands;
 
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
@@ -210,9 +287,10 @@ const Explore = () => {
             onValueChange={(value) => setActiveTab(value as ExploreTab)}
             className="w-full sm:w-auto"
           >
-            <TabsList className="grid grid-cols-2 w-full sm:w-[200px]">
+            <TabsList className="grid grid-cols-3 w-full sm:w-[300px]">
               <TabsTrigger value="deals">Deals</TabsTrigger>
               <TabsTrigger value="influencers">Influencers</TabsTrigger>
+              <TabsTrigger value="brands">Brands</TabsTrigger>
             </TabsList>
           </Tabs>
           
@@ -228,7 +306,8 @@ const Explore = () => {
                 <SelectGroup>
                   <SelectItem value="newest">Newly Added</SelectItem>
                   <SelectItem value="alphabetical">
-                    {activeTab === "influencers" ? "Name (A-Z)" : "Brand (A-Z)"}
+                    {activeTab === "influencers" ? "Name (A-Z)" : 
+                     activeTab === "brands" ? "Brand (A-Z)" : "Brand (A-Z)"}
                   </SelectItem>
                   {activeTab === "deals" && (
                     <>
@@ -236,11 +315,14 @@ const Explore = () => {
                       <SelectItem value="category">Category</SelectItem>
                     </>
                   )}
+                  {activeTab === "brands" && (
+                    <SelectItem value="discount">Deal Count (High-Low)</SelectItem>
+                  )}
                 </SelectGroup>
               </SelectContent>
             </Select>
             
-            {activeTab === "deals" && (
+            {(activeTab === "deals" || activeTab === "brands") && (
               <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
                 <SheetTrigger asChild>
                   <Button 
@@ -282,74 +364,120 @@ const Explore = () => {
         </div>
       </div>
 
+      {activeTab === "brands" && (
+        <div className="mb-6">
+          <Input
+            type="search"
+            placeholder="Search brands..."
+            value={brandSearch}
+            onChange={(e) => setBrandSearch(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
+      )}
+
       {loading ? (
         <div className="text-center py-16">
           <p>Loading...</p>
         </div>
       ) : (
         <Tabs value={activeTab}>
-          <TabsContent value={activeTab} className="mt-0">
-            {activeTab === "influencers" ? (
-              influencers.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {influencers.map((influencer) => (
-                    <InfluencerCard
-                      key={influencer.id}
-                      id={influencer.id}
-                      name={influencer.full_name}
-                      username={influencer.username}
-                      imageUrl={influencer.avatar_url}
-                      category={influencer.category || "Lifestyle"}
-                      followers={influencer.followers_count || 0}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg">
-                  <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">No influencers found</h3>
-                  <p className="text-gray-500">
-                    Check back later for exciting influencers to follow!
-                  </p>
-                </div>
-              )
-            ) : (
-              deals.length > 0 ? (
-                <div>
-                  {sortOption === "category" ? (
-                    <div className="mb-8">
-                      {Array.from(new Set(deals.map(deal => deal.category))).map(category => (
-                        <div key={category} className="mb-6">
-                          <h2 className="text-xl font-semibold mb-4">{category}</h2>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {deals
-                              .filter(deal => deal.category === category)
-                              .map(deal => (
-                                <DealCard key={deal.id} {...deal} />
-                              ))}
-                          </div>
+          <TabsContent value="deals" className="mt-0">
+            {deals.length > 0 ? (
+              <div>
+                {sortOption === "category" ? (
+                  <div className="mb-8">
+                    {Array.from(new Set(deals.map(deal => deal.category))).map(category => (
+                      <div key={category} className="mb-6">
+                        <h2 className="text-xl font-semibold mb-4">{category}</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {deals
+                            .filter(deal => deal.category === category)
+                            .map(deal => (
+                              <DealCard key={deal.id} {...deal} />
+                            ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                      {deals.map((deal) => (
-                        <DealCard key={deal.id} {...deal} />
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-gray-50 rounded-lg">
-                  <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium mb-2">No deals found</h3>
-                  <p className="text-gray-500">
-                    {selectedCategories.length > 0 
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {deals.map((deal) => (
+                      <DealCard key={deal.id} {...deal} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-gray-50 rounded-lg">
+                <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">No deals found</h3>
+                <p className="text-gray-500">
+                  {selectedCategories.length > 0 
+                    ? "Try adjusting your category filters"
+                    : "Check back later for exciting promotions and discounts!"}
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="influencers" className="mt-0">
+            {influencers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {influencers.map((influencer) => (
+                  <InfluencerCard
+                    key={influencer.id}
+                    id={influencer.id}
+                    name={influencer.full_name}
+                    username={influencer.username}
+                    imageUrl={influencer.avatar_url}
+                    category={influencer.category || "Lifestyle"}
+                    followers={influencer.followers_count || 0}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-gray-50 rounded-lg">
+                <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">No influencers found</h3>
+                <p className="text-gray-500">
+                  Check back later for exciting influencers to follow!
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="brands" className="mt-0">
+            {filteredBrands.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {filteredBrands.map((brand) => (
+                  <Card key={brand.name} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <h3 className="text-lg font-semibold mb-2">{brand.name}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        {brand.dealCount} {brand.dealCount === 1 ? 'offer' : 'offers'} available
+                      </p>
+                      <Button variant="outline" size="sm" asChild className="w-full">
+                        <a href={`/explore?tab=deals&brand=${encodeURIComponent(brand.name)}`}>
+                          View Offers
+                        </a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-gray-50 rounded-lg">
+                <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <h3 className="text-lg font-medium mb-2">No brands found</h3>
+                <p className="text-gray-500">
+                  {brandSearch 
+                    ? "Try a different search term" 
+                    : selectedCategories.length > 0 
                       ? "Try adjusting your category filters"
-                      : "Check back later for exciting promotions and discounts!"}
-                  </p>
-                </div>
-              )
+                      : "Check back later for exciting brands and offers!"}
+                </p>
+              </div>
             )}
           </TabsContent>
         </Tabs>

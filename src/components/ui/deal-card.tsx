@@ -74,7 +74,7 @@ export function DealCard({
           
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
           
-          <div className="text-lg font-medium mb-3">
+          <div className="text-lg font-bold mb-3">
             {discount}
           </div>
           
