@@ -14,7 +14,7 @@ export interface UniversalPromoCode {
   is_trending?: boolean;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  influencer_id: string; // Updated from user_id to match view
   influencer_name?: string;
   influencer_username?: string;
   influencer_image?: string;

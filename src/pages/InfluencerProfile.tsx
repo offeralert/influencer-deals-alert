@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Users, Check, ExternalLink, Copy, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
 
 interface InfluencerProfile {
   id: string;
@@ -57,7 +57,6 @@ const InfluencerProfile = () => {
     try {
       setLoading(true);
       
-      // Fetch influencer profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
@@ -71,7 +70,6 @@ const InfluencerProfile = () => {
         return;
       }
       
-      // Count followers
       const { count, error: countError } = await supabase
         .from('follows')
         .select('*', { count: 'exact', head: true })
@@ -99,10 +97,8 @@ const InfluencerProfile = () => {
 
   const fetchPromoCodes = async () => {
     try {
-      const { data, error } = await supabase
-        .from('promo_codes')
-        .select('*')
-        .eq('user_id', id)
+      const { data, error } = await getUniversalPromoCodes()
+        .eq('influencer_id', id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -110,7 +106,18 @@ const InfluencerProfile = () => {
         return;
       }
       
-      setPromoCodes(data || []);
+      const transformedPromoCodes = data?.map(code => ({
+        id: code.id,
+        brand_name: code.brand_name,
+        promo_code: code.promo_code,
+        description: code.description,
+        expiration_date: code.expiration_date,
+        affiliate_link: code.affiliate_link,
+        category: code.category,
+        created_at: code.created_at
+      })) || [];
+      
+      setPromoCodes(transformedPromoCodes);
     } catch (error) {
       console.error("Error in fetchPromoCodes:", error);
     }
@@ -145,7 +152,6 @@ const InfluencerProfile = () => {
     
     try {
       if (isFollowing) {
-        // Unfollow
         const { error } = await supabase
           .from('follows')
           .delete()
@@ -169,7 +175,6 @@ const InfluencerProfile = () => {
           description: `You are no longer following ${influencer?.full_name}`,
         });
       } else {
-        // Follow
         const { error } = await supabase
           .from('follows')
           .insert({

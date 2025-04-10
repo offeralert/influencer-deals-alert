@@ -127,6 +127,7 @@ export type Database = {
           description: string | null
           expiration_date: string | null
           id: string | null
+          influencer_id: string | null
           influencer_image: string | null
           influencer_name: string | null
           influencer_username: string | null
@@ -134,12 +135,11 @@ export type Database = {
           is_trending: boolean | null
           promo_code: string | null
           updated_at: string | null
-          user_id: string | null
         }
         Relationships: [
           {
             foreignKeyName: "promo_codes_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["influencer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

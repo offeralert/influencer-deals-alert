@@ -88,7 +88,7 @@ const MyDeals = () => {
       
       // Get promo codes from followed influencers using the universal_promo_codes view
       const { data: promoCodes, error: promoError } = await getUniversalPromoCodes()
-        .in('user_id', influencerIds)
+        .in('influencer_id', influencerIds)
         .order('created_at', { ascending: false });
       
       if (promoError) {
