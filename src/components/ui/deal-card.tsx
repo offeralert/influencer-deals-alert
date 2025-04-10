@@ -1,4 +1,3 @@
-
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,10 +72,6 @@ export function DealCard({
           </div>
           
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
-          
-          <div className="text-lg font-bold mb-3">
-            {discount}
-          </div>
           
           <div className="bg-muted rounded-md p-2 flex justify-between items-center mb-3">
             <code className="text-sm font-mono">{promoCode}</code>
