@@ -26,6 +26,7 @@ const FeaturedInfluencersSection = () => {
   const fetchFeaturedInfluencers = async () => {
     try {
       setLoading(true);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -44,7 +45,7 @@ const FeaturedInfluencersSection = () => {
             .limit(4);
             
           if (!regularError && regularData.length > 0) {
-            transformAndSetInfluencers(regularData);
+            await transformAndSetInfluencers(regularData);
           } else {
             setFeaturedInfluencers([
               {
@@ -78,7 +79,7 @@ const FeaturedInfluencersSection = () => {
             ]);
           }
         } else {
-          transformAndSetInfluencers(data);
+          await transformAndSetInfluencers(data);
         }
       }
     } catch (error) {
@@ -89,15 +90,36 @@ const FeaturedInfluencersSection = () => {
   };
 
   const transformAndSetInfluencers = async (data: any[]) => {
-    const baseInfluencers = data.map(profile => ({
-      id: profile.id,
-      full_name: profile.full_name || 'Unnamed Influencer',
-      username: profile.username || 'influencer',
-      avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      category: 'Lifestyle'
-    }));
-    
-    setFeaturedInfluencers(baseInfluencers);
+    try {
+      const baseInfluencers = data.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name || 'Unnamed Influencer',
+        username: profile.username || 'influencer',
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: 'Lifestyle'
+      }));
+      
+      // Get follower counts for each influencer
+      const influencersWithCounts = await Promise.all(
+        baseInfluencers.map(async (influencer) => {
+          const { count, error } = await supabase
+            .from('follows')
+            .select('*', { count: 'exact', head: true })
+            .eq('influencer_id', influencer.id);
+          
+          if (error) {
+            console.error(`Error fetching follower count for ${influencer.id}:`, error);
+            return { ...influencer, followers_count: 0 };
+          }
+          
+          return { ...influencer, followers_count: count || 0 };
+        })
+      );
+      
+      setFeaturedInfluencers(influencersWithCounts);
+    } catch (error) {
+      console.error("Error in transformAndSetInfluencers:", error);
+    }
   };
 
   return (
@@ -123,7 +145,7 @@ const FeaturedInfluencersSection = () => {
                 username={influencer.username}
                 imageUrl={influencer.avatar_url}
                 category={influencer.category || "Lifestyle"}
-                followers={0} // This value doesn't matter as it's calculated in the component
+                followers={influencer.followers_count || 0}
               />
             ))
           )}

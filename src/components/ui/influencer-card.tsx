@@ -24,34 +24,18 @@ const InfluencerCard = ({
   username,
   imageUrl,
   category,
+  followers,
 }: InfluencerCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    fetchFollowersCount();
     if (user) {
       checkFollowingStatus();
     }
   }, [user, id]);
-
-  const fetchFollowersCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('influencer_id', id);
-      
-      if (!error) {
-        setFollowersCount(count || 0);
-      }
-    } catch (error) {
-      console.error("Error fetching followers count:", error);
-    }
-  };
 
   const checkFollowingStatus = async () => {
     if (!user) return;
@@ -107,7 +91,6 @@ const InfluencerCard = ({
         }
         
         setIsFollowing(false);
-        setFollowersCount(prev => Math.max(0, prev - 1));
         toast({
           title: "Unfollowed",
           description: `You are no longer following ${name}`,
@@ -132,7 +115,6 @@ const InfluencerCard = ({
         }
         
         setIsFollowing(true);
-        setFollowersCount(prev => prev + 1);
         toast({
           title: "Following",
           description: `You're now following ${name}`,
@@ -169,7 +151,7 @@ const InfluencerCard = ({
               <p className="text-sm text-muted-foreground mb-1">@{username}</p>
               <div className="flex items-center text-xs text-muted-foreground">
                 <Users className="h-3 w-3 mr-1" />
-                <span>{formatFollowers(followersCount)} followers</span>
+                <span>{formatFollowers(followers)} followers</span>
               </div>
               
               <div className="mt-3">

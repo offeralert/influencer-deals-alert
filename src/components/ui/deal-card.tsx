@@ -63,19 +63,18 @@ export function DealCard({
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="relative">
-        <div className="absolute top-0 right-0 p-1">
-          <Badge variant="outline" className="bg-muted/50 text-muted-foreground text-xs font-normal">
-            {category}
-          </Badge>
-        </div>
-      </div>
-      <CardContent className="p-4 flex-grow flex flex-col justify-between pt-8">
+      <CardContent className="p-4 flex-grow flex flex-col justify-between pt-6">
         <div>
-          <h3 className="font-semibold text-lg mb-1">{brandName}</h3>
-          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{title}</p>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-semibold text-lg">{brandName}</h3>
+            <Badge variant="outline" className="text-xs font-normal text-muted-foreground bg-muted/30">
+              {category}
+            </Badge>
+          </div>
           
-          <div className="bg-brand-green/10 text-brand-green rounded-md p-2 mb-3 font-semibold">
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
+          
+          <div className="text-lg font-medium mb-3">
             {discount}
           </div>
           
