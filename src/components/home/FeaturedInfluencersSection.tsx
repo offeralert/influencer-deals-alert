@@ -133,7 +133,7 @@ const FeaturedInfluencersSection = () => {
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-2xl font-bold">Featured Influencers</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore" className="flex items-center">
+            <Link to="/explore?tab=influencers" className="flex items-center">
               View all <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>

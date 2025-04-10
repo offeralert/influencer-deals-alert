@@ -64,12 +64,13 @@ export function DealCard({
     <Card className="h-full flex flex-col">
       <div className="relative">
         <div className="absolute top-0 right-0 bg-brand-green text-white px-3 py-1 text-sm font-medium rounded-bl-md">
-          {title}
+          {category}
         </div>
       </div>
       <CardContent className="p-4 flex-grow flex flex-col justify-between pt-8">
         <div>
           <h3 className="font-semibold text-lg mb-1">{brandName}</h3>
+          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{title}</p>
           
           <div className="bg-muted rounded-md p-2 flex justify-between items-center mb-3">
             <code className="text-sm font-mono">{promoCode}</code>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { 
   Select, 
   SelectContent, 
@@ -50,12 +51,18 @@ interface Deal {
 }
 
 const Explore = () => {
-  const [activeTab, setActiveTab] = useState<ExploreTab>("deals");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") === "influencers" ? "influencers" : "deals";
+  const initialCategory = searchParams.get("category") || "";
+  
+  const [activeTab, setActiveTab] = useState<ExploreTab>(initialTab);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory ? [initialCategory] : []
+  );
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [brands, setBrands] = useState<string[]>([]);
 
@@ -170,6 +177,22 @@ const Explore = () => {
       setDeals([]);
     }
   };
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("tab", activeTab);
+    setSearchParams(newParams);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    if (selectedCategories.length === 1) {
+      newParams.set("category", selectedCategories[0]);
+    } else {
+      newParams.delete("category");
+    }
+    setSearchParams(newParams);
+  }, [selectedCategories]);
 
   const clearFilters = () => {
     setSelectedCategories([]);

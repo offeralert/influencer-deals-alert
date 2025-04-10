@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { DealCard } from "@/components/ui/deal-card";
 
 interface InfluencerProfile {
   id: string;
@@ -37,7 +38,6 @@ const InfluencerProfile = () => {
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [followersCount, setFollowersCount] = useState(0);
-  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) {
@@ -106,18 +106,7 @@ const InfluencerProfile = () => {
         return;
       }
       
-      const transformedPromoCodes = data?.map(code => ({
-        id: code.id,
-        brand_name: code.brand_name,
-        promo_code: code.promo_code,
-        description: code.description,
-        expiration_date: code.expiration_date,
-        affiliate_link: code.affiliate_link,
-        category: code.category,
-        created_at: code.created_at
-      })) || [];
-      
-      setPromoCodes(transformedPromoCodes);
+      setPromoCodes(data || []);
     } catch (error) {
       console.error("Error in fetchPromoCodes:", error);
     }
@@ -204,37 +193,6 @@ const InfluencerProfile = () => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "No expiration";
-    
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
-    });
-  };
-
-  const copyPromoCode = async (promoCode: string, id: string) => {
-    setCopyingId(id);
-    try {
-      await navigator.clipboard.writeText(promoCode);
-      toast({
-        title: "Copied!",
-        description: `${promoCode} copied to clipboard`,
-      });
-    } catch (error) {
-      console.error("Failed to copy:", error);
-      toast({
-        title: "Copy failed",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    } finally {
-      setTimeout(() => setCopyingId(null), 1500);
-    }
-  };
-
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -299,55 +257,21 @@ const InfluencerProfile = () => {
         </CardHeader>
         <CardContent>
           {promoCodes.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {promoCodes.map((promoCode) => (
-                <Card key={promoCode.id} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="text-lg font-semibold">{promoCode.brand_name}</h3>
-                        <div className="bg-primary/10 text-primary px-2 py-1 rounded text-sm font-medium">
-                          {promoCode.promo_code}
-                        </div>
-                      </div>
-                      
-                      <p className="text-sm text-muted-foreground mb-2">{promoCode.description}</p>
-                      
-                      <div className="bg-muted p-2 rounded mb-3 flex justify-between items-center">
-                        <span className="font-medium">{promoCode.promo_code}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0 text-muted-foreground"
-                          onClick={() => copyPromoCode(promoCode.promo_code, promoCode.id)}
-                        >
-                          {copyingId === promoCode.id ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                      
-                      <div className="flex justify-between items-center mt-2">
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          <span>Expires: {formatDate(promoCode.expiration_date)}</span>
-                        </div>
-                        
-                        {promoCode.affiliate_link && (
-                          <Button variant="outline" size="sm" asChild>
-                            <a href={promoCode.affiliate_link} target="_blank" rel="noopener noreferrer" className="flex items-center">
-                              Shop <ExternalLink className="ml-1 h-3 w-3" />
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                      
-                      <div className="mt-2">
-                        <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded-full">
-                          {promoCode.category}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <DealCard
+                  key={promoCode.id}
+                  id={id || ""}
+                  title={promoCode.description}
+                  brandName={promoCode.brand_name}
+                  discount={promoCode.promo_code}
+                  promoCode={promoCode.promo_code}
+                  expiryDate={promoCode.expiration_date || undefined}
+                  affiliateLink={promoCode.affiliate_link || "#"}
+                  influencerName={influencer.full_name}
+                  influencerImage={influencer.avatar_url}
+                  category={promoCode.category}
+                />
               ))}
             </div>
           ) : (

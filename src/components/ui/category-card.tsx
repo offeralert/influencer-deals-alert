@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 interface CategoryCardProps {
   name: string;
-  image?: string; // Make image optional
+  image?: string;
   count?: number;
   href: string;
   className?: string;
