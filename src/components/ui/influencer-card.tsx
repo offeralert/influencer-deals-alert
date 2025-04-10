@@ -24,19 +24,34 @@ const InfluencerCard = ({
   username,
   imageUrl,
   category,
-  followers,
 }: InfluencerCardProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followersCount, setFollowersCount] = useState(followers);
+  const [followersCount, setFollowersCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    fetchFollowersCount();
     if (user) {
       checkFollowingStatus();
     }
   }, [user, id]);
+
+  const fetchFollowersCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('influencer_id', id);
+      
+      if (!error) {
+        setFollowersCount(count || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching followers count:", error);
+    }
+  };
 
   const checkFollowingStatus = async () => {
     if (!user) return;

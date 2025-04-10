@@ -1,6 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 interface CategoryCardProps {
   name: string;

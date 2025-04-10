@@ -52,7 +52,6 @@ const FeaturedInfluencersSection = () => {
                 full_name: "Sophia Chen",
                 username: "sophiastyle",
                 avatar_url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-                followers_count: 125000,
                 category: "Fashion"
               },
               {
@@ -60,7 +59,6 @@ const FeaturedInfluencersSection = () => {
                 full_name: "Marcus Johnson",
                 username: "marcusfitness",
                 avatar_url: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-                followers_count: 89000,
                 category: "Fitness"
               },
               {
@@ -68,7 +66,6 @@ const FeaturedInfluencersSection = () => {
                 full_name: "Emma Wilson",
                 username: "emmaeats",
                 avatar_url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-                followers_count: 235000,
                 category: "Food"
               },
               {
@@ -76,7 +73,6 @@ const FeaturedInfluencersSection = () => {
                 full_name: "Alex Rivera",
                 username: "alextech",
                 avatar_url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-                followers_count: 310000,
                 category: "Tech"
               },
             ]);
@@ -98,33 +94,10 @@ const FeaturedInfluencersSection = () => {
       full_name: profile.full_name || 'Unnamed Influencer',
       username: profile.username || 'influencer',
       avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      followers_count: 0,
       category: 'Lifestyle'
     }));
     
-    const influencersWithFollowers = await Promise.all(
-      baseInfluencers.map(async (influencer) => {
-        try {
-          const { count, error } = await supabase
-            .from('follows')
-            .select('*', { count: 'exact', head: true })
-            .eq('influencer_id', influencer.id);
-          
-          if (!error) {
-            return {
-              ...influencer,
-              followers_count: count || 0
-            };
-          }
-          return influencer;
-        } catch (error) {
-          console.error(`Error getting followers for ${influencer.id}:`, error);
-          return influencer;
-        }
-      })
-    );
-    
-    setFeaturedInfluencers(influencersWithFollowers);
+    setFeaturedInfluencers(baseInfluencers);
   };
 
   return (
@@ -150,7 +123,7 @@ const FeaturedInfluencersSection = () => {
                 username={influencer.username}
                 imageUrl={influencer.avatar_url}
                 category={influencer.category || "Lifestyle"}
-                followers={influencer.followers_count || 0}
+                followers={0} // This value doesn't matter as it's calculated in the component
               />
             ))
           )}

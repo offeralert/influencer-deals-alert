@@ -1,13 +1,14 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Users, Check, ExternalLink, Copy, Calendar } from "lucide-react";
+import { Users, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 import { DealCard } from "@/components/ui/deal-card";
 
 interface InfluencerProfile {
@@ -15,17 +16,6 @@ interface InfluencerProfile {
   full_name: string;
   username: string;
   avatar_url: string;
-  followers_count: number;
-}
-
-interface PromoCode {
-  id: string;
-  brand_name: string;
-  promo_code: string;
-  description: string;
-  expiration_date: string | null;
-  affiliate_link: string | null;
-  category: string;
 }
 
 const InfluencerProfile = () => {
@@ -34,7 +24,7 @@ const InfluencerProfile = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [influencer, setInfluencer] = useState<InfluencerProfile | null>(null);
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [promoCodes, setPromoCodes] = useState<UniversalPromoCode[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [followersCount, setFollowersCount] = useState(0);
@@ -84,7 +74,6 @@ const InfluencerProfile = () => {
         full_name: profileData.full_name || 'Unnamed Influencer',
         username: profileData.username || 'influencer',
         avatar_url: profileData.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        followers_count: count || 0
       });
       
     } catch (error) {
@@ -266,7 +255,7 @@ const InfluencerProfile = () => {
                   brandName={promoCode.brand_name}
                   discount={promoCode.promo_code}
                   promoCode={promoCode.promo_code}
-                  expiryDate={promoCode.expiration_date || undefined}
+                  expiryDate={promoCode.expiration_date}
                   affiliateLink={promoCode.affiliate_link || "#"}
                   influencerName={influencer.full_name}
                   influencerImage={influencer.avatar_url}

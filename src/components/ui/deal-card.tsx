@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
 
 interface DealCardProps {
   id: string;
@@ -63,14 +64,20 @@ export function DealCard({
   return (
     <Card className="h-full flex flex-col">
       <div className="relative">
-        <div className="absolute top-0 right-0 bg-brand-green text-white px-3 py-1 text-sm font-medium rounded-bl-md">
-          {category}
+        <div className="absolute top-0 right-0 p-1">
+          <Badge variant="outline" className="bg-muted/50 text-muted-foreground text-xs font-normal">
+            {category}
+          </Badge>
         </div>
       </div>
       <CardContent className="p-4 flex-grow flex flex-col justify-between pt-8">
         <div>
           <h3 className="font-semibold text-lg mb-1">{brandName}</h3>
           <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{title}</p>
+          
+          <div className="bg-brand-green/10 text-brand-green rounded-md p-2 mb-3 font-semibold">
+            {discount}
+          </div>
           
           <div className="bg-muted rounded-md p-2 flex justify-between items-center mb-3">
             <code className="text-sm font-mono">{promoCode}</code>
@@ -84,7 +91,7 @@ export function DealCard({
             </Button>
           </div>
           
-          <div className="mb-3 text-sm text-muted-foreground">
+          <div className="mb-3 text-xs text-muted-foreground">
             Expires: {formatDate(expiryDate)}
           </div>
         </div>
