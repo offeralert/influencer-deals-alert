@@ -1,6 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import InfluencerCard from "@/components/ui/influencer-card";
+import { InfluencerCard } from "@/components/ui/influencer-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";

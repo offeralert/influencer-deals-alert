@@ -12,7 +12,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Compass, Filter, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import InfluencerCard from "@/components/ui/influencer-card";
+import { InfluencerCard } from "@/components/ui/influencer-card";
 import { DealCard } from "@/components/ui/deal-card";
 import { Button } from "@/components/ui/button";
 import CategoryFilter from "@/components/CategoryFilter";
