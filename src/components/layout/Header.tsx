@@ -1,7 +1,7 @@
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Search, Menu, X, Bell, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -15,7 +15,6 @@ import {
 
 const Header = () => {
   const isMobile = useIsMobile();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { user, profile, signOut } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const navigate = useNavigate();
@@ -135,40 +134,6 @@ const Header = () => {
         )}
 
         <div className="flex items-center gap-2">
-          {isSearchOpen && !isMobile ? (
-            <div className="flex items-center border rounded-md overflow-hidden animate-in fade-in duration-300">
-              <input
-                type="text"
-                placeholder="Search influencers, brands..."
-                className="px-3 py-1.5 outline-none w-[200px]"
-                autoFocus
-                onBlur={() => setIsSearchOpen(false)}
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-full"
-                onClick={() => setIsSearchOpen(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsSearchOpen(true)}
-            >
-              <Search className="h-5 w-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-          )}
-
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-            <span className="sr-only">Notifications</span>
-          </Button>
-
           {!user ? (
             !isMobile && (
               <>

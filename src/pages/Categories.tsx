@@ -2,11 +2,19 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CATEGORIES } from "@/components/CategoryFilter";
 import CategoryCard from "@/components/ui/category-card";
 
-// Add "Beauty" to the categories
-const updatedCategories = [...CATEGORIES, "Beauty"];
+// Update categories array to remove "Lifestyle"
+const updatedCategories = [
+  "Fashion",
+  "Fitness",
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel",
+  "Beauty"
+];
 
 const Categories = () => {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -20,12 +28,12 @@ const Categories = () => {
     try {
       setLoading(true);
       
-      // Get counts for each category from the promo_codes table
+      // Get counts for each category from the universal_promo_codes view
       const counts: Record<string, number> = {};
       
       for (const category of updatedCategories) {
         const { count, error } = await supabase
-          .from('promo_codes')
+          .from('universal_promo_codes')
           .select('id', { count: 'exact', head: true })
           .eq('category', category);
         
