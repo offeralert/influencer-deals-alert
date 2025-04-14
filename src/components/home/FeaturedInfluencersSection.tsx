@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
@@ -11,7 +10,6 @@ interface Influencer {
   full_name: string;
   username: string;
   avatar_url: string;
-  followers_count?: number;
   category?: string;
 }
 
@@ -95,28 +93,10 @@ const FeaturedInfluencersSection = () => {
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'influencer',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        category: 'Lifestyle'
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
       }));
       
-      // Get follower counts for each influencer
-      const influencersWithCounts = await Promise.all(
-        baseInfluencers.map(async (influencer) => {
-          const { count, error } = await supabase
-            .from('follows')
-            .select('*', { count: 'exact', head: true })
-            .eq('influencer_id', influencer.id);
-          
-          if (error) {
-            console.error(`Error fetching follower count for ${influencer.id}:`, error);
-            return { ...influencer, followers_count: 0 };
-          }
-          
-          return { ...influencer, followers_count: count || 0 };
-        })
-      );
-      
-      setFeaturedInfluencers(influencersWithCounts);
+      setFeaturedInfluencers(baseInfluencers);
     } catch (error) {
       console.error("Error in transformAndSetInfluencers:", error);
     }
@@ -144,8 +124,6 @@ const FeaturedInfluencersSection = () => {
                 name={influencer.full_name}
                 username={influencer.username}
                 imageUrl={influencer.avatar_url}
-                category={influencer.category || "Lifestyle"}
-                followers={influencer.followers_count || 0}
               />
             ))
           )}
