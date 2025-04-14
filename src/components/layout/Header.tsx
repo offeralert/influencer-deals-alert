@@ -70,37 +70,6 @@ const Header = () => {
                       Influencer Dashboard
                     </button>
                   )}
-                  <div className="mt-4 space-y-2">
-                    {!user ? (
-                      <>
-                        <Button 
-                          className="w-full bg-brand-green hover:bg-brand-green/90" 
-                          onClick={() => handleNavigation("/login")}
-                        >
-                          Sign In
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          className="w-full" 
-                          onClick={() => handleNavigation("/signup")}
-                        >
-                          Sign Up
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button 
-                          className="w-full bg-brand-green hover:bg-brand-green/90" 
-                          onClick={() => handleNavigation("/profile")}
-                        >
-                          My Profile
-                        </Button>
-                        <Button variant="outline" className="w-full" onClick={signOut}>
-                          Sign Out
-                        </Button>
-                      </>
-                    )}
-                  </div>
                 </nav>
               </SheetContent>
             </Sheet>
@@ -111,40 +80,30 @@ const Header = () => {
           </Link>
         </div>
 
-        {!isMobile && (
-          <nav className="mx-6 flex items-center space-x-4 lg:space-x-6 hidden md:flex">
-            <Link to="/" className="text-sm font-medium hover:text-brand-green transition-colors">
-              Home
-            </Link>
-            <Link to="/search" className="text-sm font-medium hover:text-brand-green transition-colors">
-              Search
-            </Link>
-            <Link to="/explore" className="text-sm font-medium hover:text-brand-green transition-colors">
-              Explore
-            </Link>
-            <Link to="/my-deals" className="text-sm font-medium hover:text-brand-green transition-colors">
-              My Deals
-            </Link>
-            {profile?.is_influencer && (
-              <Link to="/influencer-dashboard" className="text-sm font-medium text-brand-green transition-colors">
-                Influencer Dashboard
-              </Link>
-            )}
-          </nav>
-        )}
-
         <div className="flex items-center gap-2">
           {!user ? (
-            !isMobile && (
-              <>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login">Sign In</Link>
-                </Button>
-                <Button size="sm" className="bg-brand-green hover:bg-brand-green/90" asChild>
-                  <Link to="/signup">Sign Up</Link>
-                </Button>
-              </>
-            )
+            <>
+              {!isMobile && (
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/login">Sign In</Link>
+                  </Button>
+                  <Button size="sm" className="bg-brand-green hover:bg-brand-green/90" asChild>
+                    <Link to="/signup">Sign Up</Link>
+                  </Button>
+                </>
+              )}
+              {isMobile && (
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link to="/login">Sign In</Link>
+                  </Button>
+                  <Button size="sm" className="bg-brand-green hover:bg-brand-green/90" asChild>
+                    <Link to="/signup">Sign Up</Link>
+                  </Button>
+                </div>
+              )}
+            </>
           ) : (
             <>
               {!isMobile && (
