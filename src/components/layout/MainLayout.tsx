@@ -19,7 +19,7 @@ const MainLayout = () => {
       </main>
       {!isMobile && <Footer />}
       {isMobile && <BottomNav />}
-      <Toaster position="top-right" />
+      <Toaster />
     </div>
   );
 };
