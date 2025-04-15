@@ -39,16 +39,6 @@ const MobileFooter = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/explore" className="text-sm text-gray-600 dark:text-gray-400">
-                  Explore
-                </Link>
-              </li>
-              <li>
-                <Link to="/categories" className="text-sm text-gray-600 dark:text-gray-400">
-                  Categories
-                </Link>
-              </li>
-              <li>
                 <Link to="/about" className="text-sm text-gray-600 dark:text-gray-400">
                   About Us
                 </Link>
@@ -105,3 +95,4 @@ const MobileFooter = () => {
 };
 
 export default MobileFooter;
+
