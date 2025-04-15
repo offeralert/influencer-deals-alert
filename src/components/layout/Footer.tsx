@@ -1,5 +1,5 @@
 
-import { Instagram, Mail } from "lucide-react";
+import { Instagram, Mail, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -35,7 +35,14 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">For Influencers</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/influencer-apply" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Apply as Influencer</Link></li>
+              <li>
+                <Link 
+                  to="/influencer-apply" 
+                  className="text-gray-600 dark:text-gray-400 hover:text-brand-purple flex items-center gap-2"
+                >
+                  <UserPlus size={16} /> Apply as Influencer
+                </Link>
+              </li>
               <li><Link to="/pricing" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Pricing</Link></li>
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
             </ul>

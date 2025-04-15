@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Download } from "lucide-react";
+import { Download, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CallToActionSection = () => {
@@ -32,7 +32,10 @@ const CallToActionSection = () => {
               )}
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/influencer-apply">Apply as Influencer</Link>
+              <Link to="/influencer-apply">
+                <UserPlus className="mr-2 h-5 w-5" />
+                Apply as Influencer
+              </Link>
             </Button>
           </div>
         </div>
