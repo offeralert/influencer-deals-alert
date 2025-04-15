@@ -12,6 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -78,6 +86,47 @@ const Header = () => {
           <Link to="/" className="flex items-center">
             <span className="text-xl font-bold text-brand-green">Offer Alert</span>
           </Link>
+
+          {!isMobile && (
+            <NavigationMenu className="ml-6">
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
+                    onClick={() => navigate("/search")}
+                  >
+                    Search
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
+                    onClick={() => navigate("/explore")}
+                  >
+                    Explore
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink
+                    className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
+                    onClick={() => navigate("/my-deals")}
+                  >
+                    My Deals
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                {profile?.is_influencer && (
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="cursor-pointer px-4 py-2 text-sm font-medium text-brand-green hover:text-brand-green/90"
+                      onClick={() => navigate("/influencer-dashboard")}
+                    >
+                      Influencer Dashboard
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )}
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
