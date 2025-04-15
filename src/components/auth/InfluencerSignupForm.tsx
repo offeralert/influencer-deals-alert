@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -168,7 +168,22 @@ const InfluencerSignupForm = () => {
           htmlFor="influencer-terms" 
           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
         >
-          I agree to the Terms of Service and Privacy Policy
+          I agree to the{' '}
+          <Link 
+            to="/terms" 
+            className="text-brand-green hover:underline"
+            target="_blank"
+          >
+            Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link 
+            to="/privacy" 
+            className="text-brand-green hover:underline"
+            target="_blank"
+          >
+            Privacy Policy
+          </Link>
         </label>
       </div>
       
