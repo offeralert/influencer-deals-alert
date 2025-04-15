@@ -8,7 +8,7 @@ export const useFollowerCount = (influencerId: string) => {
   useEffect(() => {
     fetchFollowerCount();
     
-    // Subscribe to changes
+    // Subscribe to changes in the follows table
     const channel = supabase
       .channel('follower-changes')
       .on(
@@ -20,6 +20,7 @@ export const useFollowerCount = (influencerId: string) => {
           filter: `influencer_id=eq.${influencerId}`
         },
         () => {
+          // Refetch the count when any change occurs
           fetchFollowerCount();
         }
       )
