@@ -6,6 +6,7 @@ export const useFollowerCount = (influencerId: string) => {
   const [followerCount, setFollowerCount] = useState<number>(0);
 
   useEffect(() => {
+    // Fetch initial count
     fetchFollowerCount();
     
     // Subscribe to changes in the follows table
@@ -32,17 +33,23 @@ export const useFollowerCount = (influencerId: string) => {
   }, [influencerId]);
 
   const fetchFollowerCount = async () => {
-    const { count, error } = await supabase
-      .from('follows')
-      .select('*', { count: 'exact', head: true })
-      .eq('influencer_id', influencerId);
-    
-    if (error) {
-      console.error('Error fetching follower count:', error);
-      return;
+    try {
+      // Get the count directly without filtering by the current user
+      const { count, error } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('influencer_id', influencerId);
+      
+      if (error) {
+        console.error('Error fetching follower count:', error);
+        return;
+      }
+      
+      setFollowerCount(count || 0);
+    } catch (err) {
+      console.error('Exception in fetchFollowerCount:', err);
+      setFollowerCount(0);
     }
-    
-    setFollowerCount(count || 0);
   };
 
   return followerCount;
