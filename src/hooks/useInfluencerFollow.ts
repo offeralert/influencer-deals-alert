@@ -59,19 +59,12 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         
         if (error) {
           console.error("Error unfollowing influencer:", error);
-          toast({
-            title: "Error",
-            description: "Failed to unfollow. Please try again.",
-            variant: "destructive"
-          });
+          toast.error("Failed to unfollow. Please try again.");
           return;
         }
         
         setIsFollowing(false);
-        toast({
-          title: "Unfollowed",
-          description: `You are no longer following ${influencerName}`,
-        });
+        toast.success(`You are no longer following ${influencerName}`);
       } else {
         const { error } = await supabase
           .from('follows')
@@ -82,19 +75,12 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         
         if (error) {
           console.error("Error following influencer:", error);
-          toast({
-            title: "Error",
-            description: "Failed to follow. Please try again.",
-            variant: "destructive"
-          });
+          toast.error("Failed to follow. Please try again.");
           return;
         }
         
         setIsFollowing(true);
-        toast({
-          title: "Following",
-          description: `You're now following ${influencerName}`,
-        });
+        toast.success(`You're now following ${influencerName}`);
       }
     } catch (error) {
       console.error("Error in handleFollowToggle:", error);
