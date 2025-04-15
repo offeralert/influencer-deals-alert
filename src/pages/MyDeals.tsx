@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -120,6 +119,27 @@ const MyDeals = () => {
       setIsLoading(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center py-16 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-medium mb-2">Sign In Required</h3>
+          <p className="text-gray-500 mb-4">
+            Create an account to save and follow your favorite deals from influencers.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button asChild className="bg-brand-green hover:bg-brand-green/90">
+              <Link to="/signup">Create Account</Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link to="/login">Sign In</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -3,12 +3,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export const useInfluencerFollow = (influencerId: string | undefined, influencerName: string) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { toast } = useToast();
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
@@ -40,7 +39,13 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
 
   const handleFollowToggle = async () => {
     if (!user) {
-      navigate("/login");
+      toast.error("Sign in required", {
+        description: "Create an account to follow influencers and save their deals",
+        action: {
+          label: "Sign Up",
+          onClick: () => navigate("/signup")
+        }
+      });
       return;
     }
     
