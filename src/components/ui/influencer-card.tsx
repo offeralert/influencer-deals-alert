@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useFollowerCount } from '@/hooks/useFollowerCount';
 import { UserRound } from 'lucide-react';
+import { useInfluencerFollow } from '@/hooks/useInfluencerFollow';
 
 interface InfluencerCardProps {
   id: string;
@@ -19,91 +20,8 @@ interface InfluencerCardProps {
 }
 
 const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCardProps) => {
-  const { user } = useAuth();
-  const [isFollowing, setIsFollowing] = useState(false);
   const followerCount = useFollowerCount(id);
-
-  const toggleFollow = async () => {
-    if (!user) {
-      // Redirect to login or show login modal
-      return;
-    }
-
-    try {
-      if (isFollowing) {
-        // Unfollow
-        const { error } = await supabase
-          .from('follows')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('influencer_id', id);
-
-        if (error) throw error;
-        setIsFollowing(false);
-      } else {
-        // Follow
-        const { error } = await supabase
-          .from('follows')
-          .insert({
-            user_id: user.id,
-            influencer_id: id
-          });
-
-        if (error) throw error;
-        setIsFollowing(true);
-      }
-    } catch (error) {
-      console.error("Error toggling follow status:", error);
-    }
-  };
-
-  const checkFollowingStatus = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('follows')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('influencer_id', id)
-        .maybeSingle();
-      
-      if (!error && data) {
-        setIsFollowing(true);
-      } else {
-        setIsFollowing(false);
-      }
-    } catch (error) {
-      console.error("Error checking follow status:", error);
-    }
-  };
-
-  // Add real-time subscription for follow status
-  useEffect(() => {
-    if (!user) return;
-
-    checkFollowingStatus();
-    
-    const channel = supabase
-      .channel('follow-status')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'follows',
-          filter: `user_id=eq.${user.id} AND influencer_id=eq.${id}`
-        },
-        () => {
-          checkFollowingStatus();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, id]);
+  const { isFollowing, handleFollowToggle } = useInfluencerFollow(id, name);
 
   return (
     <Card className="overflow-hidden">
@@ -123,7 +41,7 @@ const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCa
       </Link>
       <CardFooter className="bg-gray-50 dark:bg-gray-800 p-4">
         <Button 
-          onClick={toggleFollow} 
+          onClick={handleFollowToggle} 
           variant={isFollowing ? "outline" : "default"} 
           className="w-full"
         >

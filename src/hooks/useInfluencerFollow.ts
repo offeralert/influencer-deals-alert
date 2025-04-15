@@ -39,7 +39,8 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
 
   const handleFollowToggle = async () => {
     if (!user) {
-      toast.error("Sign in required", {
+      // Show toast notification with sign-up prompt for non-logged-in users
+      toast.error("Please create an account or sign in to follow influencers.", {
         description: "Create an account to follow influencers and save their deals",
         action: {
           label: "Sign Up",
