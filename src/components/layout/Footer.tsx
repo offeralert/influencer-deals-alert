@@ -1,4 +1,3 @@
-
 import { Instagram, Mail, UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -37,7 +36,7 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link 
-                  to="/influencer-apply" 
+                  to="/signup?tab=influencer" 
                   className="text-gray-600 dark:text-gray-400 hover:text-brand-purple flex items-center gap-2"
                 >
                   <UserPlus size={16} /> Apply as Influencer

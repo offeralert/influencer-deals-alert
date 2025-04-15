@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Download, UserPlus } from "lucide-react";
@@ -32,7 +31,7 @@ const CallToActionSection = () => {
               )}
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/influencer-apply">
+              <Link to="/signup?tab=influencer">
                 <UserPlus className="mr-2 h-5 w-5" />
                 Apply as Influencer
               </Link>
