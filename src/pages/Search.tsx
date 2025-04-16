@@ -36,6 +36,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string;
   category: string;
 }
 
@@ -161,6 +162,7 @@ const Search = () => {
         affiliateLink: deal.affiliate_link || "#",
         influencerName: deal.influencer_name || 'Unknown Influencer',
         influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerId: deal.influencer_id || "",
         category: deal.category || 'Fashion'
       }));
       
@@ -298,7 +300,11 @@ const Search = () => {
                   <h2 className="text-xl font-semibold mb-4">Deals</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {deals.slice(0, 4).map((deal) => (
-                      <DealCard key={deal.id} {...deal} />
+                      <DealCard 
+                        key={deal.id} 
+                        {...deal} 
+                        influencerId={deal.influencerId}
+                      />
                     ))}
                   </div>
                 </div>
@@ -382,7 +388,11 @@ const Search = () => {
               <h2 className="text-xl font-semibold mb-4">Deals</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {deals.map((deal) => (
-                  <DealCard key={deal.id} {...deal} />
+                  <DealCard 
+                    key={deal.id} 
+                    {...deal} 
+                    influencerId={deal.influencerId}
+                  />
                 ))}
               </div>
             </div>

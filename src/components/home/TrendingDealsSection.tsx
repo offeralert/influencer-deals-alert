@@ -16,7 +16,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string;
+  influencerId: string; // Added this required field
   category: string;
 }
 
@@ -84,7 +84,7 @@ const TrendingDealsSection = () => {
       affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.influencer_name || 'Unknown Influencer',
       influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      influencerId: deal.influencer_id || "", // Make sure to pass influencer_id
+      influencerId: deal.influencer_id || "", // Make sure we include the influencer ID
       category: deal.category || 'Fashion'
     }));
     
@@ -103,7 +103,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Sophia Chen",
         influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-        influencerId: "sample-influencer-1", // Add sample influencer IDs
+        influencerId: "sample-influencer-1", // Always include the influencer ID
         category: "Fashion"
       },
       {

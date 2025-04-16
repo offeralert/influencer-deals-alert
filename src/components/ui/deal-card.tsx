@@ -18,7 +18,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; // Added explicit influencerId prop
+  influencerId: string; // This is required
   category: string;
 }
 
@@ -32,7 +32,7 @@ export function DealCard({
   affiliateLink,
   influencerName,
   influencerImage,
-  influencerId, // Include in component props
+  influencerId, // Make sure we're using this
   category,
 }: DealCardProps) {
   const [copied, setCopied] = useState(false);

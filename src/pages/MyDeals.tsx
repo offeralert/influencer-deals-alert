@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface SavedDeal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string; // Added this required field
   category: string;
 }
 
@@ -108,6 +110,7 @@ const MyDeals = () => {
         affiliateLink: promo.affiliate_link || "#",
         influencerName: promo.influencer_name || 'Unknown Influencer',
         influencerImage: promo.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerId: promo.influencer_id || "", // Ensure we include the influencer ID
         category: promo.category || ""
       }));
       
@@ -163,6 +166,7 @@ const MyDeals = () => {
               affiliateLink={deal.affiliateLink}
               influencerName={deal.influencerName}
               influencerImage={deal.influencerImage}
+              influencerId={deal.influencerId} // Explicitly pass influencerId
               category={deal.category}
             />
           ))}
