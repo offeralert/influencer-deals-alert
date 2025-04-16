@@ -1,3 +1,4 @@
+
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -91,7 +92,7 @@ export function DealCard({
         </div>
         
         <div className="flex justify-between items-center mt-auto pt-2 border-t">
-          <Link to={`/influencer/${id}`} className="flex items-center gap-2">
+          <Link to={`/influencer/${id}`} className="flex items-center gap-2 hover:underline">
             <Avatar className="h-7 w-7">
               <AvatarImage src={influencerImage} alt={influencerName} />
               <AvatarFallback>{influencerName.charAt(0)}</AvatarFallback>
