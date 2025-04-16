@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -36,7 +35,6 @@ interface Influencer {
   full_name: string;
   username: string;
   avatar_url: string;
-  followers_count?: number;
   category?: string;
 }
 
@@ -114,26 +112,15 @@ const Explore = () => {
         return;
       }
       
-      // For each influencer, fetch their follower count
-      const influencersWithFollowers = await Promise.all(
-        data.map(async (profile) => {
-          const { count, error: countError } = await supabase
-            .from('follows')
-            .select('*', { count: 'exact', head: true })
-            .eq('influencer_id', profile.id);
-          
-          return {
-            id: profile.id,
-            full_name: profile.full_name || 'Unnamed Influencer',
-            username: profile.username || 'unknown',
-            avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-            followers_count: countError ? 0 : (count || 0),
-            category: 'Lifestyle'
-          };
-        })
-      );
+      const formattedInfluencers = data.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name || 'Unnamed Influencer',
+        username: profile.username || 'unknown',
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        category: 'Lifestyle'
+      }));
       
-      setInfluencers(influencersWithFollowers);
+      setInfluencers(formattedInfluencers);
     } catch (error) {
       console.error("Error in fetchInfluencers:", error);
       setInfluencers([]);
@@ -216,7 +203,6 @@ const Explore = () => {
         return;
       }
       
-      // Group by brand name and count deals
       const brandMap = new Map<string, number>();
       
       data.forEach((deal: UniversalPromoCode) => {
@@ -226,19 +212,16 @@ const Explore = () => {
         }
       });
       
-      // Convert to array of brand objects
       let brandsArray: Brand[] = Array.from(brandMap).map(([name, count]) => ({
         name,
         dealCount: count
       }));
       
-      // Sort brands based on selected sort option
       if (sortOption === 'alphabetical') {
         brandsArray.sort((a, b) => a.name.localeCompare(b.name));
       } else if (sortOption === 'discount') {
         brandsArray.sort((a, b) => b.dealCount - a.dealCount);
       } else {
-        // Default sorting by deal count
         brandsArray.sort((a, b) => b.dealCount - a.dealCount);
       }
       
@@ -432,7 +415,6 @@ const Explore = () => {
                     username={influencer.username}
                     imageUrl={influencer.avatar_url}
                     category={influencer.category || "Lifestyle"}
-                    followers={influencer.followers_count || 0}
                   />
                 ))}
               </div>

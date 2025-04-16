@@ -22,7 +22,6 @@ interface Influencer {
   full_name: string;
   username: string;
   avatar_url: string;
-  followers_count?: number;
   category?: string;
 }
 
@@ -104,7 +103,6 @@ const Search = () => {
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
         avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        followers_count: Math.floor(Math.random() * 100000),
         category: 'Lifestyle'
       }));
       
@@ -289,7 +287,6 @@ const Search = () => {
                         username={influencer.username}
                         imageUrl={influencer.avatar_url}
                         category={"Lifestyle"}
-                        followers={influencer.followers_count || 0}
                       />
                     ))}
                   </div>
@@ -333,7 +330,6 @@ const Search = () => {
                   username={influencer.username}
                   imageUrl={influencer.avatar_url}
                   category={"Lifestyle"}
-                  followers={influencer.followers_count || 0}
                 />
               ))}
             </div>
