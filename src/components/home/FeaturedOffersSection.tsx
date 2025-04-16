@@ -16,6 +16,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string;
   category: string;
 }
 
@@ -87,6 +88,7 @@ const FeaturedOffersSection = () => {
       affiliateLink: offer.affiliate_link || "#",
       influencerName: offer.influencer_name || 'Unknown Influencer',
       influencerImage: offer.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerId: offer.influencer_id || "", // Make sure to pass influencer_id
       category: offer.category || 'Fashion'
     }));
     

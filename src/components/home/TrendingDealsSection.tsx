@@ -16,6 +16,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string;
   category: string;
 }
 
@@ -83,6 +84,7 @@ const TrendingDealsSection = () => {
       affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.influencer_name || 'Unknown Influencer',
       influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerId: deal.influencer_id || "", // Make sure to pass influencer_id
       category: deal.category || 'Fashion'
     }));
     
@@ -101,6 +103,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Sophia Chen",
         influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+        influencerId: "sample-influencer-1", // Add sample influencer IDs
         category: "Fashion"
       },
       {
@@ -113,6 +116,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Marcus Johnson",
         influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
+        influencerId: "sample-influencer-2",
         category: "Fitness"
       },
       {
@@ -125,6 +129,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Emma Wilson",
         influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+        influencerId: "sample-influencer-3",
         category: "Food"
       },
       {
@@ -137,6 +142,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Alex Rivera",
         influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+        influencerId: "sample-influencer-4",
         category: "Tech"
       },
     ]);

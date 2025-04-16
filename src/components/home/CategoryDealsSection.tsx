@@ -18,6 +18,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string;
   category: string;
 }
 
@@ -61,7 +62,9 @@ const CategoryDealsSection = () => {
             expiration_date,
             affiliate_link,
             category,
+            user_id,
             profiles:user_id (
+              id,
               full_name,
               username,
               avatar_url
@@ -90,6 +93,7 @@ const CategoryDealsSection = () => {
             affiliateLink: deal.affiliate_link || "#",
             influencerName: deal.profiles?.full_name || 'Unknown Influencer',
             influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+            influencerId: deal.user_id || deal.profiles?.id || "", // Use the correct influencer ID
             category: deal.category
           }));
           

@@ -18,6 +18,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
+  influencerId: string; // Added explicit influencerId prop
   category: string;
 }
 
@@ -31,6 +32,7 @@ export function DealCard({
   affiliateLink,
   influencerName,
   influencerImage,
+  influencerId, // Include in component props
   category,
 }: DealCardProps) {
   const [copied, setCopied] = useState(false);
@@ -92,7 +94,7 @@ export function DealCard({
         </div>
         
         <div className="flex justify-between items-center mt-auto pt-2 border-t">
-          <Link to={`/influencer/${id}`} className="flex items-center gap-2 hover:underline">
+          <Link to={`/influencer/${influencerId}`} className="flex items-center gap-2 hover:underline">
             <Avatar className="h-7 w-7">
               <AvatarImage src={influencerImage} alt={influencerName} />
               <AvatarFallback>{influencerName.charAt(0)}</AvatarFallback>
