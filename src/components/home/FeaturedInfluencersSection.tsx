@@ -125,6 +125,7 @@ const FeaturedInfluencersSection = () => {
                 name={influencer.full_name}
                 username={influencer.username}
                 imageUrl={influencer.avatar_url}
+                category={influencer.category}
               />
             ))
           )}

@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
-import { useFollowerCount } from "@/hooks/useFollowerCount";
 import { useInfluencerData } from "@/hooks/useInfluencerData";
 import { useInfluencerFollow } from "@/hooks/useInfluencerFollow";
 import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeader";
@@ -12,7 +11,6 @@ const InfluencerProfile = () => {
   const { id } = useParams<{ id: string }>();
   const [promoCodes, setPromoCodes] = useState<UniversalPromoCode[]>([]);
   const { influencer, loading } = useInfluencerData(id);
-  const followerCount = useFollowerCount(id || "");
   const { isFollowing, handleFollowToggle } = useInfluencerFollow(
     id,
     influencer?.full_name || ""
@@ -67,7 +65,6 @@ const InfluencerProfile = () => {
         fullName={influencer.full_name}
         username={influencer.username}
         avatarUrl={influencer.avatar_url}
-        followersCount={followerCount}
         isFollowing={isFollowing}
         onFollowToggle={handleFollowToggle}
       />
