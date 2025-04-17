@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -104,20 +105,20 @@ const FeaturedOffersSection = () => {
   };
 
   return (
-    <section className="py-12 bg-brand-light dark:bg-brand-dark">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold">Featured Offers</h2>
+    <section className="py-4 md:py-12 bg-brand-light dark:bg-brand-dark">
+      <div className="container mx-auto px-2 md:px-4">
+        <div className="flex justify-between items-center mb-3 md:mb-8">
+          <h2 className="text-lg md:text-2xl font-bold">Featured Offers</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore" className="flex items-center">
-              View all <ArrowRight className="ml-1 h-4 w-4" />
+            <Link to="/explore" className="flex items-center text-xs md:text-sm">
+              View all <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
             </Link>
           </Button>
         </div>
         
         {loading ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">Loading offers...</p>
+          <div className="col-span-full text-center py-4 md:py-12">
+            <p className="text-muted-foreground text-sm">Loading offers...</p>
           </div>
         ) : featuredOffers.length > 0 ? (
           isMobile ? (
@@ -128,9 +129,9 @@ const FeaturedOffersSection = () => {
               }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 md:-ml-4">
+              <CarouselContent className="-ml-1 md:-ml-4">
                 {featuredOffers.map((offer) => (
-                  <CarouselItem key={offer.id} className="pl-2 md:pl-4 basis-[85%] md:basis-1/3">
+                  <CarouselItem key={offer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
                     <DealCard {...offer} />
                   </CarouselItem>
                 ))}
@@ -146,8 +147,8 @@ const FeaturedOffersSection = () => {
             </div>
           )
         ) : (
-          <div className="col-span-full text-center py-12">
-            <p className="text-muted-foreground">No featured offers available right now.</p>
+          <div className="col-span-full text-center py-4 md:py-12">
+            <p className="text-muted-foreground text-sm">No featured offers available right now.</p>
           </div>
         )}
       </div>

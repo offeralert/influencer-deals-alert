@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
@@ -112,19 +113,19 @@ const FeaturedInfluencersSection = () => {
   };
 
   return (
-    <section className="py-12">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-2xl font-bold">Featured Influencers</h2>
+    <section className="py-4 md:py-12">
+      <div className="container mx-auto px-2 md:px-4">
+        <div className="flex justify-between items-center mb-3 md:mb-8">
+          <h2 className="text-lg md:text-2xl font-bold">Featured Influencers</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore?tab=influencers" className="flex items-center">
-              View all <ArrowRight className="ml-1 h-4 w-4" />
+            <Link to="/explore?tab=influencers" className="flex items-center text-xs md:text-sm">
+              View all <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
             </Link>
           </Button>
         </div>
         
         {loading ? (
-          <div className="text-center py-8">Loading featured influencers...</div>
+          <div className="text-center py-4 md:py-8">Loading featured influencers...</div>
         ) : isMobile ? (
           <Carousel
             opts={{
@@ -133,9 +134,9 @@ const FeaturedInfluencersSection = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-2 md:-ml-4">
+            <CarouselContent className="-ml-1 md:-ml-4">
               {featuredInfluencers.map((influencer) => (
-                <CarouselItem key={influencer.id} className="pl-2 md:pl-4 basis-[85%] md:basis-1/3">
+                <CarouselItem key={influencer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
                   <InfluencerCard
                     id={influencer.id}
                     name={influencer.full_name}
