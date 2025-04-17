@@ -6,6 +6,7 @@ import FeaturedInfluencersSection from "@/components/home/FeaturedInfluencersSec
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
+import BrowserExtensionPromo from "@/components/home/BrowserExtensionPromo";
 
 const Index = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ const Index = () => {
       <FeaturedInfluencersSection />
       <FeaturedOffersSection />
       <PopularCategoriesSection />
-      {!user && <CallToActionSection />}
+      {user ? <BrowserExtensionPromo /> : <CallToActionSection />}
     </div>
   );
 };
