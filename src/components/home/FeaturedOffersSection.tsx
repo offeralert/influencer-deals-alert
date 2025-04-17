@@ -105,13 +105,13 @@ const FeaturedOffersSection = () => {
   };
 
   return (
-    <section className="py-4 md:py-12 bg-brand-light dark:bg-brand-dark">
+    <section className="py-3 md:py-4 bg-white"> {/* Updated background to white */}
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-3 md:mb-8">
-          <h2 className="text-lg md:text-2xl font-bold">Featured Offers</h2>
+        <div className="flex justify-between items-center mb-2 md:mb-3">
+          <h2 className="text-base md:text-lg font-semibold">Featured Offers</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore" className="flex items-center text-xs md:text-sm">
-              View all <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+            <Link to="/explore" className="flex items-center text-xs">
+              View all <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
         </div>

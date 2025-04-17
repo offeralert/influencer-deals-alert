@@ -113,7 +113,7 @@ const FeaturedInfluencersSection = () => {
   };
 
   return (
-    <section className="py-3 md:py-4">
+    <section className="py-3 md:py-4 bg-white"> {/* Updated background to white */}
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex justify-between items-center mb-2 md:mb-3">
           <h2 className="text-base md:text-lg font-semibold">Featured Influencers</h2>

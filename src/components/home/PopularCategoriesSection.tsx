@@ -60,7 +60,7 @@ const PopularCategoriesSection = () => {
   };
 
   return (
-    <section className="py-3 md:py-4 bg-brand-light dark:bg-brand-dark">
+    <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex justify-between items-center mb-2 md:mb-3">
           <h2 className="text-base md:text-lg font-semibold">Popular Categories</h2>
