@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
@@ -9,16 +8,16 @@ const HeroSection = () => {
 
   return (
     <section className="relative bg-brand-light dark:bg-brand-dark">
-      <div className="container mx-auto px-4 py-16 md:py-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+      <div className="container mx-auto px-4 py-4 md:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-12 items-center">
+          <div className="space-y-2 md:space-y-6">
+            <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold leading-tight">
               Discover <span className="gradient-text">Exclusive Deals</span> From Your Favorite Influencers
             </h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm md:text-lg text-muted-foreground">
               Connect with influencers you love and unlock special discounts, affiliate links, and promo codes that you won't find anywhere else.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
               <Button size="lg" asChild>
                 {user ? (
                   <Link to="/extension-download">
