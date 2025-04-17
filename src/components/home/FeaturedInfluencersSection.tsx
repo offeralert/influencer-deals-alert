@@ -1,10 +1,17 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Influencer {
   id: string;
@@ -17,6 +24,7 @@ interface Influencer {
 const FeaturedInfluencersSection = () => {
   const [featuredInfluencers, setFeaturedInfluencers] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchFeaturedInfluencers();
@@ -114,11 +122,36 @@ const FeaturedInfluencersSection = () => {
             </Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {loading ? (
-            <div className="col-span-4 text-center py-8">Loading featured influencers...</div>
-          ) : (
-            featuredInfluencers.map((influencer) => (
+        
+        {loading ? (
+          <div className="text-center py-8">Loading featured influencers...</div>
+        ) : isMobile ? (
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {featuredInfluencers.map((influencer) => (
+                <CarouselItem key={influencer.id} className="pl-2 md:pl-4 basis-[85%] md:basis-1/3">
+                  <InfluencerCard
+                    id={influencer.id}
+                    name={influencer.full_name}
+                    username={influencer.username}
+                    imageUrl={influencer.avatar_url}
+                    category={influencer.category}
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {featuredInfluencers.map((influencer) => (
               <InfluencerCard
                 key={influencer.id}
                 id={influencer.id}
@@ -127,9 +160,9 @@ const FeaturedInfluencersSection = () => {
                 imageUrl={influencer.avatar_url}
                 category={influencer.category}
               />
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

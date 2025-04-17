@@ -1,10 +1,17 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Deal {
   id: string;
@@ -23,6 +30,7 @@ interface Deal {
 const FeaturedOffersSection = () => {
   const [featuredOffers, setFeaturedOffers] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchFeaturedOffers();
@@ -106,21 +114,42 @@ const FeaturedOffersSection = () => {
             </Link>
           </Button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {loading ? (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">Loading offers...</p>
-            </div>
-          ) : featuredOffers.length > 0 ? (
-            featuredOffers.map((offer) => (
-              <DealCard key={offer.id} {...offer} />
-            ))
+        
+        {loading ? (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">Loading offers...</p>
+          </div>
+        ) : featuredOffers.length > 0 ? (
+          isMobile ? (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-2 md:-ml-4">
+                {featuredOffers.map((offer) => (
+                  <CarouselItem key={offer.id} className="pl-2 md:pl-4 basis-[85%] md:basis-1/3">
+                    <DealCard {...offer} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex" />
+              <CarouselNext className="hidden md:flex" />
+            </Carousel>
           ) : (
-            <div className="col-span-full text-center py-12">
-              <p className="text-muted-foreground">No featured offers available right now.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {featuredOffers.map((offer) => (
+                <DealCard key={offer.id} {...offer} />
+              ))}
             </div>
-          )}
-        </div>
+          )
+        ) : (
+          <div className="col-span-full text-center py-12">
+            <p className="text-muted-foreground">No featured offers available right now.</p>
+          </div>
+        )}
       </div>
     </section>
   );

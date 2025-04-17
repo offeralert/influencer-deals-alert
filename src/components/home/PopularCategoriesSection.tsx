@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import CategoryCard from "@/components/ui/category-card";
@@ -7,10 +6,12 @@ import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
 import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const PopularCategoriesSection = () => {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchCategoryCounts();
@@ -21,7 +22,6 @@ const PopularCategoriesSection = () => {
       setLoading(true);
       const counts: Record<string, number> = {};
       
-      // Get all promo codes
       const { data, error } = await getUniversalPromoCodes();
       
       if (error) {
@@ -29,16 +29,13 @@ const PopularCategoriesSection = () => {
         return;
       }
       
-      // Count occurrences of each category
       if (data) {
         const allCategories = [...CATEGORIES, "Beauty"];
         
-        // Initialize all categories with zero count
         allCategories.forEach(cat => {
           counts[cat] = 0;
         });
         
-        // Count the actual occurrences in the data
         data.forEach(promo => {
           if (promo.category && counts[promo.category] !== undefined) {
             counts[promo.category]++;
@@ -54,6 +51,13 @@ const PopularCategoriesSection = () => {
     }
   };
 
+  const getTopCategories = (count: number) => {
+    return Object.entries(categoryCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, count)
+      .map(([category]) => category);
+  };
+
   return (
     <section className="py-12 bg-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-4">
@@ -65,25 +69,28 @@ const PopularCategoriesSection = () => {
             </Link>
           </Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className={cn(
+          "grid gap-4",
+          isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        )}>
           {loading ? (
-            // Simple loading state for categories
-            [...Array(5)].map((_, index) => (
+            [...Array(isMobile ? 4 : 5)].map((_, index) => (
               <div key={index} className="p-4 rounded-lg border border-border bg-card animate-pulse">
                 <div className="h-6 w-2/3 bg-gray-200 rounded mb-2"></div>
                 <div className="h-4 w-1/3 bg-gray-200 rounded"></div>
               </div>
             ))
           ) : (
-            // Display categories with counts
-            [...CATEGORIES, "Beauty"].slice(0, 5).map((category) => (
-              <CategoryCard
-                key={category}
-                name={category}
-                href={`/explore?category=${category}`}
-                count={categoryCounts[category] || 0}
-              />
-            ))
+            [...CATEGORIES, "Beauty"]
+              .slice(0, isMobile ? 4 : 5)
+              .map((category) => (
+                <CategoryCard
+                  key={category}
+                  name={category}
+                  href={`/explore?category=${category}`}
+                  count={categoryCounts[category] || 0}
+                />
+              ))
           )}
         </div>
       </div>
