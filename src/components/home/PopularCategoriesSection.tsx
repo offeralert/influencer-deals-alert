@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import CategoryCard from "@/components/ui/category-card";
@@ -7,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
 import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const PopularCategoriesSection = () => {
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
