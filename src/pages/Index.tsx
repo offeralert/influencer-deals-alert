@@ -1,6 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
+import DownloadBanner from "@/components/home/DownloadBanner";
 import FeaturedInfluencersSection from "@/components/home/FeaturedInfluencersSection";
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
@@ -11,11 +12,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <HeroSection />
+      {user ? <DownloadBanner /> : <HeroSection />}
       <FeaturedInfluencersSection />
       <FeaturedOffersSection />
       <PopularCategoriesSection />
-      <CallToActionSection />
+      {!user && <CallToActionSection />}
     </div>
   );
 };
