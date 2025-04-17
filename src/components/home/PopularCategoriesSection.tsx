@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import CategoryCard from "@/components/ui/category-card";
@@ -61,10 +60,10 @@ const PopularCategoriesSection = () => {
   };
 
   return (
-    <section className="py-4 md:py-6 bg-brand-light dark:bg-brand-dark">
+    <section className="py-3 md:py-4 bg-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-3 md:mb-4">
-          <h2 className="text-lg md:text-xl font-bold">Popular Categories</h2>
+        <div className="flex justify-between items-center mb-2 md:mb-3">
+          <h2 className="text-base md:text-lg font-semibold">Popular Categories</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/categories" className="flex items-center text-xs">
               View all <ArrowRight className="ml-1 h-3 w-3" />
@@ -72,7 +71,7 @@ const PopularCategoriesSection = () => {
           </Button>
         </div>
         <div className={cn(
-          "grid gap-2 md:gap-3",
+          "grid gap-2",
           isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         )}>
           {loading ? (
@@ -91,7 +90,6 @@ const PopularCategoriesSection = () => {
                   name={category}
                   href={`/explore?category=${category}`}
                   count={categoryCounts[category] || 0}
-                  className="p-2"
                 />
               ))
           )}
