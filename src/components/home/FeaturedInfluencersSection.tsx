@@ -113,19 +113,19 @@ const FeaturedInfluencersSection = () => {
   };
 
   return (
-    <section className="py-4 md:py-12">
+    <section className="py-4 md:py-6">
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-3 md:mb-8">
-          <h2 className="text-lg md:text-2xl font-bold">Featured Influencers</h2>
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h2 className="text-lg md:text-xl font-bold">Featured Influencers</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore?tab=influencers" className="flex items-center text-xs md:text-sm">
-              View all <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+            <Link to="/explore?tab=influencers" className="flex items-center text-xs">
+              View all <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
         </div>
         
         {loading ? (
-          <div className="text-center py-4 md:py-8">Loading featured influencers...</div>
+          <div className="text-center py-3">Loading featured influencers...</div>
         ) : isMobile ? (
           <Carousel
             opts={{
@@ -134,9 +134,9 @@ const FeaturedInfluencersSection = () => {
             }}
             className="w-full"
           >
-            <CarouselContent className="-ml-1 md:-ml-4">
+            <CarouselContent className="-ml-1 md:-ml-2">
               {featuredInfluencers.map((influencer) => (
-                <CarouselItem key={influencer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
+                <CarouselItem key={influencer.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/4">
                   <InfluencerCard
                     id={influencer.id}
                     name={influencer.full_name}
@@ -151,7 +151,7 @@ const FeaturedInfluencersSection = () => {
             <CarouselNext className="hidden md:flex" />
           </Carousel>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {featuredInfluencers.map((influencer) => (
               <InfluencerCard
                 key={influencer.id}

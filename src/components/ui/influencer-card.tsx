@@ -19,30 +19,28 @@ const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCa
   return (
     <Card className="overflow-hidden">
       <Link to={`/influencer/${id}`}>
-        <CardContent className="p-3 md:p-6">
-          <div className="flex flex-row md:flex-col items-center gap-3 md:gap-4">
-            <Avatar className="h-12 w-12 md:h-24 md:w-24 md:mb-4">
+        <CardContent className="p-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={imageUrl} alt={name} />
               <AvatarFallback>{name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="flex-1 md:text-center">
-              <h3 className="font-semibold text-base md:text-lg mb-0 md:mb-1">{name}</h3>
-              <p className="text-xs md:text-sm text-gray-500">@{username}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate mb-0.5">{name}</h3>
+              <p className="text-xs text-gray-500 truncate">@{username}</p>
               {category && (
-                <div className="hidden md:block text-sm text-gray-600 mt-2">
-                  <span>{category}</span>
-                </div>
+                <p className="text-xs text-gray-600 mt-0.5 truncate">{category}</p>
               )}
             </div>
           </div>
         </CardContent>
       </Link>
-      <CardFooter className="bg-gray-50 dark:bg-gray-800 p-2 md:p-4">
+      <CardFooter className="bg-gray-50 dark:bg-gray-800 p-2">
         <Button 
           onClick={handleFollowToggle} 
           variant={isFollowing ? "outline" : "default"} 
           size="sm"
-          className="w-full text-xs md:text-sm"
+          className="w-full text-xs h-8"
         >
           {isFollowing ? 'Following' : 'Follow'}
         </Button>

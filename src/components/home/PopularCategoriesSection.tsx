@@ -61,25 +61,25 @@ const PopularCategoriesSection = () => {
   };
 
   return (
-    <section className="py-4 md:py-12 bg-brand-light dark:bg-brand-dark">
+    <section className="py-4 md:py-6 bg-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-3 md:mb-8">
-          <h2 className="text-lg md:text-2xl font-bold">Popular Categories</h2>
+        <div className="flex justify-between items-center mb-3 md:mb-4">
+          <h2 className="text-lg md:text-xl font-bold">Popular Categories</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/categories" className="flex items-center text-xs md:text-sm">
-              View all <ArrowRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+            <Link to="/categories" className="flex items-center text-xs">
+              View all <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
         </div>
         <div className={cn(
-          "grid gap-2 md:gap-4",
+          "grid gap-2 md:gap-3",
           isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         )}>
           {loading ? (
             [...Array(isMobile ? 4 : 5)].map((_, index) => (
-              <div key={index} className="p-2 md:p-4 rounded-lg border border-border bg-card animate-pulse">
-                <div className="h-4 md:h-6 w-2/3 bg-gray-200 rounded mb-1 md:mb-2"></div>
-                <div className="h-3 md:h-4 w-1/3 bg-gray-200 rounded"></div>
+              <div key={index} className="p-2 rounded-lg border border-border bg-card animate-pulse">
+                <div className="h-4 w-2/3 bg-gray-200 rounded mb-1"></div>
+                <div className="h-3 w-1/3 bg-gray-200 rounded"></div>
               </div>
             ))
           ) : (
@@ -91,7 +91,7 @@ const PopularCategoriesSection = () => {
                   name={category}
                   href={`/explore?category=${category}`}
                   count={categoryCounts[category] || 0}
-                  className="p-2 md:p-4"
+                  className="p-2"
                 />
               ))
           )}

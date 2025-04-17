@@ -15,12 +15,12 @@ const CategoryCard = ({ name, count = 0, href, className }: CategoryCardProps) =
     <Link
       to={href}
       className={cn(
-        "group block transition-all hover:shadow-md border border-border bg-card",
+        "group block transition-all hover:shadow-md border border-border bg-card rounded-lg",
         className
       )}
     >
       <div className="space-y-0.5">
-        <h3 className="text-sm md:text-xl font-semibold">{name}</h3>
+        <h3 className="text-sm font-semibold">{name}</h3>
         <p className="text-xs text-muted-foreground">{count} offers</p>
       </div>
     </Link>
