@@ -11,7 +11,7 @@ const Index = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen">
+    <div className={`min-h-screen ${user ? 'pb-0' : ''}`}>
       {user ? <DownloadBanner /> : <HeroSection />}
       <FeaturedInfluencersSection />
       <FeaturedOffersSection />
