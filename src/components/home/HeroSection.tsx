@@ -9,41 +9,41 @@ const HeroSection = () => {
 
   return (
     <section className="relative bg-brand-light dark:bg-brand-dark">
-      <div className="container mx-auto px-4 py-2 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-8 items-center">
-          <div className="space-y-2 md:space-y-4">
-            <h1 className="text-2xl md:text-4xl font-bold leading-tight">
+      <div className="container mx-auto px-4 py-2 md:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 items-center">
+          <div className="space-y-2 md:space-y-3">
+            <h1 className="text-2xl md:text-3xl font-bold leading-tight">
               Discover <span className="gradient-text">Exclusive Deals</span> From Your Favorite Influencers
             </h1>
-            <p className="text-sm md:text-base text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Connect with influencers you love and unlock special discounts, affiliate links, and promo codes that you won't find anywhere else.
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 md:gap-4">
-              <Button size="default" asChild>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button size="sm" className="h-8" asChild>
                 {user ? (
                   <Link to="/extension-download">
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="mr-2 h-3 w-3" />
                     Download Extension
                   </Link>
                 ) : (
                   <Link to="/signup">Create Account</Link>
                 )}
               </Button>
-              <Button size="default" variant="outline" asChild>
+              <Button size="sm" variant="outline" className="h-8" asChild>
                 <Link to="/explore">Explore Deals</Link>
               </Button>
             </div>
           </div>
-          <div className="hidden lg:block relative">
+          <div className="hidden lg:block relative max-h-[200px]">
             <img 
               src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
               alt="Influencer marketing" 
-              className="rounded-lg shadow-2xl"
+              className="rounded-lg shadow-2xl object-cover h-[200px] w-full"
             />
-            <div className="absolute -top-4 -right-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
+            <div className="absolute -top-2 -right-2 bg-white dark:bg-brand-dark p-2 rounded-lg shadow-lg">
               <div className="gradient-bg p-1 rounded-md text-white font-medium text-xs">30% OFF</div>
             </div>
-            <div className="absolute -bottom-4 -left-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
+            <div className="absolute -bottom-2 -left-2 bg-white dark:bg-brand-dark p-2 rounded-lg shadow-lg">
               <div className="gradient-bg p-1 rounded-md text-white font-medium text-xs">SUMMER30</div>
             </div>
           </div>
