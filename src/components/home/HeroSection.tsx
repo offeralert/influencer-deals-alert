@@ -36,8 +36,8 @@ const HeroSection = () => {
           </div>
           <div className="hidden lg:block relative max-h-[200px]">
             <img 
-              src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d" 
-              alt="Influencer marketing" 
+              src="/lovable-uploads/6250f286-c8e5-4885-894a-d2619dcafeb6.png" 
+              alt="Online Shopping and Deals" 
               className="rounded-lg shadow-2xl object-cover h-[200px] w-full"
             />
             <div className="absolute -top-2 -right-2 bg-white dark:bg-brand-dark p-2 rounded-lg shadow-lg">
