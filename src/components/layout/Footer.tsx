@@ -46,14 +46,48 @@ const Footer = () => {
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-semibold mb-4">Company</h4>
+            <h4 className="font-semibold mb-4">Popular Brands</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/about" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">About Us</Link></li>
-              <li><Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Terms of Service</Link></li>
-              <li><Link to="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Privacy Policy</Link></li>
-              <li><Link to="/contact" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Contact Us</Link></li>
+              <li className="flex items-center justify-between">
+                <Link to="/brand/Nike" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">
+                  Nike
+                </Link>
+                <Link 
+                  to="/brand/Nike" 
+                  className="text-xs text-brand-green hover:text-brand-green/80"
+                >
+                  View Offers
+                </Link>
+              </li>
+              <li className="flex items-center justify-between">
+                <Link to="/brand/Adidas" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">
+                  Adidas
+                </Link>
+                <Link 
+                  to="/brand/Adidas" 
+                  className="text-xs text-brand-green hover:text-brand-green/80"
+                >
+                  View Offers
+                </Link>
+              </li>
+              <li className="flex items-center justify-between">
+                <Link to="/brand/Amazon" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">
+                  Amazon
+                </Link>
+                <Link 
+                  to="/brand/Amazon" 
+                  className="text-xs text-brand-green hover:text-brand-green/80"
+                >
+                  View Offers
+                </Link>
+              </li>
+              <li>
+                <Link to="/explore?tab=brands" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">
+                  View All Brands
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +17,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; 
+  influencerId: string;
   category: string;
 }
 
@@ -68,15 +67,12 @@ export function DealCard({
       <CardContent className="p-2 md:p-3 flex-grow flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-start mb-1.5">
-            <div className="flex flex-col">
-              <Link to={`/brand/${encodeURIComponent(brandName)}`} className="hover:underline">
-                <h3 className="font-medium text-sm md:text-base">{brandName}</h3>
-              </Link>
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{title}</p>
-            </div>
-            <Badge className="bg-brand-green text-white font-medium text-[10px] md:text-xs whitespace-nowrap">
-              {discount}
-            </Badge>
+            <Link to={`/brand/${encodeURIComponent(brandName)}`} className="hover:underline">
+              <h3 className="font-medium text-sm md:text-base">{brandName}</h3>
+            </Link>
+            <p className="text-xs text-brand-green font-medium bg-brand-paleGreen px-2 py-0.5 rounded line-clamp-2 max-w-[60%] text-right">
+              {title}
+            </p>
           </div>
           
           <div className="bg-muted rounded-md p-1 md:p-1.5 flex justify-between items-center mb-1.5 mt-2">
@@ -91,7 +87,7 @@ export function DealCard({
             </Button>
           </div>
           
-          <div className="flex justify-between items-center text-[10px] md:text-xs text-muted-foreground mt-1.5">
+          <div className="flex justify-between items-center text-[10px] md:text-xs text-muted-foreground mt-1.5 gap-2">
             <span>Expires: {formatDate(expiryDate)}</span>
             <Badge variant="outline" className="text-[10px] md:text-xs font-normal text-muted-foreground bg-muted/30">
               {category}
