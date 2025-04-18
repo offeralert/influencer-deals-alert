@@ -47,6 +47,16 @@ const Footer = () => {
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
             </ul>
           </div>
+          
+          <div>
+            <h4 className="font-semibold mb-4">Company</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link to="/about" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">About Us</Link></li>
+              <li><Link to="/terms" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Privacy Policy</Link></li>
+              <li><a href="mailto:hello@offeralert.io" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Contact Us</a></li>
+            </ul>
+          </div>
         </div>
         
         <div className="border-t border-gray-200 dark:border-gray-800 mt-8 pt-6 text-center">
