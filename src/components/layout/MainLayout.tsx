@@ -6,9 +6,11 @@ import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
 import { Toaster } from "@/components/ui/sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const MainLayout = () => {
   const isMobile = useIsMobile();
+  useScrollToTop(); // Add this line to enable scroll to top behavior
 
   return (
     <div className="flex min-h-screen flex-col">
