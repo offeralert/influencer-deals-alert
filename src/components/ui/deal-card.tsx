@@ -18,7 +18,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; // This is required
+  influencerId: string; 
   category: string;
 }
 
@@ -68,15 +68,18 @@ export function DealCard({
       <CardContent className="p-2 md:p-3 flex-grow flex flex-col justify-between">
         <div>
           <div className="flex justify-between items-start mb-1.5">
-            <h3 className="font-medium text-sm md:text-base">{brandName}</h3>
-            <Badge variant="outline" className="text-[10px] md:text-xs font-normal text-muted-foreground bg-muted/30">
-              {category}
+            <div className="flex flex-col">
+              <Link to={`/brand/${encodeURIComponent(brandName)}`} className="hover:underline">
+                <h3 className="font-medium text-sm md:text-base">{brandName}</h3>
+              </Link>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{title}</p>
+            </div>
+            <Badge className="bg-brand-green text-white font-medium text-[10px] md:text-xs whitespace-nowrap">
+              {discount}
             </Badge>
           </div>
           
-          <p className="text-xs text-muted-foreground mb-1.5 line-clamp-2">{title}</p>
-          
-          <div className="bg-muted rounded-md p-1 md:p-1.5 flex justify-between items-center mb-1.5">
+          <div className="bg-muted rounded-md p-1 md:p-1.5 flex justify-between items-center mb-1.5 mt-2">
             <code className="text-xs font-mono">{promoCode}</code>
             <Button
               variant="ghost"
@@ -88,12 +91,15 @@ export function DealCard({
             </Button>
           </div>
           
-          <div className="mb-1.5 text-[10px] md:text-xs text-muted-foreground">
-            Expires: {formatDate(expiryDate)}
+          <div className="flex justify-between items-center text-[10px] md:text-xs text-muted-foreground mt-1.5">
+            <span>Expires: {formatDate(expiryDate)}</span>
+            <Badge variant="outline" className="text-[10px] md:text-xs font-normal text-muted-foreground bg-muted/30">
+              {category}
+            </Badge>
           </div>
         </div>
         
-        <div className="flex justify-between items-center mt-1.5 pt-1.5 border-t">
+        <div className="flex justify-between items-center mt-2 pt-1.5 border-t">
           <Link to={`/influencer/${influencerId}`} className="flex items-center gap-1.5 hover:underline">
             <Avatar className="h-5 w-5 md:h-6 md:w-6">
               <AvatarImage src={influencerImage} alt={influencerName} />
