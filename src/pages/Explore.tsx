@@ -26,6 +26,7 @@ import {
 import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "react-router-dom";
 
 type SortOption = "newest" | "alphabetical" | "discount" | "category";
 type ExploreTab = "deals" | "influencers" | "brands";
@@ -443,38 +444,39 @@ const Explore = () => {
             {filteredBrands.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {filteredBrands.map((brand) => (
-                  <Card key={brand.name} className="hover:shadow-md transition-shadow">
+                <Link 
+                  key={brand.name} 
+                  to={`/brand/${encodeURIComponent(brand.name)}`}
+                  className="block hover:shadow-md transition-shadow"
+                >
+                  <Card>
                     <CardContent className="p-6">
                       <h3 className="text-lg font-semibold mb-2">{brand.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <p className="text-sm text-muted-foreground">
                         {brand.dealCount} {brand.dealCount === 1 ? 'offer' : 'offers'} available
                       </p>
-                      <Button variant="outline" size="sm" asChild className="w-full">
-                        <a href={`/explore?tab=deals&brand=${encodeURIComponent(brand.name)}`}>
-                          View Offers
-                        </a>
-                      </Button>
                     </CardContent>
                   </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-gray-50 rounded-lg">
-                <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium mb-2">No brands found</h3>
-                <p className="text-gray-500">
-                  {brandSearch 
-                    ? "Try a different search term" 
-                    : selectedCategories.length > 0 
-                      ? "Try adjusting your category filters"
-                      : "Check back later for exciting brands and offers!"}
-                </p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      )}
-    </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-gray-50 rounded-lg">
+              <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium mb-2">No brands found</h3>
+              <p className="text-gray-500">
+                {brandSearch 
+                  ? "Try a different search term" 
+                  : selectedCategories.length > 0 
+                    ? "Try adjusting your category filters"
+                    : "Check back later for exciting brands and offers!"}
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    )}
+  </div>
   );
 };
 
