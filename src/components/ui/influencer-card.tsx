@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,10 @@ interface InfluencerCardProps {
   name: string;
   username: string;
   imageUrl: string;
+  category?: string;
 }
 
-const InfluencerCard = ({ id, name, username, imageUrl }: InfluencerCardProps) => {
+const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCardProps) => {
   const { isFollowing, handleFollowToggle } = useInfluencerFollow(id, name);
 
   return (
