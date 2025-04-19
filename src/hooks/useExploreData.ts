@@ -7,7 +7,8 @@ import { Influencer, Deal, Brand, ExploreTab, SortOption } from "@/types/explore
 export const useExploreData = (
   activeTab: ExploreTab,
   sortOption: SortOption,
-  selectedCategories: string[]
+  selectedCategories: string[],
+  searchQuery: string = ""
 ) => {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
@@ -51,11 +52,18 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        category: 'Lifestyle'
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
       })) || [];
       
-      setInfluencers(formattedInfluencers);
+      // Filter by search query if provided
+      const filtered = searchQuery
+        ? formattedInfluencers.filter(inf => 
+            inf.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            inf.username.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : formattedInfluencers;
+      
+      setInfluencers(filtered);
     } catch (error) {
       console.error("Error in fetchInfluencers:", error);
       setInfluencers([]);

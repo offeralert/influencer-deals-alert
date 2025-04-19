@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,20 +102,6 @@ const InfluencerDashboard = () => {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Influencer Dashboard</h1>
         
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Follower Count</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-muted-foreground" />
-                <span className="text-2xl font-bold">{followerCount}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <Tabs defaultValue="promocodes" className="space-y-6">
           <TabsList>
             <TabsTrigger value="promocodes">Promo Codes</TabsTrigger>

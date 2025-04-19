@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import SearchBar from "@/components/ui/search-bar";
 
 interface SavedDeal {
   id: string;
@@ -18,7 +18,7 @@ interface SavedDeal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; // Added this required field
+  influencerId: string;
   category: string;
 }
 
@@ -26,6 +26,8 @@ const MyDeals = () => {
   const { user } = useAuth();
   const [savedDeals, setSavedDeals] = useState<SavedDeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredDeals, setFilteredDeals] = useState<SavedDeal[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -56,6 +58,16 @@ const MyDeals = () => {
       setSavedDeals([]);
     }
   }, [user]);
+
+  useEffect(() => {
+    const filtered = savedDeals.filter(deal => 
+      deal.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deal.promoCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      deal.influencerName.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredDeals(filtered);
+  }, [searchQuery, savedDeals]);
 
   const fetchSavedDeals = async () => {
     try {
@@ -110,7 +122,7 @@ const MyDeals = () => {
         affiliateLink: promo.affiliate_link || "#",
         influencerName: promo.influencer_name || 'Unknown Influencer',
         influencerImage: promo.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        influencerId: promo.influencer_id || "", // Ensure we include the influencer ID
+        influencerId: promo.influencer_id || "",
         category: promo.category || ""
       }));
       
@@ -146,15 +158,23 @@ const MyDeals = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">My Saved Deals</h1>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h1 className="text-3xl font-bold">My Saved Deals</h1>
+        <SearchBar 
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search saved deals..."
+          className="w-full md:w-80"
+        />
+      </div>
       
       {isLoading ? (
         <div className="text-center py-16">
           <p>Loading your saved deals...</p>
         </div>
-      ) : savedDeals.length > 0 ? (
+      ) : filteredDeals.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {savedDeals.map((deal) => (
+          {filteredDeals.map((deal) => (
             <DealCard
               key={deal.id}
               id={deal.id}
@@ -166,7 +186,7 @@ const MyDeals = () => {
               affiliateLink={deal.affiliateLink}
               influencerName={deal.influencerName}
               influencerImage={deal.influencerImage}
-              influencerId={deal.influencerId} // Explicitly pass influencerId
+              influencerId={deal.influencerId}
               category={deal.category}
             />
           ))}

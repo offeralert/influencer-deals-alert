@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -26,12 +25,14 @@ import { useExploreData } from "@/hooks/useExploreData";
 import DealsView from "@/components/explore/DealsView";
 import InfluencersView from "@/components/explore/InfluencersView";
 import BrandsView from "@/components/explore/BrandsView";
+import SearchBar from "@/components/ui/search-bar";
 
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") as ExploreTab || "deals";
   const initialCategory = searchParams.get("category") || "";
-  
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [activeTab, setActiveTab] = useState<ExploreTab>(initialTab);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -42,7 +43,8 @@ const Explore = () => {
   const { deals, influencers, brands, loading } = useExploreData(
     activeTab,
     sortOption,
-    selectedCategories
+    selectedCategories,
+    searchQuery
   );
 
   useEffect(() => {
@@ -72,6 +74,13 @@ const Explore = () => {
         <h1 className="text-2xl font-bold">Explore</h1>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <SearchBar 
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Search deals, brands, or influencers..."
+            className="w-full md:w-80"
+          />
+          
           <Tabs 
             value={activeTab} 
             onValueChange={(value) => setActiveTab(value as ExploreTab)}
