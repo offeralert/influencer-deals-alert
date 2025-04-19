@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -26,19 +27,23 @@ import DealsView from "@/components/explore/DealsView";
 import InfluencersView from "@/components/explore/InfluencersView";
 import BrandsView from "@/components/explore/BrandsView";
 import SearchBar from "@/components/ui/search-bar";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const Explore = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") as ExploreTab || "deals";
   const initialCategory = searchParams.get("category") || "";
-  const [searchQuery, setSearchQuery] = useState("");
-
+  
   const [activeTab, setActiveTab] = useState<ExploreTab>(initialTab);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialCategory ? [initialCategory] : []
   );
+  const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  
+  // Use the hook to scroll to top on route changes
+  useScrollToTop();
 
   const { deals, influencers, brands, loading } = useExploreData(
     activeTab,
@@ -63,6 +68,24 @@ const Explore = () => {
     setSearchParams(newParams);
   }, [selectedCategories]);
 
+  // Clear search when tab changes
+  useEffect(() => {
+    setSearchQuery("");
+  }, [activeTab]);
+
+  const getSearchPlaceholder = () => {
+    switch (activeTab) {
+      case "deals":
+        return "Search deals, promos, or brands...";
+      case "influencers":
+        return "Search influencers by name or username...";
+      case "brands":
+        return "Search brands...";
+      default:
+        return "Search...";
+    }
+  };
+
   const clearFilters = () => {
     setSelectedCategories([]);
     setFiltersOpen(false);
@@ -77,7 +100,7 @@ const Explore = () => {
           <SearchBar 
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Search deals, brands, or influencers..."
+            placeholder={getSearchPlaceholder()}
             className="w-full md:w-80"
           />
           

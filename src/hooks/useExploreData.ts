@@ -31,7 +31,7 @@ export const useExploreData = (
     };
     
     fetchData();
-  }, [activeTab, sortOption, selectedCategories]);
+  }, [activeTab, sortOption, selectedCategories, searchQuery]);
 
   const fetchInfluencers = async () => {
     try {
@@ -110,7 +110,17 @@ export const useExploreData = (
         category: deal.category || 'Fashion'
       })) || [];
       
-      setDeals(formattedDeals);
+      // Filter deals by search query if provided
+      const filtered = searchQuery
+        ? formattedDeals.filter(deal => 
+            deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            deal.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            deal.promoCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            deal.influencerName.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : formattedDeals;
+      
+      setDeals(filtered);
     } catch (error) {
       console.error("Error in fetchDeals:", error);
       setDeals([]);
@@ -146,6 +156,13 @@ export const useExploreData = (
         name,
         dealCount: count
       }));
+      
+      // Filter brands by search query if provided
+      if (searchQuery) {
+        brandsArray = brandsArray.filter(brand => 
+          brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
       
       if (sortOption === 'alphabetical') {
         brandsArray.sort((a, b) => a.name.localeCompare(b.name));
