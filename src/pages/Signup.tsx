@@ -17,6 +17,27 @@ const Signup = () => {
     }
   }, [searchParams]);
 
+  const renderBenefits = () => {
+    if (activeTab === "user") {
+      return (
+        <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 mb-4">
+          <h3 className="font-medium text-foreground mb-2">Benefits of a User Account:</h3>
+          <p>Follow your favorite influencers and get notified of exclusive offers while shopping online.</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 mb-4">
+        <h3 className="font-medium text-foreground mb-2">Benefits of an Influencer Account:</h3>
+        <p className="mb-2">
+          Promote your promo codes and affiliate links through our AI-powered notification system — boosting visibility and commissions.
+        </p>
+        <p>Plus, enjoy all the same benefits as users if you also want to save while shopping online!</p>
+      </div>
+    );
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12 px-4">
       <Card className="w-full max-w-md">
@@ -32,6 +53,8 @@ const Signup = () => {
             <TabsTrigger value="user">Sign up as a User</TabsTrigger>
             <TabsTrigger value="influencer">Sign up as an Influencer</TabsTrigger>
           </TabsList>
+          
+          {renderBenefits()}
           
           <TabsContent value="user">
             <UserSignupForm />
