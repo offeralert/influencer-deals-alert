@@ -8,9 +8,16 @@
     <meta name="author" content="Lovable" />
 
     <link rel="icon" href="/lovable-uploads/edf0a8ab-4e46-4096-9778-1873148c2812.png" type="image/png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff">
     
     <!-- iOS Web App Icon -->
     <link rel="apple-touch-icon" href="/lovable-uploads/ecd4f68c-7cea-49cc-ab6a-0c8dc6a58a18.png" sizes="180x180">
+
+    <!-- iOS PWA specific tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Offer Alert">
 
     <meta property="og:title" content="Offer Alert" />
     <meta property="og:description" content="Instantly discover real promo codes from verified influencers. No account required. Offer Alert brings the best deals to you — all in one place." />
@@ -28,6 +35,19 @@
     <div id="root"></div>
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch((err) => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

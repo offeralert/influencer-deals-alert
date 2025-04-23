@@ -1,0 +1,23 @@
+
+{
+  "name": "Offer Alert",
+  "short_name": "OfferAlert",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/lovable-uploads/ecd4f68c-7cea-49cc-ab6a-0c8dc6a58a18.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lovable-uploads/ecd4f68c-7cea-49cc-ab6a-0c8dc6a58a18.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
