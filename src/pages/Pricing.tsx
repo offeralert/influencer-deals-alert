@@ -1,3 +1,4 @@
+
 import { Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ const PricingPage = () => {
   ];
 
   const handleGetStarted = () => {
-    navigate('/influencer-apply');
+    navigate('/signup?tab=influencer');
   };
 
   return (
