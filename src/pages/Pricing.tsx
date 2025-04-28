@@ -1,5 +1,5 @@
 
-import { Check } from "lucide-react";
+import { Check, DollarSign } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,54 +12,59 @@ const PricingPage = () => {
     {
       name: "Starter",
       price: "Free",
-      description: "Perfect for new or casual influencers",
+      description: "Perfect for new influencers starting their journey",
       features: [
-        "Upload up to 3 offers",
-        "Access to real-time AI-powered notifications",
-        "Get discovered by users shopping online"
+        "Upload up to 3 offers (promo codes or affiliate links)",
+        "Get discovered by users shopping online",
+        "Basic analytics dashboard",
+        "Cancel anytime"
       ],
+      costPerOffer: "$0",
       ctaText: "Get Started",
       highlighted: false,
       badge: null
     },
     {
       name: "Growth",
-      price: "$20",
-      description: "Ideal for growing influencers ready to expand",
+      price: "$30",
+      description: "Great for influencers with a few active brand deals",
       features: [
         "Upload up to 10 offers",
-        "Enhanced exposure across Offer Alert",
-        "Boost earning potential with more active deals",
+        "Expand your brand partnerships",
+        "Enhanced earning potential",
         "Cancel anytime"
       ],
+      costPerOffer: "~$3.00/offer",
       ctaText: "Upgrade to Growth",
       highlighted: true,
       badge: "Recommended"
     },
     {
       name: "Pro",
-      price: "$30",
-      description: "For established influencers seeking more reach",
+      price: "$50",
+      description: "Ideal for growing creators managing multiple campaigns",
       features: [
-        "Upload up to 15 offers",
-        "Priority placement in select categories",
-        "Expand reach to even more users",
+        "Upload up to 20 offers",
+        "Increased exposure across Offer Alert",
+        "Priority analytics insights",
         "Cancel anytime"
       ],
+      costPerOffer: "~$2.50/offer",
       ctaText: "Upgrade to Pro",
       highlighted: false,
       badge: null
     },
     {
       name: "Enterprise",
-      price: "$40",
-      description: "Maximum flexibility and support",
+      price: "$80",
+      description: "Maximum flexibility for large influencers and agencies",
       features: [
-        "Upload more than 15 offers",
-        "Unlimited uploads and flexibility",
-        "Direct support from the Offer Alert team",
+        "Unlimited offers",
+        "Full flexibility and control",
+        "Direct support from our team",
         "Cancel anytime"
       ],
+      costPerOffer: "Best Value – unlimited uploads!",
       ctaText: "Upgrade to Enterprise",
       highlighted: false,
       badge: null
@@ -73,9 +78,9 @@ const PricingPage = () => {
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Pricing Plans</h1>
+        <h1 className="text-4xl font-bold mb-4">Influencer Pricing Plans</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose the perfect plan for your influencer journey. Upgrade or downgrade anytime.
+          Choose the perfect plan for your creator journey. Upgrade, downgrade, or cancel anytime.
         </p>
       </div>
 
@@ -104,8 +109,14 @@ const PricingPage = () => {
             
             <CardContent className="flex-grow">
               <div className="mb-4">
-                <span className="text-4xl font-bold">{tier.price}</span>
-                {tier.price !== "Free" && <span className="text-muted-foreground">/month</span>}
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold">{tier.price}</span>
+                  {tier.price !== "Free" && <span className="text-muted-foreground">/month</span>}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                  <DollarSign className="h-4 w-4" />
+                  <span>{tier.costPerOffer}</span>
+                </div>
               </div>
               
               <ul className="space-y-3">
