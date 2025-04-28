@@ -14,9 +14,9 @@ const PricingPage = () => {
       price: "Free",
       description: "Perfect for new influencers starting their journey",
       features: [
-        "Upload up to 3 offers (promo codes or affiliate links)",
-        "Get discovered by users shopping online",
-        "Basic analytics dashboard",
+        "Upload up to 3 offers",
+        "Access to real-time AI-powered notifications",
+        "Perfect for new or casual influencers",
         "Cancel anytime"
       ],
       costPerOffer: "$0",
@@ -30,8 +30,8 @@ const PricingPage = () => {
       description: "Great for influencers with a few active brand deals",
       features: [
         "Upload up to 10 offers",
-        "Expand your brand partnerships",
-        "Enhanced earning potential",
+        "Enhanced exposure across Offer Alert",
+        "Boost earning potential",
         "Cancel anytime"
       ],
       costPerOffer: "~$3.00/offer",
@@ -45,8 +45,8 @@ const PricingPage = () => {
       description: "Ideal for growing creators managing multiple campaigns",
       features: [
         "Upload up to 20 offers",
-        "Increased exposure across Offer Alert",
-        "Priority analytics insights",
+        "Priority feature in Notification Alert (coming soon)",
+        "Expand reach to even more users",
         "Cancel anytime"
       ],
       costPerOffer: "~$2.50/offer",
@@ -57,11 +57,11 @@ const PricingPage = () => {
     {
       name: "Enterprise",
       price: "$80",
-      description: "Maximum flexibility for large influencers and agencies",
+      description: "Maximum flexibility for large influencers and corporations",
       features: [
         "Unlimited offers",
-        "Full flexibility and control",
-        "Direct support from our team",
+        "Custom user journey development",
+        "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
       costPerOffer: "Best Value – unlimited uploads!",
