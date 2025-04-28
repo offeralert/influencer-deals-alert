@@ -19,7 +19,6 @@ const PricingPage = () => {
         "Perfect for new or casual influencers",
         "Cancel anytime"
       ],
-      costPerOffer: "0",
       ctaText: "Get Started",
       highlighted: false,
       badge: null
