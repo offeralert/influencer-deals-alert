@@ -1,4 +1,3 @@
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -23,6 +22,7 @@ import Contact from "./pages/Contact";
 import InfluencerProfile from "./pages/InfluencerProfile";
 import BrandProfile from "./pages/BrandProfile";
 import Privacy from "./pages/Privacy";
+import Pricing from "./pages/Pricing";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +51,7 @@ const App = () => (
               <Route path="/influencer/:id" element={<InfluencerProfile />} />
               <Route path="/brand/:brandName" element={<BrandProfile />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
