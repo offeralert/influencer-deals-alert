@@ -1,10 +1,12 @@
-
 import { Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const PricingPage = () => {
+  const navigate = useNavigate();
+  
   const pricingTiers = [
     {
       name: "Starter",
@@ -63,6 +65,10 @@ const PricingPage = () => {
     }
   ];
 
+  const handleGetStarted = () => {
+    navigate('/influencer-apply');
+  };
+
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-12">
@@ -115,6 +121,7 @@ const PricingPage = () => {
               <Button 
                 className="w-full" 
                 variant={tier.highlighted ? "default" : "outline"}
+                onClick={handleGetStarted}
               >
                 {tier.ctaText}
               </Button>
