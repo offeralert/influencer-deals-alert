@@ -1,4 +1,3 @@
-
 import { Check, DollarSign } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,8 +112,7 @@ const PricingPage = () => {
                   <span className="text-4xl font-bold">{tier.price}</span>
                   {tier.price !== "Free" && <span className="text-muted-foreground">/month</span>}
                 </div>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                  <DollarSign className="h-4 w-4" />
+                <div className="text-sm text-muted-foreground mt-1">
                   <span>{tier.costPerOffer}</span>
                 </div>
               </div>
