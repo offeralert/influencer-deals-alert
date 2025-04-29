@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -12,11 +13,11 @@ const PricingPage = () => {
     {
       name: "Starter",
       price: "Free",
-      description: "Perfect for new influencers starting their journey",
+      description: "Perfect for trying out Offer Alert",
       features: [
         "Upload up to 3 offers",
-        "Access to real-time AI-powered notifications",
-        "Perfect for new or casual influencers",
+        "Appear in user search and category pages", 
+        "Get notified when users interact with your offers",
         "Cancel anytime"
       ],
       ctaText: "Get Started",
@@ -26,51 +27,52 @@ const PricingPage = () => {
     {
       name: "Growth",
       price: "$30",
-      description: "Great for influencers with a few active brand deals",
+      description: "Ideal for creators building brand deals",
       features: [
         "Upload up to 10 offers",
+        "Expanded visibility on homepage and explore",
         "Enhanced exposure across Offer Alert",
-        "Boost earning potential",
         "Cancel anytime"
       ],
       costPerOffer: "~$3.00/offer",
-      ctaText: "Upgrade to Growth",
+      ctaText: "Upgrade Now",
       highlighted: true,
       badge: "Recommended"
     },
     {
       name: "Pro",
       price: "$50",
-      description: "Ideal for growing creators managing multiple campaigns",
+      description: "Best for full-time creators scaling earnings",
       features: [
         "Upload up to 20 offers",
-        "Priority feature in Notification Alert (coming soon)",
+        "Increased exposure and category prioritization",
         "Expand reach to even more users",
         "Cancel anytime"
       ],
       costPerOffer: "~$2.50/offer",
-      ctaText: "Upgrade to Pro",
+      ctaText: "Upgrade Now",
       highlighted: false,
       badge: null
     },
     {
       name: "Enterprise",
       price: "$80",
-      description: "Maximum flexibility for large influencers and corporations",
+      description: "Ideal for agencies and high-volume marketers",
       features: [
-        "Unlimited offers",
-        "Custom user journey development",
+        "Upload unlimited offers",
+        "Full flexibility and priority placement",
         "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
-      costPerOffer: "Best Value – unlimited uploads!",
-      ctaText: "Upgrade to Enterprise",
+      costPerOffer: "Best value for power users",
+      ctaText: "Apply Now",
       highlighted: false,
       badge: null
     }
   ];
 
-  const handleGetStarted = () => {
+  const handleSignup = (tier) => {
+    toast.info(`Selected the ${tier} plan`);
     navigate('/signup?tab=influencer');
   };
 
@@ -79,7 +81,7 @@ const PricingPage = () => {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Influencer Pricing Plans</h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose the perfect plan for your creator journey. Upgrade, downgrade, or cancel anytime.
+          Choose the perfect plan for your creator journey. All plans are monthly with no long-term contracts.
         </p>
       </div>
 
@@ -108,13 +110,13 @@ const PricingPage = () => {
             
             <CardContent className="flex-grow">
               <div className="mb-4">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{tier.price}</span>
-                  {tier.price !== "Free" && <span className="text-muted-foreground">/month</span>}
-                </div>
-                {tier.name !== "Starter" && tier.costPerOffer && (
+                <div className="text-4xl font-bold">{tier.price}</div>
+                {tier.price !== "Free" && (
+                  <div className="text-sm text-muted-foreground mt-1">per month</div>
+                )}
+                {tier.costPerOffer && (
                   <div className="text-sm text-muted-foreground mt-1">
-                    <span>{tier.costPerOffer}</span>
+                    {tier.costPerOffer}
                   </div>
                 )}
               </div>
@@ -133,7 +135,7 @@ const PricingPage = () => {
               <Button 
                 className="w-full" 
                 variant={tier.highlighted ? "default" : "outline"}
-                onClick={handleGetStarted}
+                onClick={() => handleSignup(tier.name)}
               >
                 {tier.ctaText}
               </Button>
@@ -146,4 +148,3 @@ const PricingPage = () => {
 };
 
 export default PricingPage;
-
