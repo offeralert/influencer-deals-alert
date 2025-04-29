@@ -35,63 +35,29 @@ const FeaturedInfluencersSection = () => {
     try {
       setLoading(true);
       
+      // Get profiles that are both featured AND influencers
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_influencer', true)
         .eq('is_featured', true)
-        .limit(4);
+        .limit(5);
       
       if (error) {
         console.error("Error fetching featured influencers:", error);
+        setFeaturedInfluencers([]);
       } else {
-        if (data.length === 0) {
-          const { data: regularData, error: regularError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('is_influencer', true)
-            .limit(4);
-            
-          if (!regularError && regularData.length > 0) {
-            await transformAndSetInfluencers(regularData);
-          } else {
-            setFeaturedInfluencers([
-              {
-                id: "1",
-                full_name: "Sophia Chen",
-                username: "sophiastyle",
-                avatar_url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-                category: "Fashion"
-              },
-              {
-                id: "2",
-                full_name: "Marcus Johnson",
-                username: "marcusfitness",
-                avatar_url: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-                category: "Fitness"
-              },
-              {
-                id: "3",
-                full_name: "Emma Wilson",
-                username: "emmaeats",
-                avatar_url: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-                category: "Food"
-              },
-              {
-                id: "4",
-                full_name: "Alex Rivera",
-                username: "alextech",
-                avatar_url: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-                category: "Tech"
-              },
-            ]);
-          }
-        } else {
+        if (data.length > 0) {
           await transformAndSetInfluencers(data);
+        } else {
+          // If no featured influencers found, set empty array
+          // Do not load fallback data or default influencers
+          setFeaturedInfluencers([]);
         }
       }
     } catch (error) {
       console.error("Error in fetchFeaturedInfluencers:", error);
+      setFeaturedInfluencers([]);
     } finally {
       setLoading(false);
     }
@@ -112,8 +78,13 @@ const FeaturedInfluencersSection = () => {
     }
   };
 
+  // Don't render the section at all if no featured influencers
+  if (featuredInfluencers.length === 0 && !loading) {
+    return null;
+  }
+
   return (
-    <section className="py-3 md:py-4 bg-white"> {/* Updated background to white */}
+    <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex justify-between items-center mb-2 md:mb-3">
           <h2 className="text-base md:text-lg font-semibold">Featured Influencers</h2>
@@ -132,12 +103,12 @@ const FeaturedInfluencersSection = () => {
           <Carousel
             opts={{
               align: "start",
-              loop: true,
+              loop: featuredInfluencers.length > 1,
             }}
             className="w-full"
           >
             <CarouselContent className="-ml-1 md:-ml-2">
-              {featuredInfluencers.slice(0, 5).map((influencer) => (
+              {featuredInfluencers.map((influencer) => (
                 <CarouselItem key={influencer.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
                   <InfluencerCard
                     id={influencer.id}
@@ -149,12 +120,16 @@ const FeaturedInfluencersSection = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="hidden md:flex" />
-            <CarouselNext className="hidden md:flex" />
+            {featuredInfluencers.length > 1 && (
+              <>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </>
+            )}
           </Carousel>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3">
-            {featuredInfluencers.slice(0, 5).map((influencer) => (
+          <div className={`grid grid-cols-${Math.min(featuredInfluencers.length, 5)} md:grid-cols-${Math.min(featuredInfluencers.length, 5)} lg:grid-cols-${Math.min(featuredInfluencers.length, 5)} gap-2 md:gap-3`}>
+            {featuredInfluencers.map((influencer) => (
               <InfluencerCard
                 key={influencer.id}
                 id={influencer.id}
