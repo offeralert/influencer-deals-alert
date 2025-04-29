@@ -1,5 +1,4 @@
-
-import { Check } from "lucide-react";
+import { Check, DollarSign } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +18,7 @@ const PricingPage = () => {
         "Perfect for new or casual influencers",
         "Cancel anytime"
       ],
+      costPerOffer: "",
       ctaText: "Get Started",
       highlighted: false,
       badge: null
@@ -112,11 +112,9 @@ const PricingPage = () => {
                   <span className="text-4xl font-bold">{tier.price}</span>
                   {tier.price !== "Free" && <span className="text-muted-foreground">/month</span>}
                 </div>
-                {tier.name !== "Starter" && tier.costPerOffer && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    <span>{tier.costPerOffer}</span>
-                  </div>
-                )}
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span>{tier.costPerOffer}</span>
+                </div>
               </div>
               
               <ul className="space-y-3">
@@ -146,4 +144,3 @@ const PricingPage = () => {
 };
 
 export default PricingPage;
-
