@@ -83,7 +83,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         }
         
         // Extract domains from affiliate links and create unique entries
-        const domains = new Set();
+        const domains = new Set<string>();
         promoCodes?.forEach(promo => {
           if (promo.affiliate_link) {
             try {
@@ -100,7 +100,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           const domainEntries = Array.from(domains).map(domain => ({
             user_id: user.id,
             influencer_id: influencerId,
-            domain: domain
+            domain: domain as string // Explicitly type domain as string
           }));
           
           const { error: insertError } = await supabase
