@@ -15,6 +15,8 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
   useEffect(() => {
     if (user && influencerId) {
       checkFollowingStatus();
+    } else {
+      setIsFollowing(false);
     }
   }, [influencerId, user]);
 
@@ -53,8 +55,8 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
       return;
     }
     
-    if (isProcessing) {
-      return; // Prevent duplicate requests
+    if (isProcessing || !influencerId) {
+      return; // Prevent duplicate requests or invalid influencer ID
     }
     
     setIsProcessing(true);
@@ -97,6 +99,11 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           .filter(link => link) as string[] || [];
         
         console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId}`);
+        
+        // Add at least one domain mapping, even if no affiliate links are found
+        if (affiliateLinks.length === 0) {
+          affiliateLinks.push(""); // Add empty string to ensure we create at least one mapping
+        }
         
         // Add domain mappings using our improved helper function
         const result = await addDomainMappings(user.id, influencerId, affiliateLinks);

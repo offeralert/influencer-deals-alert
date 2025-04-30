@@ -41,7 +41,8 @@ export const useFollowerCount = (influencerId: string) => {
       const { data, error } = await supabase
         .from('user_domain_map')
         .select('user_id')
-        .eq('influencer_id', influencerId);
+        .eq('influencer_id', influencerId)
+        .limit(1000);
       
       if (error) {
         console.error('Error fetching follower count:', error);

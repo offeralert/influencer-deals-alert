@@ -36,6 +36,10 @@ export const getUniversalPromoCodes = () => {
 // Helper function to extract domain from URL with improved robustness
 export const extractDomain = (url: string): string | null => {
   try {
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      return null;
+    }
+    
     // Check if URL has a scheme, if not add https://
     let parsedUrl: URL;
     if (url.match(/^https?:\/\//i)) {
@@ -54,7 +58,7 @@ export const extractDomain = (url: string): string | null => {
 };
 
 // Helper function to add domain mappings for a user-influencer pair
-// Now supports returning detailed results for better visibility
+// Now supports returning detailed results for better visibility and proper error handling
 export const addDomainMappings = async (
   userId: string, 
   influencerId: string, 
@@ -96,8 +100,7 @@ export const addDomainMappings = async (
               influencer_id: influencerId,
               domain
             }, { 
-              onConflict: 'user_id,influencer_id,domain',
-              ignoreDuplicates: true 
+              onConflict: 'user_id,influencer_id,domain'
             });
           
           if (error) {
@@ -123,8 +126,7 @@ export const addDomainMappings = async (
             influencer_id: influencerId,
             domain: null
           }, { 
-            onConflict: 'user_id,influencer_id,domain',
-            ignoreDuplicates: true 
+            onConflict: 'user_id,influencer_id,domain'
           });
         
         if (error) {
