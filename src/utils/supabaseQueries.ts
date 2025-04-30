@@ -33,13 +33,22 @@ export const getUniversalPromoCodes = () => {
     .select('*') as unknown as PostgrestFilterBuilder<any, any, UniversalPromoCode[]>;
 };
 
-// Helper function to extract domain from URL
+// Helper function to extract domain from URL with improved robustness
 export const extractDomain = (url: string): string | null => {
   try {
-    const parsedUrl = new URL(url);
+    // Check if URL has a scheme, if not add https://
+    let parsedUrl: URL;
+    if (url.match(/^https?:\/\//i)) {
+      parsedUrl = new URL(url);
+    } else {
+      // Add https:// as a fallback scheme
+      parsedUrl = new URL(`https://${url}`);
+    }
+    
+    // Return the hostname (domain)
     return parsedUrl.hostname;
   } catch (e) {
-    console.error("Error parsing URL:", e);
+    console.error("Error parsing URL:", url, e);
     return null;
   }
 };
@@ -55,6 +64,8 @@ export const addDomainMappings = async (
     const domains = new Set<string>();
     
     affiliateLinks.forEach(link => {
+      if (!link) return; // Skip empty or null links
+      
       const domain = extractDomain(link);
       if (domain) domains.add(domain);
     });
@@ -67,17 +78,21 @@ export const addDomainMappings = async (
         domain
       }));
       
-      // Insert entries, ignoring conflicts (if they already exist)
+      // Insert entries, using simple insert - we'll handle errors gracefully
       const { error } = await supabase
         .from('user_domain_map')
-        .upsert(entries, { 
-          onConflict: 'user_id,influencer_id,domain',
-          ignoreDuplicates: true 
-        });
+        .insert(entries);
       
       if (error) {
-        console.error("Error adding domain mappings:", error);
-        return false;
+        if (error.code === '23505') {
+          // This is a duplicate key error, which is expected if user already follows
+          // We can safely ignore this and consider the operation successful
+          console.log("Some domains were already followed, continuing...");
+          return true;
+        } else {
+          console.error("Error adding domain mappings:", error);
+          return false;
+        }
       }
       
       return true;
