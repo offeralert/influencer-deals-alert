@@ -15,7 +15,7 @@ const PricingPage = () => {
       price: "Free",
       description: "Perfect for trying out Offer Alert",
       features: [
-        "Upload up to 3 offers",
+        "Upload 1 offer",
         "Appear in user search and category pages", 
         "Feature in AI deal notifications",
         "Cancel anytime"
