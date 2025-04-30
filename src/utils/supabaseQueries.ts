@@ -54,53 +54,102 @@ export const extractDomain = (url: string): string | null => {
 };
 
 // Helper function to add domain mappings for a user-influencer pair
+// Now supports returning detailed results for better visibility
 export const addDomainMappings = async (
   userId: string, 
   influencerId: string, 
   affiliateLinks: string[]
-): Promise<boolean> => {
+): Promise<{success: boolean, domainsAdded: number, failures: number}> => {
   try {
     // Extract domains from affiliate links
     const domains = new Set<string>();
+    const invalidUrls: string[] = [];
     
     affiliateLinks.forEach(link => {
       if (!link) return; // Skip empty or null links
       
       const domain = extractDomain(link);
-      if (domain) domains.add(domain);
+      if (domain) {
+        domains.add(domain);
+      } else {
+        invalidUrls.push(link);
+      }
     });
     
-    if (domains.size > 0) {
-      // Create one entry per domain
-      const entries = Array.from(domains).map(domain => ({
-        user_id: userId,
-        influencer_id: influencerId,
-        domain
-      }));
-      
-      // Insert entries, using simple insert - we'll handle errors gracefully
-      const { error } = await supabase
-        .from('user_domain_map')
-        .insert(entries);
-      
-      if (error) {
-        if (error.code === '23505') {
-          // This is a duplicate key error, which is expected if user already follows
-          // We can safely ignore this and consider the operation successful
-          console.log("Some domains were already followed, continuing...");
-          return true;
-        } else {
-          console.error("Error adding domain mappings:", error);
-          return false;
-        }
-      }
-      
-      return true;
+    console.log(`Extracted ${domains.size} unique domains from ${affiliateLinks.length} links`);
+    if (invalidUrls.length > 0) {
+      console.log(`Failed to parse ${invalidUrls.length} URLs:`, invalidUrls);
     }
     
-    return false;
+    let successCount = 0;
+    let failureCount = 0;
+    
+    // Process each domain individually for better error handling
+    if (domains.size > 0) {
+      // Insert each domain as a separate entry
+      for (const domain of domains) {
+        try {
+          const { error } = await supabase
+            .from('user_domain_map')
+            .upsert({
+              user_id: userId,
+              influencer_id: influencerId,
+              domain
+            }, { 
+              onConflict: 'user_id,influencer_id,domain',
+              ignoreDuplicates: true 
+            });
+          
+          if (error) {
+            console.error(`Error adding domain mapping for ${domain}:`, error);
+            failureCount++;
+          } else {
+            successCount++;
+          }
+        } catch (err) {
+          console.error(`Exception adding domain mapping for ${domain}:`, err);
+          failureCount++;
+        }
+      }
+    }
+    
+    // If no domains were successfully added, fall back to a null domain
+    if (successCount === 0) {
+      try {
+        const { error } = await supabase
+          .from('user_domain_map')
+          .upsert({
+            user_id: userId,
+            influencer_id: influencerId,
+            domain: null
+          }, { 
+            onConflict: 'user_id,influencer_id,domain',
+            ignoreDuplicates: true 
+          });
+        
+        if (error) {
+          console.error("Error adding null domain mapping:", error);
+          failureCount++;
+        } else {
+          successCount++;
+        }
+      } catch (err) {
+        console.error("Exception adding null domain mapping:", err);
+        failureCount++;
+      }
+    }
+    
+    return {
+      success: successCount > 0,
+      domainsAdded: successCount,
+      failures: failureCount
+    };
   } catch (error) {
     console.error("Error in addDomainMappings:", error);
-    return false;
+    return {
+      success: false,
+      domainsAdded: 0,
+      failures: 1
+    };
   }
 };

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useFollowerCount = (influencerId: string) => {
   const [followerCount, setFollowerCount] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Fetch initial count
@@ -34,6 +35,8 @@ export const useFollowerCount = (influencerId: string) => {
 
   const fetchFollowerCount = async () => {
     try {
+      setIsLoading(true);
+      
       // Count distinct users who follow this influencer
       const { data, error } = await supabase
         .from('user_domain_map')
@@ -51,8 +54,10 @@ export const useFollowerCount = (influencerId: string) => {
     } catch (err) {
       console.error('Exception in fetchFollowerCount:', err);
       setFollowerCount(0);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return followerCount;
+  return { followerCount, isLoading };
 };

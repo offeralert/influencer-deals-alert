@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { extractDomain } from "@/utils/supabaseQueries";
+import { extractDomain, addDomainMappings } from "@/utils/supabaseQueries";
 
 export const useInfluencerFollow = (influencerId: string | undefined, influencerName: string) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (user && influencerId) {
@@ -52,6 +53,12 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
       return;
     }
     
+    if (isProcessing) {
+      return; // Prevent duplicate requests
+    }
+    
+    setIsProcessing(true);
+    
     try {
       if (isFollowing) {
         // Unfollow: Delete all domain mappings for this user-influencer pair
@@ -64,6 +71,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         if (error) {
           console.error("Error unfollowing influencer:", error);
           toast.error("Failed to unfollow. Please try again.");
+          setIsProcessing(false);
           return;
         }
         
@@ -74,87 +82,43 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         const { data: promoCodes, error: promoError } = await supabase
           .from('promo_codes')
           .select('affiliate_link')
-          .eq('user_id', influencerId)
-          .not('affiliate_link', 'is', null);
+          .eq('user_id', influencerId);
         
         if (promoError) {
           console.error("Error fetching promo codes:", promoError);
           toast.error("Failed to follow. Please try again.");
+          setIsProcessing(false);
           return;
         }
         
-        // Success indicator to track if at least one domain was added
-        let followSuccess = false;
+        // Extract all affiliate links
+        const affiliateLinks = promoCodes
+          ?.map(promo => promo.affiliate_link)
+          .filter(link => link) as string[] || [];
         
-        // Extract domains from affiliate links and create unique entries
-        const validDomains = new Set<string>();
+        console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId}`);
         
-        // Safely parse all URLs and collect valid domains
-        if (promoCodes) {
-          promoCodes.forEach(promo => {
-            if (promo.affiliate_link) {
-              const domain = extractDomain(promo.affiliate_link);
-              if (domain) {
-                validDomains.add(domain);
-              }
-            }
-          });
-        }
+        // Add domain mappings using our improved helper function
+        const result = await addDomainMappings(user.id, influencerId, affiliateLinks);
         
-        if (validDomains.size > 0) {
-          // Build entries for insertion
-          const domainEntries = Array.from(validDomains).map(domain => ({
-            user_id: user.id,
-            influencer_id: influencerId,
-            domain
-          }));
-          
-          // Add one domain at a time, ignoring duplicates
-          for (const entry of domainEntries) {
-            try {
-              await supabase
-                .from('user_domain_map')
-                .insert(entry);
-              
-              followSuccess = true;
-            } catch (err) {
-              // Ignore duplicate key errors but log them
-              console.log("Could not add domain (likely already exists):", entry.domain);
-            }
-          }
-        } 
-        
-        // If no domains were added successfully, create a mapping with null domain as fallback
-        if (!followSuccess) {
-          try {
-            const { error: insertError } = await supabase
-              .from('user_domain_map')
-              .insert({
-                user_id: user.id,
-                influencer_id: influencerId,
-                domain: null
-              });
-            
-            if (!insertError) {
-              followSuccess = true;
-            }
-          } catch (err) {
-            console.error("Error adding null domain mapping:", err);
-          }
-        }
-        
-        if (followSuccess) {
+        if (result.success) {
           setIsFollowing(true);
-          toast.success(`You're now following ${influencerName}`);
+          toast.success(`You're now following ${influencerName}`, {
+            description: `Added ${result.domainsAdded} domains to your follow list`
+          });
         } else {
-          toast.error("Failed to follow. Please try again.");
+          toast.error("Failed to follow. Please try again.", {
+            description: "Could not create domain mappings"
+          });
         }
       }
     } catch (error) {
       console.error("Error in handleFollowToggle:", error);
       toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  return { isFollowing, handleFollowToggle };
+  return { isFollowing, handleFollowToggle, isProcessing };
 };
