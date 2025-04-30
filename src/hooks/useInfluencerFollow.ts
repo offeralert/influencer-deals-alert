@@ -80,11 +80,11 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         setIsFollowing(false);
         toast.success(`You are no longer following ${influencerName}`);
       } else {
-        // Follow: First get all the influencer's active offers
+        // Follow: First get all the influencer's offers from universal_promo_codes view
         const { data: promoCodes, error: promoError } = await supabase
-          .from('promo_codes')
+          .from('universal_promo_codes')
           .select('affiliate_link')
-          .eq('user_id', influencerId);
+          .eq('influencer_id', influencerId);
         
         if (promoError) {
           console.error("Error fetching promo codes:", promoError);
@@ -98,7 +98,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           ?.map(promo => promo.affiliate_link)
           .filter(link => link) as string[] || [];
         
-        console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId}`);
+        console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId} in universal_promo_codes`);
         
         // Add at least one domain mapping, even if no affiliate links are found
         if (affiliateLinks.length === 0) {

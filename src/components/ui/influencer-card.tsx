@@ -14,7 +14,7 @@ interface InfluencerCardProps {
 }
 
 const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCardProps) => {
-  const { isFollowing, handleFollowToggle } = useInfluencerFollow(id, name);
+  const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
 
   return (
     <Card className="overflow-hidden">
@@ -38,8 +38,9 @@ const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCa
           variant={isFollowing ? "outline" : "default"} 
           size="sm"
           className="w-full text-xs h-8"
+          disabled={isProcessing}
         >
-          {isFollowing ? 'Following' : 'Follow'}
+          {isProcessing ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
         </Button>
       </CardFooter>
     </Card>
