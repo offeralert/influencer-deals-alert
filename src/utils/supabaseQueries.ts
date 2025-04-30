@@ -70,7 +70,10 @@ export const addDomainMappings = async (
       // Insert entries, ignoring conflicts (if they already exist)
       const { error } = await supabase
         .from('user_domain_map')
-        .upsert(entries, { onConflict: 'user_id,influencer_id,domain' });
+        .upsert(entries, { 
+          onConflict: 'user_id,influencer_id,domain',
+          ignoreDuplicates: true 
+        });
       
       if (error) {
         console.error("Error adding domain mappings:", error);

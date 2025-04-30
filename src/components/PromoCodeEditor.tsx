@@ -90,7 +90,10 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
       
       await supabase
         .from('user_domain_map')
-        .upsert(domainEntries, { onConflict: 'user_id,influencer_id,domain' });
+        .upsert(domainEntries, { 
+          onConflict: 'user_id,influencer_id,domain',
+          ignoreDuplicates: true 
+        });
         
     } catch (error) {
       console.error("Error updating follower domains:", error);

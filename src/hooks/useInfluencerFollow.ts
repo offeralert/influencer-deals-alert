@@ -103,9 +103,13 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
             domain: domain as string // Explicitly type domain as string
           }));
           
+          // Use upsert to avoid duplicate key value errors
           const { error: insertError } = await supabase
             .from('user_domain_map')
-            .insert(domainEntries);
+            .upsert(domainEntries, { 
+              onConflict: 'user_id,influencer_id,domain',
+              ignoreDuplicates: true
+            });
           
           if (insertError) {
             console.error("Error following influencer:", insertError);
@@ -116,10 +120,13 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           // If no domains found, still create a relationship with null domain
           const { error: insertError } = await supabase
             .from('user_domain_map')
-            .insert({
+            .upsert({
               user_id: user.id,
               influencer_id: influencerId,
               domain: null
+            }, {
+              onConflict: 'user_id,influencer_id,domain',
+              ignoreDuplicates: true
             });
           
           if (insertError) {
@@ -134,6 +141,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
       }
     } catch (error) {
       console.error("Error in handleFollowToggle:", error);
+      toast.error("An error occurred. Please try again.");
     }
   };
 
