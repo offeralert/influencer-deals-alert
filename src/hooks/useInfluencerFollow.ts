@@ -20,14 +20,15 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
     if (!user || !influencerId) return;
     
     try {
+      // Check if there are any entries in user_domain_map for this user-influencer pair
       const { data, error } = await supabase
-        .from('follows')
+        .from('user_domain_map')
         .select('*')
         .eq('user_id', user.id)
         .eq('influencer_id', influencerId)
-        .maybeSingle();
+        .limit(1);
       
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setIsFollowing(true);
       } else {
         setIsFollowing(false);
@@ -52,8 +53,9 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
     
     try {
       if (isFollowing) {
+        // Unfollow: Delete all domain mappings for this user-influencer pair
         const { error } = await supabase
-          .from('follows')
+          .from('user_domain_map')
           .delete()
           .eq('user_id', user.id)
           .eq('influencer_id', influencerId);
@@ -67,17 +69,64 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         setIsFollowing(false);
         toast.success(`You are no longer following ${influencerName}`);
       } else {
-        const { error } = await supabase
-          .from('follows')
-          .insert({
-            user_id: user.id,
-            influencer_id: influencerId
-          });
+        // Follow: First get all the influencer's active offers
+        const { data: promoCodes, error: promoError } = await supabase
+          .from('promo_codes')
+          .select('affiliate_link')
+          .eq('user_id', influencerId)
+          .not('affiliate_link', 'is', null);
         
-        if (error) {
-          console.error("Error following influencer:", error);
+        if (promoError) {
+          console.error("Error fetching promo codes:", promoError);
           toast.error("Failed to follow. Please try again.");
           return;
+        }
+        
+        // Extract domains from affiliate links and create unique entries
+        const domains = new Set();
+        promoCodes?.forEach(promo => {
+          if (promo.affiliate_link) {
+            try {
+              const url = new URL(promo.affiliate_link);
+              domains.add(url.hostname);
+            } catch (e) {
+              console.error("Error parsing URL:", e);
+            }
+          }
+        });
+        
+        if (domains.size > 0) {
+          // Insert one row per domain
+          const domainEntries = Array.from(domains).map(domain => ({
+            user_id: user.id,
+            influencer_id: influencerId,
+            domain: domain
+          }));
+          
+          const { error: insertError } = await supabase
+            .from('user_domain_map')
+            .insert(domainEntries);
+          
+          if (insertError) {
+            console.error("Error following influencer:", insertError);
+            toast.error("Failed to follow. Please try again.");
+            return;
+          }
+        } else {
+          // If no domains found, still create a relationship with null domain
+          const { error: insertError } = await supabase
+            .from('user_domain_map')
+            .insert({
+              user_id: user.id,
+              influencer_id: influencerId,
+              domain: null
+            });
+          
+          if (insertError) {
+            console.error("Error following influencer:", insertError);
+            toast.error("Failed to follow. Please try again.");
+            return;
+          }
         }
         
         setIsFollowing(true);

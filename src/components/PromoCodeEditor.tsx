@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { extractDomain } from "@/utils/supabaseQueries";
 import { 
   Select, 
   SelectContent, 
@@ -62,6 +63,40 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const updateFollowerDomains = async (userId: string, newAffiliateLink: string | null, oldAffiliateLink: string | null) => {
+    // Skip if nothing changed or no new link
+    if (newAffiliateLink === oldAffiliateLink || !newAffiliateLink) return;
+    
+    try {
+      // Extract domain from the new affiliate link
+      const newDomain = extractDomain(newAffiliateLink);
+      if (!newDomain) return;
+      
+      // Get all followers of this influencer
+      const { data: followers, error: followerError } = await supabase
+        .from('user_domain_map')
+        .select('user_id')
+        .eq('influencer_id', userId)
+        .limit(1000);
+        
+      if (followerError || !followers || followers.length === 0) return;
+      
+      // Add new domain for each follower
+      const domainEntries = followers.map(follower => ({
+        user_id: follower.user_id,
+        influencer_id: userId,
+        domain: newDomain
+      }));
+      
+      await supabase
+        .from('user_domain_map')
+        .upsert(domainEntries, { onConflict: 'user_id,influencer_id,domain' });
+        
+    } catch (error) {
+      console.error("Error updating follower domains:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -73,6 +108,18 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     setIsLoading(true);
 
     try {
+      const { data: promoData, error: promoError } = await supabase
+        .from("promo_codes")
+        .select("user_id")
+        .eq("id", promoCode.id)
+        .single();
+
+      if (promoError) {
+        toast.error("Failed to retrieve promo code details");
+        console.error("Error getting promo code:", promoError);
+        return;
+      }
+
       const { error } = await supabase
         .from("promo_codes")
         .update({
@@ -89,6 +136,11 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
         toast.error("Failed to update promo code");
         console.error("Error updating promo code:", error);
         return;
+      }
+
+      // Update domain mappings if affiliate link changed
+      if (formData.affiliateLink !== promoCode.affiliate_link) {
+        await updateFollowerDomains(promoData.user_id, formData.affiliateLink, promoCode.affiliate_link);
       }
 
       toast.success("Promo code updated successfully!");

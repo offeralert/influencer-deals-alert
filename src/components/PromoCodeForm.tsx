@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
+import { extractDomain } from "@/utils/supabaseQueries";
 import { 
   Select, 
   SelectContent, 
@@ -54,6 +55,39 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const updateFollowerDomains = async (userId: string, affiliateLink: string | null) => {
+    if (!userId || !affiliateLink) return;
+    
+    try {
+      // Extract domain from the affiliate link
+      const domain = extractDomain(affiliateLink);
+      if (!domain) return;
+      
+      // Get all followers of this influencer
+      const { data: followers, error: followerError } = await supabase
+        .from('user_domain_map')
+        .select('user_id')
+        .eq('influencer_id', userId)
+        .limit(1000);
+        
+      if (followerError || !followers || followers.length === 0) return;
+      
+      // Add new domain for each follower
+      const domainEntries = followers.map(follower => ({
+        user_id: follower.user_id,
+        influencer_id: userId,
+        domain: domain
+      }));
+      
+      await supabase
+        .from('user_domain_map')
+        .upsert(domainEntries, { onConflict: 'user_id,influencer_id,domain' });
+        
+    } catch (error) {
+      console.error("Error updating follower domains:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!user) {
@@ -69,7 +103,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.from("promo_codes").insert({
+      const { error, data } = await supabase.from("promo_codes").insert({
         user_id: user.id,
         brand_name: formData.brandName,
         promo_code: formData.promoCode,
@@ -77,12 +111,17 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
         expiration_date: formData.expirationDate || null,
         affiliate_link: formData.affiliateLink || null,
         category: formData.category,
-      });
+      }).select();
 
       if (error) {
         toast.error("Failed to add promo code");
         console.error("Error adding promo code:", error);
         return;
+      }
+
+      // Update domain mappings for all followers if there's an affiliate link
+      if (formData.affiliateLink) {
+        await updateFollowerDomains(user.id, formData.affiliateLink);
       }
 
       toast.success("Promo code added successfully!");

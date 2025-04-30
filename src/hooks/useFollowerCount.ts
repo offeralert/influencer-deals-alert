@@ -9,15 +9,15 @@ export const useFollowerCount = (influencerId: string) => {
     // Fetch initial count
     fetchFollowerCount();
     
-    // Subscribe to changes in the follows table
+    // Subscribe to changes in the user_domain_map table
     const channel = supabase
-      .channel('follower-changes')
+      .channel('domain-follower-changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'follows',
+          table: 'user_domain_map',
           filter: `influencer_id=eq.${influencerId}`
         },
         () => {
@@ -34,11 +34,12 @@ export const useFollowerCount = (influencerId: string) => {
 
   const fetchFollowerCount = async () => {
     try {
-      // Get the count directly without filtering by the current user
+      // Count distinct users who follow this influencer
       const { count, error } = await supabase
-        .from('follows')
-        .select('*', { count: 'exact', head: true })
-        .eq('influencer_id', influencerId);
+        .from('user_domain_map')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('influencer_id', influencerId)
+        .limit(1);
       
       if (error) {
         console.error('Error fetching follower count:', error);

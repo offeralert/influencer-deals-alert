@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,15 +34,15 @@ const MyDeals = () => {
     if (user) {
       fetchSavedDeals();
       
-      // Set up realtime subscription for follows table changes
+      // Set up realtime subscription for user_domain_map table changes
       const followsChannel = supabase
-        .channel('follows_changes')
+        .channel('domain_map_changes')
         .on(
           'postgres_changes',
           {
             event: '*',
             schema: 'public',
-            table: 'follows',
+            table: 'user_domain_map',
             filter: `user_id=eq.${user.id}`
           },
           () => {
@@ -78,11 +79,12 @@ const MyDeals = () => {
         return;
       }
       
-      // Get all influencers that the user follows
-      const { data: followedInfluencers, error: followError } = await supabase
-        .from('follows')
+      // Get all influencers that the user follows (distinct influencer_ids)
+      const { data: followedInfluencerData, error: followError } = await supabase
+        .from('user_domain_map')
         .select('influencer_id')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .limit(1000);
       
       if (followError) {
         console.error("Error fetching followed influencers:", followError);
@@ -91,13 +93,14 @@ const MyDeals = () => {
         return;
       }
       
-      if (!followedInfluencers || followedInfluencers.length === 0) {
+      if (!followedInfluencerData || followedInfluencerData.length === 0) {
         setSavedDeals([]);
         setIsLoading(false);
         return;
       }
       
-      const influencerIds = followedInfluencers.map(follow => follow.influencer_id);
+      // Extract unique influencer IDs
+      const influencerIds = [...new Set(followedInfluencerData.map(follow => follow.influencer_id))];
       
       // Get promo codes from followed influencers using the universal_promo_codes view
       const { data: promoCodes, error: promoError } = await getUniversalPromoCodes()

@@ -1,11 +1,36 @@
+
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Download } from "lucide-react";
+import { Download, RefreshCw } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import { migrateFollowsToUserDomainMap } from "@/utils/migrateFellowsToUserDomainMap";
+import { toast } from "sonner";
+
 const HeroSection = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const [isMigrating, setIsMigrating] = useState(false);
+  
+  const handleMigrateFollows = async () => {
+    if (!user) return;
+    
+    setIsMigrating(true);
+    try {
+      const success = await migrateFollowsToUserDomainMap();
+      
+      if (success) {
+        toast.success("Successfully migrated follows to the new domain-based system");
+      } else {
+        toast.error("There was an issue migrating follows");
+      }
+    } catch (error) {
+      console.error("Error migrating follows:", error);
+      toast.error("Failed to migrate follows");
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+  
   return <section className="relative bg-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-4 py-2 md:py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4 items-center">
@@ -24,6 +49,18 @@ const HeroSection = () => {
               <Button size="sm" variant="outline" className="h-8" asChild>
                 <Link to="/explore">Explore Deals</Link>
               </Button>
+              {user?.id && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="h-8" 
+                  onClick={handleMigrateFollows}
+                  disabled={isMigrating}
+                >
+                  <RefreshCw className="mr-2 h-3 w-3" />
+                  Migrate Follows
+                </Button>
+              )}
             </div>
           </div>
           <div className="hidden lg:block relative max-h-[200px]">
@@ -39,4 +76,5 @@ const HeroSection = () => {
       </div>
     </section>;
 };
+
 export default HeroSection;

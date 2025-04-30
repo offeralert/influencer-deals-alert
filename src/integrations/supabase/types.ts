@@ -116,6 +116,24 @@ export type Database = {
           },
         ]
       }
+      user_domain_map: {
+        Row: {
+          domain: string | null
+          influencer_id: string
+          user_id: string
+        }
+        Insert: {
+          domain?: string | null
+          influencer_id?: string
+          user_id?: string
+        }
+        Update: {
+          domain?: string | null
+          influencer_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       universal_promo_codes: {
