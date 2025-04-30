@@ -64,7 +64,6 @@ const PricingPage = () => {
         "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
-      costPerOffer: "Best value for power users",
       ctaText: "Apply Now",
       highlighted: false,
       badge: null
