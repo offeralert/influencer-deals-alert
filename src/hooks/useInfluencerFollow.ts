@@ -80,8 +80,10 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         setIsFollowing(false);
         toast.success(`You are no longer following ${influencerName}`);
       } else {
+        console.log(`Starting follow process for influencer: ${influencerId}`);
+        
         // Follow: Get ALL the influencer's offers from universal_promo_codes view
-        // Note: Not using .limit() here to make sure we get all offers
+        // IMPORTANT: Not using .limit() to ensure we get ALL promo codes
         const { data: promoCodes, error: promoError } = await supabase
           .from('universal_promo_codes')
           .select('affiliate_link')
@@ -94,17 +96,23 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           return;
         }
         
+        console.log(`Retrieved ${promoCodes?.length || 0} promo codes for influencer ${influencerId}`);
+        
         // Extract all affiliate links, ensuring we don't filter out any
         const affiliateLinks = promoCodes
-          ?.map(promo => promo.affiliate_link)
+          ?.map(promo => {
+            console.log(`Processing promo with affiliate link:`, promo.affiliate_link);
+            return promo.affiliate_link;
+          })
           .filter(link => link) as string[] || [];
         
-        console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId} in universal_promo_codes`);
+        console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId}`);
         
         // Add at least one domain mapping, even if no affiliate links are found
         // This ensures the user can follow even if the influencer has no offers yet
         if (affiliateLinks.length === 0) {
           affiliateLinks.push(""); // Add empty string to ensure we create at least one mapping
+          console.log("No valid affiliate links found, adding empty placeholder");
         }
         
         // Add domain mappings using our improved helper function
@@ -116,10 +124,12 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           toast.success(`You're now following ${influencerName}`, {
             description: `Added ${result.domainsAdded} domain${result.domainsAdded !== 1 ? 's' : ''} to your follow list`
           });
+          console.log(`Successfully followed influencer ${influencerId} with ${result.domainsAdded} domains`);
         } else {
           toast.error("Failed to follow. Please try again.", {
             description: "Could not create domain mappings"
           });
+          console.error(`Failed to follow influencer ${influencerId}`);
         }
       }
     } catch (error) {

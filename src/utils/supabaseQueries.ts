@@ -58,25 +58,32 @@ export const extractDomain = (url: string): string | null => {
 };
 
 // Helper function to add domain mappings for a user-influencer pair
-// Now supports returning detailed results for better visibility and proper error handling
+// Now properly handles multiple domains with improved debugging
 export const addDomainMappings = async (
   userId: string, 
   influencerId: string, 
   affiliateLinks: string[]
 ): Promise<{success: boolean, domainsAdded: number, failures: number}> => {
   try {
+    console.log(`Starting addDomainMappings for user ${userId}, influencer ${influencerId} with ${affiliateLinks.length} links`);
+    
     // Extract domains from affiliate links
     const domains = new Set<string>();
     const invalidUrls: string[] = [];
     
     affiliateLinks.forEach(link => {
-      if (!link) return; // Skip empty or null links
+      if (!link) {
+        console.log("Skipping empty link");
+        return;
+      }
       
       const domain = extractDomain(link);
       if (domain) {
         domains.add(domain);
+        console.log(`Extracted domain: ${domain} from link: ${link}`);
       } else {
         invalidUrls.push(link);
+        console.log(`Failed to extract domain from: ${link}`);
       }
     });
     
@@ -88,13 +95,16 @@ export const addDomainMappings = async (
     let successCount = 0;
     let failureCount = 0;
     
-    // Process each domain individually for better error handling
+    // Process each domain individually with detailed logging
     if (domains.size > 0) {
       const domainArray = Array.from(domains);
       console.log(`Processing domains for insertion: ${domainArray.join(', ')}`);
       
+      // Insert each domain as a separate row
       for (const domain of domainArray) {
         try {
+          console.log(`Attempting to insert domain mapping: ${domain} for user ${userId}, influencer ${influencerId}`);
+          
           const { error } = await supabase
             .from('user_domain_map')
             .upsert({
@@ -122,6 +132,8 @@ export const addDomainMappings = async (
     // If no domains were successfully added, fall back to a null domain
     if (successCount === 0) {
       try {
+        console.log(`No domains were successfully added, falling back to null domain mapping`);
+        
         const { error } = await supabase
           .from('user_domain_map')
           .upsert({
@@ -145,11 +157,14 @@ export const addDomainMappings = async (
       }
     }
     
-    return {
+    const result = {
       success: successCount > 0,
       domainsAdded: successCount,
       failures: failureCount
     };
+    
+    console.log(`Domain mapping complete:`, result);
+    return result;
   } catch (error) {
     console.error("Error in addDomainMappings:", error);
     return {
