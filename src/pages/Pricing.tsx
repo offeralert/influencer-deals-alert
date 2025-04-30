@@ -17,7 +17,7 @@ const PricingPage = () => {
       features: [
         "Upload up to 3 offers",
         "Appear in user search and category pages", 
-        "Get notified when users interact with your offers",
+        "Feature in AI deal notifications",
         "Cancel anytime"
       ],
       ctaText: "Get Started",
@@ -27,10 +27,10 @@ const PricingPage = () => {
     {
       name: "Growth",
       price: "$30",
-      description: "Ideal for creators building brand deals",
+      description: "Ideal for influencers building their business",
       features: [
         "Upload up to 10 offers",
-        "Expanded visibility on homepage and explore",
+        "Featured visibility on homepage and explore",
         "Enhanced exposure across Offer Alert",
         "Cancel anytime"
       ],
@@ -45,8 +45,8 @@ const PricingPage = () => {
       description: "Best for full-time creators scaling earnings",
       features: [
         "Upload up to 20 offers",
-        "Increased exposure and category prioritization",
-        "Expand reach to even more users",
+        "Featured exposure and alert prioritization",
+        "Expand reach users outside of your network",
         "Cancel anytime"
       ],
       costPerOffer: "~$2.50/offer",
@@ -56,11 +56,11 @@ const PricingPage = () => {
     },
     {
       name: "Enterprise",
-      price: "$80",
-      description: "Ideal for agencies and high-volume marketers",
+      price: "$100",
+      description: "Ideal for agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
-        "Full flexibility and priority placement",
+        "Custom User Journey Development",
         "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
