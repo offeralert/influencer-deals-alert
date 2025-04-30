@@ -37,12 +37,12 @@ export const useFollowerCount = (influencerId: string) => {
     try {
       setIsLoading(true);
       
-      // Count distinct users who follow this influencer
+      // Count distinct users who follow this influencer (not the number of domains)
+      // Note: We're not using limit(1000) to ensure we get all followers
       const { data, error } = await supabase
         .from('user_domain_map')
         .select('user_id')
-        .eq('influencer_id', influencerId)
-        .limit(1000);
+        .eq('influencer_id', influencerId);
       
       if (error) {
         console.error('Error fetching follower count:', error);
@@ -51,6 +51,7 @@ export const useFollowerCount = (influencerId: string) => {
       
       // Count unique user_ids to get actual follower count
       const uniqueUsers = new Set(data.map(item => item.user_id));
+      console.log(`Found ${uniqueUsers.size} unique followers for influencer ${influencerId}`);
       setFollowerCount(uniqueUsers.size);
     } catch (err) {
       console.error('Exception in fetchFollowerCount:', err);

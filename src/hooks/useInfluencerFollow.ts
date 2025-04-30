@@ -80,7 +80,8 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         setIsFollowing(false);
         toast.success(`You are no longer following ${influencerName}`);
       } else {
-        // Follow: First get all the influencer's offers from universal_promo_codes view
+        // Follow: Get ALL the influencer's offers from universal_promo_codes view
+        // Note: Not using .limit() here to make sure we get all offers
         const { data: promoCodes, error: promoError } = await supabase
           .from('universal_promo_codes')
           .select('affiliate_link')
@@ -93,7 +94,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
           return;
         }
         
-        // Extract all affiliate links
+        // Extract all affiliate links, ensuring we don't filter out any
         const affiliateLinks = promoCodes
           ?.map(promo => promo.affiliate_link)
           .filter(link => link) as string[] || [];
@@ -101,17 +102,19 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         console.log(`Found ${affiliateLinks.length} affiliate links for influencer ${influencerId} in universal_promo_codes`);
         
         // Add at least one domain mapping, even if no affiliate links are found
+        // This ensures the user can follow even if the influencer has no offers yet
         if (affiliateLinks.length === 0) {
           affiliateLinks.push(""); // Add empty string to ensure we create at least one mapping
         }
         
         // Add domain mappings using our improved helper function
+        // This will handle multiple domain mappings for the same influencer
         const result = await addDomainMappings(user.id, influencerId, affiliateLinks);
         
         if (result.success) {
           setIsFollowing(true);
           toast.success(`You're now following ${influencerName}`, {
-            description: `Added ${result.domainsAdded} domains to your follow list`
+            description: `Added ${result.domainsAdded} domain${result.domainsAdded !== 1 ? 's' : ''} to your follow list`
           });
         } else {
           toast.error("Failed to follow. Please try again.", {

@@ -88,10 +88,12 @@ export const addDomainMappings = async (
     let successCount = 0;
     let failureCount = 0;
     
-    // Process each domain individually for better error handling and to ensure all get inserted
+    // Process each domain individually for better error handling
     if (domains.size > 0) {
-      // Insert each domain as a separate row
-      for (const domain of domains) {
+      const domainArray = Array.from(domains);
+      console.log(`Processing domains for insertion: ${domainArray.join(', ')}`);
+      
+      for (const domain of domainArray) {
         try {
           const { error } = await supabase
             .from('user_domain_map')
@@ -107,6 +109,7 @@ export const addDomainMappings = async (
             console.error(`Error adding domain mapping for ${domain}:`, error);
             failureCount++;
           } else {
+            console.log(`Successfully added domain mapping for ${domain}`);
             successCount++;
           }
         } catch (err) {
@@ -133,6 +136,7 @@ export const addDomainMappings = async (
           console.error("Error adding null domain mapping:", error);
           failureCount++;
         } else {
+          console.log("Successfully added null domain mapping");
           successCount++;
         }
       } catch (err) {
