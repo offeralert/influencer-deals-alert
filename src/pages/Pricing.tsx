@@ -30,7 +30,7 @@ const PricingPage = () => {
       description: "Ideal for influencers building their business",
       features: [
         "Upload up to 10 offers",
-        "Featured visibility on homepage and explore",
+        "Improve earning potential",
         "Enhanced exposure across Offer Alert",
         "Cancel anytime"
       ],
@@ -42,11 +42,11 @@ const PricingPage = () => {
     {
       name: "Pro",
       price: "$50",
-      description: "Best for full-time creators scaling earnings",
+      description: "Best for full-time influencers",
       features: [
         "Upload up to 20 offers",
         "Featured exposure and alert prioritization",
-        "Expand reach users outside of your network",
+        "Expand reach outside of your network",
         "Cancel anytime"
       ],
       costPerOffer: "~$2.50/offer",
@@ -60,7 +60,7 @@ const PricingPage = () => {
       description: "Ideal for agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
-        "Custom User Journey Development",
+        "Custom user journey development",
         "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
