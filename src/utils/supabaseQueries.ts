@@ -88,9 +88,9 @@ export const addDomainMappings = async (
     let successCount = 0;
     let failureCount = 0;
     
-    // Process each domain individually for better error handling
+    // Process each domain individually for better error handling and to ensure all get inserted
     if (domains.size > 0) {
-      // Insert each domain as a separate entry
+      // Insert each domain as a separate row
       for (const domain of domains) {
         try {
           const { error } = await supabase
