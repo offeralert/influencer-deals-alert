@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,8 @@ import { Users } from "lucide-react";
 import PromoCodeForm from "@/components/PromoCodeForm";
 import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
+import { syncUserDomainMap } from "@/utils/supabaseQueries";
+import { toast } from "sonner";
 
 interface PromoCode {
   id: string;
@@ -41,6 +44,61 @@ const InfluencerDashboard = () => {
     if (user) {
       fetchPromoCodes();
       fetchFollowerCount();
+
+      // Subscribe to changes in the promo_codes table
+      const promoChangesChannel = supabase
+        .channel('promo-code-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'promo_codes',
+            filter: `user_id=eq.${user.id}`
+          },
+          async (payload) => {
+            // Refresh local list
+            fetchPromoCodes();
+            
+            // Sync user_domain_map when promo codes change
+            if (payload.eventType === 'INSERT') {
+              // New promo code added
+              toast.info("Updating your followers' domain mappings...");
+              const result = await syncUserDomainMap(user.id);
+              if (result.success) {
+                toast.success("Follower domain mappings updated successfully");
+              }
+            } else if (payload.eventType === 'DELETE') {
+              // Promo code deleted
+              toast.info("Updating your followers' domain mappings...");
+              const result = await syncUserDomainMap(
+                user.id,
+                payload.old?.id,
+                true
+              );
+              if (result.success) {
+                toast.success("Follower domain mappings updated successfully");
+              }
+            } else if (payload.eventType === 'UPDATE') {
+              // Promo code updated - check if affiliate link changed
+              const oldLink = payload.old?.affiliate_link;
+              const newLink = payload.new?.affiliate_link;
+              
+              if (oldLink !== newLink) {
+                toast.info("Updating your followers' domain mappings...");
+                const result = await syncUserDomainMap(user.id);
+                if (result.success) {
+                  toast.success("Follower domain mappings updated successfully");
+                }
+              }
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(promoChangesChannel);
+      };
     }
   }, [user]);
 
@@ -71,19 +129,97 @@ const InfluencerDashboard = () => {
   const fetchFollowerCount = async () => {
     if (!user) return;
     
-    // In a real application, you would have a followers table
-    // For now, we'll use a placeholder count
-    setFollowerCount(Math.floor(Math.random() * 1000));
+    try {
+      // Count unique followers
+      const { data, error } = await supabase
+        .from('user_domain_map')
+        .select('user_id')
+        .eq('influencer_id', user.id);
+      
+      if (error) {
+        console.error("Error fetching follower count:", error);
+        return;
+      }
+      
+      // Count unique user_ids
+      const uniqueUsers = new Set(data?.map(item => item.user_id));
+      setFollowerCount(uniqueUsers.size);
+    } catch (error) {
+      console.error("Error in fetchFollowerCount:", error);
+    }
   };
 
-  const handlePromoCodeAdded = () => {
+  const handlePromoCodeAdded = async () => {
     fetchPromoCodes();
   };
 
-  const handlePromoCodeUpdated = () => {
+  const handlePromoCodeUpdated = async () => {
     fetchPromoCodes();
     setEditingPromoCodeId(null);
   };
+
+  // Handle manual deletion of promo code
+  const handleDeletePromoCode = async (id: string) => {
+    if (!user) return;
+    
+    try {
+      // Delete the promo code
+      const { error } = await supabase
+        .from('promo_codes')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error("Error deleting promo code:", error);
+        toast.error("Failed to delete promo code");
+        return;
+      }
+      
+      toast.success("Promo code deleted");
+      
+      // Fetch updated list
+      fetchPromoCodes();
+      
+      // Update user_domain_map for all followers
+      toast.info("Updating your followers' domain mappings...");
+      const result = await syncUserDomainMap(user.id, id, true);
+      if (result.success) {
+        toast.success("Follower domain mappings updated successfully");
+      }
+    } catch (error) {
+      console.error("Error in handleDeletePromoCode:", error);
+      toast.error("An error occurred while deleting the promo code");
+    }
+  };
+
+  // Handle expiry check - runs when dashboard loads to clean up expired offers
+  useEffect(() => {
+    if (user && promoCodes.length > 0) {
+      const checkForExpiredCodes = async () => {
+        const now = new Date();
+        const expiredCodes = promoCodes.filter(code => {
+          if (code.expiration_date) {
+            const expiryDate = new Date(code.expiration_date);
+            return expiryDate < now;
+          }
+          return false;
+        });
+        
+        if (expiredCodes.length > 0) {
+          console.log(`Found ${expiredCodes.length} expired promo codes`);
+          
+          // Update domain mappings for expired codes
+          toast.info(`Updating domain mappings for ${expiredCodes.length} expired promo codes...`);
+          const result = await syncUserDomainMap(user.id);
+          if (result.success) {
+            toast.success("Domain mappings updated for expired promo codes");
+          }
+        }
+      };
+      
+      checkForExpiredCodes();
+    }
+  }, [user, promoCodes]);
 
   if (isLoading) {
     return (
@@ -111,7 +247,13 @@ const InfluencerDashboard = () => {
           <TabsContent value="promocodes">
             <Card>
               <CardHeader>
-                <CardTitle>Current Promo Codes</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Current Promo Codes</span>
+                  <div className="flex items-center text-sm font-normal">
+                    <Users className="mr-2 h-4 w-4" />
+                    {followerCount} Follower{followerCount !== 1 ? 's' : ''}
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {loadingPromoCodes ? (
@@ -132,7 +274,11 @@ const InfluencerDashboard = () => {
                       </TableHeader>
                       <TableBody>
                         {promoCodes.map((code) => (
-                          <TableRow key={code.id}>
+                          <TableRow key={code.id} className={
+                            code.expiration_date && new Date(code.expiration_date) < new Date() 
+                              ? "bg-red-50 dark:bg-red-950/10" 
+                              : ""
+                          }>
                             {editingPromoCodeId === code.id ? (
                               <TableCell colSpan={7}>
                                 <PromoCodeEditor 
@@ -171,13 +317,22 @@ const InfluencerDashboard = () => {
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => setEditingPromoCodeId(code.id)}
-                                  >
-                                    Edit
-                                  </Button>
+                                  <div className="flex space-x-2">
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      onClick={() => setEditingPromoCodeId(code.id)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button 
+                                      variant="destructive" 
+                                      size="sm" 
+                                      onClick={() => handleDeletePromoCode(code.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
                                 </TableCell>
                               </>
                             )}

@@ -11,7 +11,7 @@ export const useFollowerCount = (influencerId: string) => {
     fetchFollowerCount();
     
     // Subscribe to changes in the user_domain_map table
-    const channel = supabase
+    const domainChangesChannel = supabase
       .channel('domain-follower-changes')
       .on(
         'postgres_changes',
@@ -22,14 +22,14 @@ export const useFollowerCount = (influencerId: string) => {
           filter: `influencer_id=eq.${influencerId}`
         },
         () => {
-          // Refetch the count when any change occurs
+          // Refetch the count when any change occurs in user_domain_map
           fetchFollowerCount();
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(domainChangesChannel);
     };
   }, [influencerId]);
 
@@ -38,7 +38,6 @@ export const useFollowerCount = (influencerId: string) => {
       setIsLoading(true);
       
       // Count distinct users who follow this influencer (not the number of domains)
-      // Note: We're not using limit(1000) to ensure we get all followers
       const { data, error } = await supabase
         .from('user_domain_map')
         .select('user_id')

@@ -20,6 +20,21 @@ export interface UniversalPromoCode {
   influencer_image?: string;
 }
 
+export interface PromoCode {
+  id: string;
+  brand_name: string;
+  promo_code: string;
+  description: string;
+  expiration_date?: string;
+  affiliate_link?: string;
+  category: string;
+  is_featured?: boolean;
+  is_trending?: boolean;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
+
 export interface DomainMapping {
   user_id: string;
   influencer_id: string;
@@ -33,7 +48,14 @@ export const getUniversalPromoCodes = () => {
     .select('*') as unknown as PostgrestFilterBuilder<any, any, UniversalPromoCode[]>;
 };
 
-// Helper function to extract domain from URL with improved robustness
+// Helper function to access the promo_codes table with proper typing
+export const getPromoCodes = () => {
+  return supabase
+    .from('promo_codes')
+    .select('*') as unknown as PostgrestFilterBuilder<any, any, PromoCode[]>;
+};
+
+// Helper function to extract and clean domain from URL with improved robustness
 export const extractDomain = (url: string): string | null => {
   try {
     if (!url || typeof url !== 'string' || url.trim() === '') {
@@ -49,8 +71,13 @@ export const extractDomain = (url: string): string | null => {
       parsedUrl = new URL(`https://${url}`);
     }
     
-    // Return the hostname (domain)
-    return parsedUrl.hostname;
+    // Return the hostname (domain) without www. prefix
+    let domain = parsedUrl.hostname;
+    if (domain.startsWith('www.')) {
+      domain = domain.substring(4);
+    }
+    
+    return domain;
   } catch (e) {
     console.error("Error parsing URL:", url, e);
     return null;
@@ -172,5 +199,136 @@ export const addDomainMappings = async (
       domainsAdded: 0,
       failures: 1
     };
+  }
+};
+
+// Function to update domain mappings when promo codes change
+export const syncUserDomainMap = async (
+  influencerId: string,
+  promoCodeId?: string,
+  isDelete: boolean = false
+): Promise<{success: boolean, message: string}> => {
+  try {
+    console.log(`Starting syncUserDomainMap for influencer ${influencerId}, promoCode ${promoCodeId || 'none'}, isDelete: ${isDelete}`);
+    
+    // First get all followers of this influencer
+    const { data: followers, error: followersError } = await supabase
+      .from('user_domain_map')
+      .select('user_id')
+      .eq('influencer_id', influencerId)
+      .limit(1000);
+    
+    if (followersError || !followers || followers.length === 0) {
+      console.log(`No followers found for influencer ${influencerId} or error:`, followersError);
+      return { success: false, message: followersError ? followersError.message : 'No followers found' };
+    }
+    
+    // Extract unique follower IDs
+    const followerIds = [...new Set(followers.map(f => f.user_id))];
+    console.log(`Found ${followerIds.length} followers for influencer ${influencerId}`);
+
+    if (isDelete && promoCodeId) {
+      // Handle deletion of a specific promo code
+      console.log(`Handling deletion of promo code ${promoCodeId}`);
+      
+      // Get the domain of the deleted promo code
+      const { data: deletedPromo } = await supabase
+        .from('promo_codes')
+        .select('affiliate_link')
+        .eq('id', promoCodeId)
+        .single();
+      
+      if (deletedPromo && deletedPromo.affiliate_link) {
+        const domain = extractDomain(deletedPromo.affiliate_link);
+        if (domain) {
+          console.log(`Found domain ${domain} from deleted promo code`);
+          
+          // Check if this domain exists in other active promo codes of this influencer
+          const { data: otherPromos } = await supabase
+            .from('promo_codes')
+            .select('affiliate_link')
+            .eq('user_id', influencerId)
+            .neq('id', promoCodeId);
+          
+          const otherDomains = new Set<string>();
+          otherPromos?.forEach(promo => {
+            if (promo.affiliate_link) {
+              const extractedDomain = extractDomain(promo.affiliate_link);
+              if (extractedDomain) otherDomains.add(extractedDomain);
+            }
+          });
+          
+          // If domain is not used in other promo codes, remove it from user_domain_map
+          if (!otherDomains.has(domain)) {
+            console.log(`Domain ${domain} not found in other promo codes, removing from user_domain_map`);
+            
+            for (const userId of followerIds) {
+              const { error } = await supabase
+                .from('user_domain_map')
+                .delete()
+                .eq('user_id', userId)
+                .eq('influencer_id', influencerId)
+                .eq('domain', domain);
+              
+              if (error) {
+                console.error(`Error removing domain mapping for user ${userId}:`, error);
+              } else {
+                console.log(`Removed domain mapping for user ${userId}`);
+              }
+            }
+          } else {
+            console.log(`Domain ${domain} is still used in other promo codes, keeping it in user_domain_map`);
+          }
+        }
+      }
+    } else {
+      // For additions or general updates, refresh all domain mappings
+      console.log(`Refreshing all domain mappings for influencer ${influencerId}`);
+      
+      // Get all promo codes from this influencer
+      const { data: promos, error: promosError } = await supabase
+        .from('promo_codes')
+        .select('affiliate_link, expiration_date')
+        .eq('user_id', influencerId);
+      
+      if (promosError) {
+        console.error(`Error fetching promo codes for influencer ${influencerId}:`, promosError);
+        return { success: false, message: promosError.message };
+      }
+      
+      const now = new Date();
+      const validPromos = promos?.filter(promo => {
+        // Filter out expired promo codes
+        if (promo.expiration_date) {
+          const expiryDate = new Date(promo.expiration_date);
+          return expiryDate >= now;
+        }
+        return true;
+      }) || [];
+      
+      const affiliateLinks = validPromos
+        .map(promo => promo.affiliate_link)
+        .filter(link => link) as string[];
+      
+      console.log(`Found ${affiliateLinks.length} valid affiliate links for influencer ${influencerId}`);
+      
+      // Update domain mappings for each follower
+      for (const userId of followerIds) {
+        // First delete all existing domain mappings for this user-influencer pair
+        await supabase
+          .from('user_domain_map')
+          .delete()
+          .eq('user_id', userId)
+          .eq('influencer_id', influencerId);
+        
+        // Then add new domain mappings based on current promo codes
+        await addDomainMappings(userId, influencerId, affiliateLinks);
+      }
+    }
+    
+    return { success: true, message: 'Domain mappings updated successfully' };
+  } catch (error: any) {
+    console.error(`Error in syncUserDomainMap:`, error);
+    return { success: false, message: error?.message || 'Unknown error' };
   }
 };

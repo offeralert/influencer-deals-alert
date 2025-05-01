@@ -82,12 +82,11 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
       } else {
         console.log(`Starting follow process for influencer: ${influencerId}`);
         
-        // Follow: Get ALL the influencer's offers from universal_promo_codes view
-        // IMPORTANT: Not using .limit() to ensure we get ALL promo codes
+        // Follow: Get ALL the influencer's offers from promo_codes table
         const { data: promoCodes, error: promoError } = await supabase
-          .from('universal_promo_codes')
-          .select('affiliate_link')
-          .eq('influencer_id', influencerId);
+          .from('promo_codes')
+          .select('affiliate_link, expiration_date')
+          .eq('user_id', influencerId);
         
         if (promoError) {
           console.error("Error fetching promo codes:", promoError);
@@ -98,8 +97,20 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         
         console.log(`Retrieved ${promoCodes?.length || 0} promo codes for influencer ${influencerId}`);
         
+        // Filter out expired promo codes
+        const now = new Date();
+        const validPromoCodes = promoCodes?.filter(promo => {
+          if (promo.expiration_date) {
+            const expiryDate = new Date(promo.expiration_date);
+            return expiryDate >= now;
+          }
+          return true;
+        });
+        
+        console.log(`Found ${validPromoCodes?.length || 0} valid promo codes for influencer ${influencerId}`);
+        
         // Extract all affiliate links, ensuring we don't filter out any
-        const affiliateLinks = promoCodes
+        const affiliateLinks = validPromoCodes
           ?.map(promo => {
             console.log(`Processing promo with affiliate link:`, promo.affiliate_link);
             return promo.affiliate_link;

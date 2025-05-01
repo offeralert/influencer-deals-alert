@@ -50,9 +50,27 @@ const MyDeals = () => {
           }
         )
         .subscribe();
+      
+      // Also subscribe to promo_codes changes from followed influencers
+      const promosChannel = supabase
+        .channel('promo_codes_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'promo_codes'
+          },
+          // We'll filter relevant changes in fetchSavedDeals
+          () => {
+            fetchSavedDeals();
+          }
+        )
+        .subscribe();
         
       return () => {
         supabase.removeChannel(followsChannel);
+        supabase.removeChannel(promosChannel);
       };
     } else {
       setIsLoading(false);
@@ -83,8 +101,7 @@ const MyDeals = () => {
       const { data: followedInfluencerData, error: followError } = await supabase
         .from('user_domain_map')
         .select('influencer_id')
-        .eq('user_id', user.id)
-        .limit(1000);
+        .eq('user_id', user.id);
       
       if (followError) {
         console.error("Error fetching followed influencers:", followError);
@@ -103,8 +120,12 @@ const MyDeals = () => {
       const influencerIds = [...new Set(followedInfluencerData.map(follow => follow.influencer_id))];
       
       // Get promo codes from followed influencers using the universal_promo_codes view
+      // Filter out expired promo codes
+      const now = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
+      
       const { data: promoCodes, error: promoError } = await getUniversalPromoCodes()
         .in('influencer_id', influencerIds)
+        .or(`expiration_date.gt.${now},expiration_date.is.null`)
         .order('created_at', { ascending: false });
       
       if (promoError) {
@@ -113,6 +134,8 @@ const MyDeals = () => {
         setIsLoading(false);
         return;
       }
+      
+      console.log(`Found ${promoCodes?.length || 0} promo codes from followed influencers`);
       
       // Transform the data
       const deals = (promoCodes || []).map(promo => ({
