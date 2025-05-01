@@ -86,7 +86,7 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         const { data: promoCodes, error: promoError } = await supabase
           .from('promo_codes')
           .select('affiliate_link, expiration_date')
-          .eq('user_id', influencerId);
+          .eq('influencer_id', influencerId);
         
         if (promoError) {
           console.error("Error fetching promo codes:", promoError);

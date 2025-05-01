@@ -72,11 +72,11 @@ export type Database = {
           description: string
           expiration_date: string | null
           id: string
+          influencer_id: string
           is_featured: boolean | null
           is_trending: boolean | null
           promo_code: string
           updated_at: string
-          user_id: string
         }
         Insert: {
           affiliate_link?: string | null
@@ -86,11 +86,11 @@ export type Database = {
           description: string
           expiration_date?: string | null
           id?: string
+          influencer_id: string
           is_featured?: boolean | null
           is_trending?: boolean | null
           promo_code: string
           updated_at?: string
-          user_id: string
         }
         Update: {
           affiliate_link?: string | null
@@ -100,16 +100,16 @@ export type Database = {
           description?: string
           expiration_date?: string | null
           id?: string
+          influencer_id?: string
           is_featured?: boolean | null
           is_trending?: boolean | null
           promo_code?: string
           updated_at?: string
-          user_id?: string
         }
         Relationships: [
           {
             foreignKeyName: "promo_codes_user_id_fkey"
-            columns: ["user_id"]
+            columns: ["influencer_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

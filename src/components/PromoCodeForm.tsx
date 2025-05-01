@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,8 +54,8 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const updateFollowerDomains = async (userId: string, affiliateLink: string | null) => {
-    if (!userId || !affiliateLink) return;
+  const updateFollowerDomains = async (influencerId: string, affiliateLink: string | null) => {
+    if (!influencerId || !affiliateLink) return;
     
     try {
       // Extract domain from the affiliate link
@@ -67,7 +66,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       const { data: followers, error: followerError } = await supabase
         .from('user_domain_map')
         .select('user_id')
-        .eq('influencer_id', userId)
+        .eq('influencer_id', influencerId)
         .limit(1000);
         
       if (followerError || !followers || followers.length === 0) return;
@@ -75,7 +74,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       // Add new domain for each follower
       const domainEntries = followers.map(follower => ({
         user_id: follower.user_id,
-        influencer_id: userId,
+        influencer_id: influencerId,
         domain: domain
       }));
       
@@ -107,7 +106,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
 
     try {
       const { error, data } = await supabase.from("promo_codes").insert({
-        user_id: user.id,
+        influencer_id: user.id,
         brand_name: formData.brandName,
         promo_code: formData.promoCode,
         description: formData.description,

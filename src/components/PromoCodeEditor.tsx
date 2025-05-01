@@ -38,7 +38,8 @@ const CATEGORIES = [
   "Tech",
   "Home",
   "Jewelry",
-  "Travel"
+  "Travel",
+  "Beauty"
 ];
 
 const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) => {
@@ -63,7 +64,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const updateFollowerDomains = async (userId: string, newAffiliateLink: string | null, oldAffiliateLink: string | null) => {
+  const updateFollowerDomains = async (influencerId: string, newAffiliateLink: string | null, oldAffiliateLink: string | null) => {
     // Skip if nothing changed or no new link
     if (newAffiliateLink === oldAffiliateLink || !newAffiliateLink) return;
     
@@ -76,7 +77,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
       const { data: followers, error: followerError } = await supabase
         .from('user_domain_map')
         .select('user_id')
-        .eq('influencer_id', userId)
+        .eq('influencer_id', influencerId)
         .limit(1000);
         
       if (followerError || !followers || followers.length === 0) return;
@@ -84,7 +85,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
       // Add new domain for each follower
       const domainEntries = followers.map(follower => ({
         user_id: follower.user_id,
-        influencer_id: userId,
+        influencer_id: influencerId,
         domain: newDomain
       }));
       
@@ -113,7 +114,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     try {
       const { data: promoData, error: promoError } = await supabase
         .from("promo_codes")
-        .select("user_id")
+        .select("influencer_id")
         .eq("id", promoCode.id)
         .single();
 
@@ -143,7 +144,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
 
       // Update domain mappings if affiliate link changed
       if (formData.affiliateLink !== promoCode.affiliate_link) {
-        await updateFollowerDomains(promoData.user_id, formData.affiliateLink, promoCode.affiliate_link);
+        await updateFollowerDomains(promoData.influencer_id, formData.affiliateLink, promoCode.affiliate_link);
       }
 
       toast.success("Promo code updated successfully!");

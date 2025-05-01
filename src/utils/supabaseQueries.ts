@@ -14,7 +14,7 @@ export interface UniversalPromoCode {
   is_trending?: boolean;
   created_at: string;
   updated_at: string;
-  influencer_id: string; // Updated from user_id to match view
+  influencer_id: string;
   influencer_name?: string;
   influencer_username?: string;
   influencer_image?: string;
@@ -32,7 +32,7 @@ export interface PromoCode {
   is_trending?: boolean;
   created_at: string;
   updated_at: string;
-  user_id: string;
+  influencer_id: string;
 }
 
 export interface DomainMapping {
@@ -247,7 +247,7 @@ export const syncUserDomainMap = async (
           const { data: otherPromos } = await supabase
             .from('promo_codes')
             .select('affiliate_link')
-            .eq('user_id', influencerId)
+            .eq('influencer_id', influencerId)
             .neq('id', promoCodeId);
           
           const otherDomains = new Set<string>();
@@ -289,7 +289,7 @@ export const syncUserDomainMap = async (
       const { data: promos, error: promosError } = await supabase
         .from('promo_codes')
         .select('affiliate_link, expiration_date')
-        .eq('user_id', influencerId);
+        .eq('influencer_id', influencerId);
       
       if (promosError) {
         console.error(`Error fetching promo codes for influencer ${influencerId}:`, promosError);

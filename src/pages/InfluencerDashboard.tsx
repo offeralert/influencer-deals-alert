@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users } from "lucide-react";
 import PromoCodeForm from "@/components/PromoCodeForm";
 import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,7 +28,6 @@ const InfluencerDashboard = () => {
   const navigate = useNavigate();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
-  const [followerCount, setFollowerCount] = useState(0);
   const [editingPromoCodeId, setEditingPromoCodeId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,7 +41,6 @@ const InfluencerDashboard = () => {
   useEffect(() => {
     if (user) {
       fetchPromoCodes();
-      fetchFollowerCount();
 
       // Subscribe to changes in the promo_codes table
       const promoChangesChannel = supabase
@@ -54,7 +51,7 @@ const InfluencerDashboard = () => {
             event: '*',
             schema: 'public',
             table: 'promo_codes',
-            filter: `user_id=eq.${user.id}`
+            filter: `influencer_id=eq.${user.id}`
           },
           async (payload) => {
             // Refresh local list
@@ -110,7 +107,7 @@ const InfluencerDashboard = () => {
       const { data, error } = await supabase
         .from('promo_codes')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('influencer_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -123,29 +120,6 @@ const InfluencerDashboard = () => {
       console.error("Error in fetchPromoCodes:", error);
     } finally {
       setLoadingPromoCodes(false);
-    }
-  };
-
-  const fetchFollowerCount = async () => {
-    if (!user) return;
-    
-    try {
-      // Count unique followers
-      const { data, error } = await supabase
-        .from('user_domain_map')
-        .select('user_id')
-        .eq('influencer_id', user.id);
-      
-      if (error) {
-        console.error("Error fetching follower count:", error);
-        return;
-      }
-      
-      // Count unique user_ids
-      const uniqueUsers = new Set(data?.map(item => item.user_id));
-      setFollowerCount(uniqueUsers.size);
-    } catch (error) {
-      console.error("Error in fetchFollowerCount:", error);
     }
   };
 
@@ -249,10 +223,6 @@ const InfluencerDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Current Promo Codes</span>
-                  <div className="flex items-center text-sm font-normal">
-                    <Users className="mr-2 h-4 w-4" />
-                    {followerCount} Follower{followerCount !== 1 ? 's' : ''}
-                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
