@@ -27,7 +27,9 @@ const Profile = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  const [editingProfile, setEditingProfile] = useState(false);
+  
+  // Remove unused state
+  // const [editingProfile, setEditingProfile] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -49,7 +51,7 @@ const Profile = () => {
       const { data, error } = await supabase
         .from('promo_codes')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('influencer_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -69,12 +71,13 @@ const Profile = () => {
     fetchPromoCodes();
   };
 
-  const toggleEditProfile = () => {
-    setEditingProfile(!editingProfile);
-    if (editingProfile) {
-      setActiveTab("profile");
-    }
-  };
+  // Remove unused function
+  // const toggleEditProfile = () => {
+  //   setEditingProfile(!editingProfile);
+  //   if (editingProfile) {
+  //     setActiveTab("profile");
+  //   }
+  // };
 
   if (isLoading) {
     return (
