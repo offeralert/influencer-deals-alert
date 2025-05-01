@@ -35,7 +35,7 @@ const Brands = () => {
           promo_code,
           description,
           affiliate_link,
-          profiles:user_id (
+          profiles:influencer_id (
             full_name,
             username
           )

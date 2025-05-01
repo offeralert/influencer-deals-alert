@@ -138,7 +138,7 @@ const InfluencerApplicationForm = () => {
         const validPromoCodes = promoEntries
           .filter(entry => entry.brandName.trim() && entry.promoCode.trim())
           .map(entry => ({
-            user_id: data.user.id,
+            influencer_id: data.user.id,
             brand_name: entry.brandName,
             promo_code: entry.promoCode,
             description: entry.description,

@@ -18,7 +18,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; // Added this required field
+  influencerId: string; 
   category: string;
 }
 
@@ -62,8 +62,8 @@ const CategoryDealsSection = () => {
             expiration_date,
             affiliate_link,
             category,
-            user_id,
-            profiles:user_id (
+            influencer_id,
+            profiles:influencer_id (
               id,
               full_name,
               username,
@@ -71,7 +71,7 @@ const CategoryDealsSection = () => {
             )
           `)
           .eq('category', category)
-          .in('user_id', influencerIds)
+          .in('influencer_id', influencerIds)
           .order('created_at', { ascending: false })
           .limit(2);
         
@@ -93,7 +93,7 @@ const CategoryDealsSection = () => {
             affiliateLink: deal.affiliate_link || "#",
             influencerName: deal.profiles?.full_name || 'Unknown Influencer',
             influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-            influencerId: deal.user_id || "", // Ensure we include the influencer ID
+            influencerId: deal.influencer_id || "", 
             category: deal.category
           }));
           

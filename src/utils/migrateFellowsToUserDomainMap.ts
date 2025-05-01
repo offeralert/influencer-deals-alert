@@ -30,7 +30,7 @@ export const migrateFollowsToUserDomainMap = async () => {
       const { data: promoCodes, error: promoError } = await supabase
         .from('promo_codes')
         .select('affiliate_link')
-        .eq('user_id', follow.influencer_id)
+        .eq('influencer_id', follow.influencer_id)
         .not('affiliate_link', 'is', null);
       
       if (promoError) {
