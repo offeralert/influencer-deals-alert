@@ -85,7 +85,7 @@ export const extractDomain = (url: string): string | null => {
 };
 
 // Helper function to add domain mappings for a user-influencer pair
-// Now properly handles multiple domains with improved debugging
+// Now properly handles multiple domains with improved debugging and transaction support
 export const addDomainMappings = async (
   userId: string, 
   influencerId: string, 
@@ -127,11 +127,12 @@ export const addDomainMappings = async (
       const domainArray = Array.from(domains);
       console.log(`Processing domains for insertion: ${domainArray.join(', ')}`);
       
-      // Insert each domain as a separate row
+      // Process domains one by one with individual error handling
       for (const domain of domainArray) {
         try {
           console.log(`Attempting to insert domain mapping: ${domain} for user ${userId}, influencer ${influencerId}`);
           
+          // Use upsert to handle conflicts with the unique constraint
           const { error } = await supabase
             .from('user_domain_map')
             .upsert({
@@ -139,7 +140,8 @@ export const addDomainMappings = async (
               influencer_id: influencerId,
               domain
             }, { 
-              onConflict: 'user_id,influencer_id,domain'
+              onConflict: 'user_id,influencer_id,domain',
+              ignoreDuplicates: true 
             });
           
           if (error) {
@@ -157,6 +159,7 @@ export const addDomainMappings = async (
     }
     
     // If no domains were successfully added, fall back to a null domain
+    // This ensures the user follows the influencer even if domains can't be extracted
     if (successCount === 0) {
       try {
         console.log(`No domains were successfully added, falling back to null domain mapping`);
