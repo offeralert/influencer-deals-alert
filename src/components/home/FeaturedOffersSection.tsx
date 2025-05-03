@@ -86,6 +86,12 @@ const FeaturedOffersSection = () => {
   };
 
   const transformAndSetOffers = (data: UniversalPromoCode[]) => {
+    if (!Array.isArray(data)) {
+      console.error("Expected array but received:", data);
+      setFeaturedOffers([]);
+      return;
+    }
+    
     // Transform to our Deal interface
     const formattedOffers = data.map(offer => ({
       id: offer.id || "",
@@ -97,7 +103,7 @@ const FeaturedOffersSection = () => {
       affiliateLink: offer.affiliate_link || "#",
       influencerName: offer.influencer_name || 'Unknown Influencer',
       influencerImage: offer.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      influencerId: offer.influencer_id || "", // Make sure we include the influencer ID
+      influencerId: offer.influencer_id || "", 
       category: offer.category || 'Fashion'
     }));
     
@@ -105,7 +111,7 @@ const FeaturedOffersSection = () => {
   };
 
   return (
-    <section className="py-3 md:py-4 bg-white"> {/* Updated background to white */}
+    <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex justify-between items-center mb-2 md:mb-3">
           <h2 className="text-base md:text-lg font-semibold">Featured Offers</h2>

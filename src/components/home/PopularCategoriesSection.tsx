@@ -1,9 +1,9 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
 import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -30,7 +30,7 @@ const PopularCategoriesSection = () => {
         return;
       }
       
-      if (data) {
+      if (data && Array.isArray(data)) {
         const allCategories = [...CATEGORIES, "Beauty"];
         
         allCategories.forEach(cat => {
@@ -42,6 +42,8 @@ const PopularCategoriesSection = () => {
             counts[promo.category]++;
           }
         });
+      } else {
+        console.error("Expected array of promo codes but received:", data);
       }
       
       setCategoryCounts(counts);

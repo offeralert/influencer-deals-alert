@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
+import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
 
 interface Deal {
   id: string;
@@ -25,6 +26,7 @@ interface Deal {
 const CategoryDealsSection = () => {
   const [categoryDeals, setCategoryDeals] = useState<Record<string, Deal[]>>({});
   const [featuredCategory, setFeaturedCategory] = useState("Fashion");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchCategoryDeals();
@@ -32,6 +34,7 @@ const CategoryDealsSection = () => {
 
   const fetchCategoryDeals = async () => {
     try {
+      setLoading(true);
       const { data: influencerProfiles, error: influencerError } = await supabase
         .from('profiles')
         .select('id')
@@ -45,6 +48,7 @@ const CategoryDealsSection = () => {
       const influencerIds = influencerProfiles.map(profile => profile.id);
       
       if (influencerIds.length === 0) {
+        setLoading(false);
         return;
       }
       
@@ -52,30 +56,13 @@ const CategoryDealsSection = () => {
       const today = new Date();
       
       for (const category of CATEGORIES) {
-        const { data, error } = await supabase
-          .from('promo_codes')
-          .select(`
-            id,
-            brand_name,
-            promo_code,
-            description,
-            expiration_date,
-            affiliate_link,
-            category,
-            influencer_id,
-            profiles:influencer_id (
-              id,
-              full_name,
-              username,
-              avatar_url
-            )
-          `)
+        const { data, error } = await getUniversalPromoCodes()
           .eq('category', category)
           .in('influencer_id', influencerIds)
           .order('created_at', { ascending: false })
-          .limit(2);
+          .limit(4);
         
-        if (!error && data.length > 0) {
+        if (!error && data && Array.isArray(data) && data.length > 0) {
           const validDeals = data.filter(deal => {
             const isValid = deal.brand_name && deal.promo_code && deal.description;
             const isNotExpired = !deal.expiration_date || new Date(deal.expiration_date) > today;
@@ -83,18 +70,18 @@ const CategoryDealsSection = () => {
           });
           
           const formattedDeals = validDeals.map(deal => ({
-            id: deal.id,
-            title: deal.description,
-            brandName: deal.brand_name,
+            id: deal.id || "",
+            title: deal.description || "",
+            brandName: deal.brand_name || "",
             imageUrl: "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9",
-            discount: deal.promo_code,
-            promoCode: deal.promo_code,
+            discount: deal.promo_code || "",
+            promoCode: deal.promo_code || "",
             expiryDate: deal.expiration_date,
             affiliateLink: deal.affiliate_link || "#",
-            influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-            influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+            influencerName: deal.influencer_name || 'Unknown Influencer',
+            influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
             influencerId: deal.influencer_id || "", 
-            category: deal.category
+            category: deal.category || ""
           }));
           
           if (formattedDeals.length > 0) {
@@ -118,8 +105,22 @@ const CategoryDealsSection = () => {
       setFeaturedCategory(categoryWithMostDeals);
     } catch (error) {
       console.error("Error in fetchCategoryDeals:", error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <section className="py-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <p className="text-muted-foreground">Loading category deals...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (!categoryDeals[featuredCategory] || categoryDeals[featuredCategory].length === 0) {
     return null;

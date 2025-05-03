@@ -96,7 +96,13 @@ export const useExploreData = (
         return;
       }
       
-      const formattedDeals = data?.map((deal: UniversalPromoCode) => ({
+      if (!data || !Array.isArray(data)) {
+        console.error("Expected array but received:", data);
+        setDeals([]);
+        return;
+      }
+      
+      const formattedDeals = data.map((deal: UniversalPromoCode) => ({
         id: deal.id || "",
         title: deal.description || "",
         brandName: deal.brand_name || "",
@@ -108,7 +114,7 @@ export const useExploreData = (
         influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         influencerId: deal.influencer_id || "",
         category: deal.category || 'Fashion'
-      })) || [];
+      }));
       
       // Filter deals by search query if provided
       const filtered = searchQuery
@@ -143,9 +149,15 @@ export const useExploreData = (
         return;
       }
       
+      if (!data || !Array.isArray(data)) {
+        console.error("Expected array but received:", data);
+        setBrands([]);
+        return;
+      }
+      
       const brandMap = new Map<string, number>();
       
-      data?.forEach((deal: UniversalPromoCode) => {
+      data.forEach((deal: UniversalPromoCode) => {
         if (deal.brand_name) {
           const currentCount = brandMap.get(deal.brand_name) || 0;
           brandMap.set(deal.brand_name, currentCount + 1);
