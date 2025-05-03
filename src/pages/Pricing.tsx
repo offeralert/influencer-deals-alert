@@ -56,7 +56,7 @@ const PricingPage = () => {
     },
     {
       name: "Enterprise",
-      price: "$100",
+      price: "$500",
       description: "Ideal for agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
