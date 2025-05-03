@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -98,6 +99,12 @@
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-poppins font-semibold;
+  }
+}
+
+@layer components {
+  .section-container {
+    @apply bg-white border-y border-gray-100;
   }
 }
 
