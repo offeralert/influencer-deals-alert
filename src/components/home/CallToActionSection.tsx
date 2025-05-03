@@ -8,7 +8,7 @@ const CallToActionSection = () => {
   const { user } = useAuth();
 
   return (
-    <section className="py-8 md:py-16 relative overflow-hidden bg-gradient-to-br from-brand-light to-white dark:from-brand-dark dark:to-gray-900">
+    <section className="py-10 md:py-16 relative overflow-hidden bg-gradient-to-br from-white to-brand-light dark:from-brand-dark dark:to-gray-900 border-t border-gray-100">
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0 gradient-bg" />
       </div>

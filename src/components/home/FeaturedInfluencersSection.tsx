@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
@@ -84,10 +83,10 @@ const FeaturedInfluencersSection = () => {
   }
 
   return (
-    <section className="py-3 md:py-4 bg-white">
-      <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-2 md:mb-3">
-          <h2 className="text-base md:text-lg font-semibold">Featured Influencers</h2>
+    <section className="homepage-section">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg md:text-xl font-semibold">Featured Influencers</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/explore?tab=influencers" className="flex items-center text-xs">
               View all <ArrowRight className="ml-1 h-3 w-3" />
@@ -110,13 +109,15 @@ const FeaturedInfluencersSection = () => {
             <CarouselContent className="-ml-1 md:-ml-2">
               {featuredInfluencers.map((influencer) => (
                 <CarouselItem key={influencer.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
-                  <InfluencerCard
-                    id={influencer.id}
-                    name={influencer.full_name}
-                    username={influencer.username}
-                    imageUrl={influencer.avatar_url}
-                    category={influencer.category}
-                  />
+                  <div className="section-card">
+                    <InfluencerCard
+                      id={influencer.id}
+                      name={influencer.full_name}
+                      username={influencer.username}
+                      imageUrl={influencer.avatar_url}
+                      category={influencer.category}
+                    />
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
@@ -128,16 +129,17 @@ const FeaturedInfluencersSection = () => {
             )}
           </Carousel>
         ) : (
-          <div className={`grid grid-cols-${Math.min(featuredInfluencers.length, 5)} md:grid-cols-${Math.min(featuredInfluencers.length, 5)} lg:grid-cols-${Math.min(featuredInfluencers.length, 5)} gap-2 md:gap-3`}>
+          <div className={`grid grid-cols-${Math.min(featuredInfluencers.length, 5)} md:grid-cols-${Math.min(featuredInfluencers.length, 5)} lg:grid-cols-${Math.min(featuredInfluencers.length, 5)} gap-4`}>
             {featuredInfluencers.map((influencer) => (
-              <InfluencerCard
-                key={influencer.id}
-                id={influencer.id}
-                name={influencer.full_name}
-                username={influencer.username}
-                imageUrl={influencer.avatar_url}
-                category={influencer.category}
-              />
+              <div key={influencer.id} className="section-card">
+                <InfluencerCard
+                  id={influencer.id}
+                  name={influencer.full_name}
+                  username={influencer.username}
+                  imageUrl={influencer.avatar_url}
+                  category={influencer.category}
+                />
+              </div>
             ))}
           </div>
         )}

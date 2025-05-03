@@ -32,7 +32,7 @@ const HeroSection = () => {
   };
   
   return (
-    <section className="py-6 md:py-12 bg-brand-light dark:bg-brand-dark">
+    <section className="py-8 md:py-14 bg-gradient-to-b from-white to-brand-light dark:bg-brand-dark">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
           <div className="space-y-4 md:space-y-6">

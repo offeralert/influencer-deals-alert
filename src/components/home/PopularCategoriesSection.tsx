@@ -60,10 +60,10 @@ const PopularCategoriesSection = () => {
   };
 
   return (
-    <section className="py-3 md:py-4 bg-white">
-      <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-2 md:mb-3">
-          <h2 className="text-base md:text-lg font-semibold">Popular Categories</h2>
+    <section className="homepage-section">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg md:text-xl font-semibold">Popular Categories</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/categories" className="flex items-center text-xs">
               View all <ArrowRight className="ml-1 h-3 w-3" />
@@ -71,7 +71,7 @@ const PopularCategoriesSection = () => {
           </Button>
         </div>
         <div className={cn(
-          "grid gap-2",
+          "grid gap-4",
           isMobile ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         )}>
           {loading ? (
@@ -85,12 +85,13 @@ const PopularCategoriesSection = () => {
             [...CATEGORIES, "Beauty"]
               .slice(0, isMobile ? 4 : 5)
               .map((category) => (
-                <CategoryCard
-                  key={category}
-                  name={category}
-                  href={`/explore?category=${category}`}
-                  count={categoryCounts[category] || 0}
-                />
+                <div key={category} className="section-card overflow-hidden">
+                  <CategoryCard
+                    name={category}
+                    href={`/explore?category=${category}`}
+                    count={categoryCounts[category] || 0}
+                  />
+                </div>
               ))
           )}
         </div>
