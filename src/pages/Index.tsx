@@ -7,41 +7,41 @@ import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
 import BrowserExtensionPromo from "@/components/home/BrowserExtensionPromo";
+import { Separator } from "@/components/ui/separator";
 import CategoryDealsSection from "@/components/home/CategoryDealsSection";
 
 const Index = () => {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <div className="bg-white">
+    <div className={`min-h-screen ${user ? 'pb-0' : ''}`}>
+      <div className="section-container">
         {user ? <DownloadBanner /> : <HeroSection />}
       </div>
       
-      {/* Visual divider */}
-      <div className="section-divider"></div>
+      <Separator className="h-[1px] bg-gray-100" />
       
-      {/* Featured Influencers */}
-      <FeaturedInfluencersSection />
+      <div className="section-container bg-white shadow-sm">
+        <FeaturedInfluencersSection />
+      </div>
       
-      {/* Visual divider */}
-      <div className="section-divider"></div>
+      <Separator className="h-[1px] bg-gray-100" />
       
-      {/* Featured Offers */}
-      <FeaturedOffersSection />
+      <div className="section-container bg-white shadow-sm">
+        <FeaturedOffersSection />
+      </div>
       
-      {/* Visual divider */}
-      <div className="section-divider"></div>
+      <Separator className="h-[1px] bg-gray-100" />
       
-      {/* Popular Categories */}
-      <PopularCategoriesSection />
+      <div className="section-container bg-white shadow-sm">
+        <PopularCategoriesSection />
+      </div>
       
-      {/* Visual divider */}
-      <div className="section-divider"></div>
+      <Separator className="h-[1px] bg-gray-100" />
       
-      {/* Call to Action */}
-      {user ? <BrowserExtensionPromo /> : <CallToActionSection />}
+      <div className="section-container">
+        {user ? <BrowserExtensionPromo /> : <CallToActionSection />}
+      </div>
     </div>
   );
 };

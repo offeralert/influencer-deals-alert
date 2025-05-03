@@ -106,22 +106,6 @@
   .section-container {
     @apply bg-white border-y border-gray-100;
   }
-  
-  .homepage-section {
-    @apply bg-white py-6 md:py-8 border-b border-gray-100 relative;
-  }
-  
-  .homepage-section-alt {
-    @apply bg-gray-50/80 py-6 md:py-8 border-b border-gray-100 relative;
-  }
-  
-  .section-card {
-    @apply bg-white rounded-lg shadow-sm border border-gray-100;
-  }
-  
-  .section-divider {
-    @apply h-4 bg-gray-50/80 border-y border-gray-100;
-  }
 }
 
 @layer utilities {

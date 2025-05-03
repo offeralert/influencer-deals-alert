@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -104,10 +105,10 @@ const FeaturedOffersSection = () => {
   };
 
   return (
-    <section className="homepage-section-alt">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg md:text-xl font-semibold">Featured Offers</h2>
+    <section className="py-3 md:py-4 bg-white"> {/* Updated background to white */}
+      <div className="container mx-auto px-2 md:px-4">
+        <div className="flex justify-between items-center mb-2 md:mb-3">
+          <h2 className="text-base md:text-lg font-semibold">Featured Offers</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/explore" className="flex items-center text-xs">
               View all <ArrowRight className="ml-1 h-3 w-3" />
@@ -131,9 +132,7 @@ const FeaturedOffersSection = () => {
               <CarouselContent className="-ml-1 md:-ml-4">
                 {featuredOffers.map((offer) => (
                   <CarouselItem key={offer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
-                    <div className="section-card">
-                      <DealCard {...offer} />
-                    </div>
+                    <DealCard {...offer} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
@@ -141,11 +140,9 @@ const FeaturedOffersSection = () => {
               <CarouselNext className="hidden md:flex" />
             </Carousel>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {featuredOffers.map((offer) => (
-                <div key={offer.id} className="section-card">
-                  <DealCard {...offer} />
-                </div>
+                <DealCard key={offer.id} {...offer} />
               ))}
             </div>
           )
