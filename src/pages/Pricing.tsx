@@ -26,7 +26,7 @@ const PricingPage = () => {
     },
     {
       name: "Growth",
-      price: "$30",
+      price: "$29",
       description: "Ideal for influencers building their business",
       features: [
         "Upload up to 10 offers",
@@ -41,7 +41,7 @@ const PricingPage = () => {
     },
     {
       name: "Pro",
-      price: "$50",
+      price: "$49",
       description: "Best for full-time influencers",
       features: [
         "Upload up to 20 offers",
@@ -56,7 +56,7 @@ const PricingPage = () => {
     },
     {
       name: "Enterprise",
-      price: "$500",
+      price: "$499",
       description: "Ideal for agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
