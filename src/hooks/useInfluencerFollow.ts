@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { extractDomain, addDomainMappings } from "@/utils/supabaseQueries";
+import { addDomainMappings } from "@/utils/supabaseQueries";
 
 export const useInfluencerFollow = (influencerId: string | undefined, influencerName: string) => {
   const navigate = useNavigate();

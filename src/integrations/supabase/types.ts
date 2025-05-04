@@ -119,16 +119,19 @@ export type Database = {
       user_domain_map: {
         Row: {
           domain: string | null
+          id: string
           influencer_id: string
           user_id: string
         }
         Insert: {
           domain?: string | null
+          id?: string
           influencer_id?: string
           user_id?: string
         }
         Update: {
           domain?: string | null
+          id?: string
           influencer_id?: string
           user_id?: string
         }
@@ -166,7 +169,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      extract_domain: {
+        Args: { url: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

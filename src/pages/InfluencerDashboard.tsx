@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PromoCodeForm from "@/components/PromoCodeForm";
 import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
-import { syncUserDomainMap } from "@/utils/supabaseQueries";
 import { toast } from "sonner";
 
 interface PromoCode {
@@ -53,40 +51,26 @@ const InfluencerDashboard = () => {
             table: 'promo_codes',
             filter: `influencer_id=eq.${user.id}`
           },
-          async (payload) => {
+          (payload) => {
             // Refresh local list
             fetchPromoCodes();
             
-            // Sync user_domain_map when promo codes change
+            // The database trigger will now handle the user_domain_map updates automatically
             if (payload.eventType === 'INSERT') {
-              // New promo code added
-              toast.info("Updating your followers' domain mappings...");
-              const result = await syncUserDomainMap(user.id);
-              if (result.success) {
-                toast.success("Follower domain mappings updated successfully");
-              }
+              toast.success("New promo code added");
+              toast.info("Your followers' domain mappings are being updated automatically");
             } else if (payload.eventType === 'DELETE') {
-              // Promo code deleted
-              toast.info("Updating your followers' domain mappings...");
-              const result = await syncUserDomainMap(
-                user.id,
-                payload.old?.id,
-                true
-              );
-              if (result.success) {
-                toast.success("Follower domain mappings updated successfully");
-              }
+              toast.success("Promo code deleted");
+              toast.info("Your followers' domain mappings are being updated automatically");
             } else if (payload.eventType === 'UPDATE') {
-              // Promo code updated - check if affiliate link changed
+              toast.success("Promo code updated");
+              
+              // Check if affiliate link changed
               const oldLink = payload.old?.affiliate_link;
               const newLink = payload.new?.affiliate_link;
               
               if (oldLink !== newLink) {
-                toast.info("Updating your followers' domain mappings...");
-                const result = await syncUserDomainMap(user.id);
-                if (result.success) {
-                  toast.success("Follower domain mappings updated successfully");
-                }
+                toast.info("Affiliate link changed, domain mappings are being updated automatically");
               }
             }
           }
@@ -137,7 +121,7 @@ const InfluencerDashboard = () => {
     if (!user) return;
     
     try {
-      // Delete the promo code
+      // Delete the promo code - the database trigger will handle domain mapping updates
       const { error } = await supabase
         .from('promo_codes')
         .delete()
@@ -153,13 +137,6 @@ const InfluencerDashboard = () => {
       
       // Fetch updated list
       fetchPromoCodes();
-      
-      // Update user_domain_map for all followers
-      toast.info("Updating your followers' domain mappings...");
-      const result = await syncUserDomainMap(user.id, id, true);
-      if (result.success) {
-        toast.success("Follower domain mappings updated successfully");
-      }
     } catch (error) {
       console.error("Error in handleDeletePromoCode:", error);
       toast.error("An error occurred while deleting the promo code");
@@ -181,13 +158,7 @@ const InfluencerDashboard = () => {
         
         if (expiredCodes.length > 0) {
           console.log(`Found ${expiredCodes.length} expired promo codes`);
-          
-          // Update domain mappings for expired codes
-          toast.info(`Updating domain mappings for ${expiredCodes.length} expired promo codes...`);
-          const result = await syncUserDomainMap(user.id);
-          if (result.success) {
-            toast.success("Domain mappings updated for expired promo codes");
-          }
+          toast.info(`You have ${expiredCodes.length} expired promo code(s)`);
         }
       };
       

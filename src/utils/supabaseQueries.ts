@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
@@ -38,6 +39,7 @@ export interface DomainMapping {
   user_id: string;
   influencer_id: string;
   domain: string | null;
+  id: string;
 }
 
 // Helper function to access the universal_promo_codes view with proper typing
