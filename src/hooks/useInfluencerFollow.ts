@@ -132,8 +132,9 @@ export const useInfluencerFollow = (influencerId: string | undefined, influencer
         
         if (result.success) {
           setIsFollowing(true);
+          // Updated success message to show the number of offers added
           toast.success(`You're now following ${influencerName}`, {
-            description: `Added ${result.domainsAdded} domain${result.domainsAdded !== 1 ? 's' : ''} to your follow list`
+            description: `Added ${result.domainsAdded} ${result.domainsAdded === 1 ? 'offer' : 'offers'} to your browser extension`
           });
           console.log(`Successfully followed influencer ${influencerId} with ${result.domainsAdded} domains`);
         } else {
