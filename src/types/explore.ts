@@ -1,6 +1,6 @@
 
 export type SortOption = "newest" | "alphabetical" | "discount" | "category";
-export type ExploreTab = "deals" | "influencers" | "brands";
+export type ExploreTab = "deals" | "influencers" | "brands" | "creditcards";
 
 export interface Influencer {
   id: string;
@@ -8,6 +8,7 @@ export interface Influencer {
   username: string;
   avatar_url: string;
   category?: string;
+  is_creditcard?: boolean;
 }
 
 export interface Deal {

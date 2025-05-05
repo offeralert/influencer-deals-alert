@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
@@ -13,6 +12,7 @@ export const useExploreData = (
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [creditCards, setCreditCards] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +25,8 @@ export const useExploreData = (
         await fetchDeals();
       } else if (activeTab === "brands") {
         await fetchBrands();
+      } else if (activeTab === "creditcards") {
+        await fetchCreditCards();
       }
       
       setLoading(false);
@@ -39,6 +41,7 @@ export const useExploreData = (
         .from('profiles')
         .select('*')
         .eq('is_influencer', true)
+        .eq('is_creditcard', false)
         .order(sortOption === 'alphabetical' ? 'full_name' : 'created_at', 
                { ascending: sortOption === 'alphabetical' });
       
@@ -52,7 +55,8 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        is_creditcard: profile.is_creditcard
       })) || [];
       
       // Filter by search query if provided
@@ -67,6 +71,44 @@ export const useExploreData = (
     } catch (error) {
       console.error("Error in fetchInfluencers:", error);
       setInfluencers([]);
+    }
+  };
+
+  const fetchCreditCards = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('is_creditcard', true)
+        .order(sortOption === 'alphabetical' ? 'full_name' : 'created_at', 
+               { ascending: sortOption === 'alphabetical' });
+      
+      if (error) {
+        console.error("Error fetching credit cards:", error);
+        setCreditCards([]);
+        return;
+      }
+      
+      const formattedCreditCards = data?.map(profile => ({
+        id: profile.id,
+        full_name: profile.full_name || 'Unnamed Credit Card',
+        username: profile.username || 'creditcard',
+        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        is_creditcard: profile.is_creditcard
+      })) || [];
+      
+      // Filter by search query if provided
+      const filtered = searchQuery
+        ? formattedCreditCards.filter(card => 
+            card.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            card.username.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : formattedCreditCards;
+      
+      setCreditCards(filtered);
+    } catch (error) {
+      console.error("Error in fetchCreditCards:", error);
+      setCreditCards([]);
     }
   };
 
@@ -191,5 +233,5 @@ export const useExploreData = (
     }
   };
 
-  return { influencers, deals, brands, loading };
+  return { influencers, deals, brands, creditCards, loading };
 };

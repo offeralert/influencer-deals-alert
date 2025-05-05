@@ -2,7 +2,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
-import FeaturedInfluencersSection from "@/components/home/FeaturedInfluencersSection";
+import FeaturedAccountsSection from "@/components/home/FeaturedInfluencersSection";
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
@@ -22,7 +22,7 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <FeaturedInfluencersSection />
+        <FeaturedAccountsSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />

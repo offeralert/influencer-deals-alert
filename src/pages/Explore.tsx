@@ -26,6 +26,7 @@ import { useExploreData } from "@/hooks/useExploreData";
 import DealsView from "@/components/explore/DealsView";
 import InfluencersView from "@/components/explore/InfluencersView";
 import BrandsView from "@/components/explore/BrandsView";
+import CreditCardsView from "@/components/explore/CreditCardsView";
 import SearchBar from "@/components/ui/search-bar";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 
@@ -45,7 +46,7 @@ const Explore = () => {
   // Use the hook to scroll to top on route changes
   useScrollToTop();
 
-  const { deals, influencers, brands, loading } = useExploreData(
+  const { deals, influencers, brands, creditCards, loading } = useExploreData(
     activeTab,
     sortOption,
     selectedCategories,
@@ -81,6 +82,8 @@ const Explore = () => {
         return "Search influencers by name or username...";
       case "brands":
         return "Search brands...";
+      case "creditcards":
+        return "Search credit cards...";
       default:
         return "Search...";
     }
@@ -109,10 +112,11 @@ const Explore = () => {
             onValueChange={(value) => setActiveTab(value as ExploreTab)}
             className="w-full sm:w-auto"
           >
-            <TabsList className="grid grid-cols-3 w-full sm:w-[300px]">
+            <TabsList className="grid grid-cols-4 w-full sm:w-[400px]">
               <TabsTrigger value="deals">Deals</TabsTrigger>
               <TabsTrigger value="influencers">Influencers</TabsTrigger>
               <TabsTrigger value="brands">Brands</TabsTrigger>
+              <TabsTrigger value="creditcards">Credit Cards</TabsTrigger>
             </TabsList>
           </Tabs>
           
@@ -129,7 +133,8 @@ const Explore = () => {
                   <SelectItem value="newest">Newly Added</SelectItem>
                   <SelectItem value="alphabetical">
                     {activeTab === "influencers" ? "Name (A-Z)" : 
-                     activeTab === "brands" ? "Brand (A-Z)" : "Brand (A-Z)"}
+                     activeTab === "brands" ? "Brand (A-Z)" : 
+                     activeTab === "creditcards" ? "Name (A-Z)" : "Brand (A-Z)"}
                   </SelectItem>
                   {activeTab === "deals" && (
                     <>
@@ -209,6 +214,10 @@ const Explore = () => {
               brands={brands} 
               selectedCategories={selectedCategories} 
             />
+          </TabsContent>
+          
+          <TabsContent value="creditcards" className="mt-0">
+            <CreditCardsView creditCards={creditCards} />
           </TabsContent>
         </Tabs>
       )}

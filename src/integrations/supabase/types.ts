@@ -36,6 +36,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          is_creditcard: boolean | null
           is_featured: boolean | null
           is_influencer: boolean | null
           updated_at: string | null
@@ -46,6 +47,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_creditcard?: boolean | null
           is_featured?: boolean | null
           is_influencer?: boolean | null
           updated_at?: string | null
@@ -56,6 +58,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_creditcard?: boolean | null
           is_featured?: boolean | null
           is_influencer?: boolean | null
           updated_at?: string | null

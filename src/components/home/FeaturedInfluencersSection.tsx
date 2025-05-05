@@ -22,64 +22,62 @@ interface Influencer {
   category?: string;
 }
 
-const FeaturedInfluencersSection = () => {
-  const [featuredInfluencers, setFeaturedInfluencers] = useState<Influencer[]>([]);
+const FeaturedAccountsSection = () => {
+  const [featuredAccounts, setFeaturedAccounts] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    fetchFeaturedInfluencers();
+    fetchFeaturedAccounts();
   }, []);
 
-  const fetchFeaturedInfluencers = async () => {
+  const fetchFeaturedAccounts = async () => {
     try {
       setLoading(true);
       
-      // Get profiles that are both featured AND influencers
+      // Get profiles that are featured
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('is_influencer', true)
         .eq('is_featured', true)
         .limit(5);
       
       if (error) {
-        console.error("Error fetching featured influencers:", error);
-        setFeaturedInfluencers([]);
+        console.error("Error fetching featured accounts:", error);
+        setFeaturedAccounts([]);
       } else {
         if (data.length > 0) {
-          await transformAndSetInfluencers(data);
+          await transformAndSetAccounts(data);
         } else {
-          // If no featured influencers found, set empty array
-          // Do not load fallback data or default influencers
-          setFeaturedInfluencers([]);
+          // If no featured accounts found, set empty array
+          setFeaturedAccounts([]);
         }
       }
     } catch (error) {
-      console.error("Error in fetchFeaturedInfluencers:", error);
-      setFeaturedInfluencers([]);
+      console.error("Error in fetchFeaturedAccounts:", error);
+      setFeaturedAccounts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const transformAndSetInfluencers = async (data: any[]) => {
+  const transformAndSetAccounts = async (data: any[]) => {
     try {
-      const baseInfluencers = data.map(profile => ({
+      const baseAccounts = data.map(profile => ({
         id: profile.id,
-        full_name: profile.full_name || 'Unnamed Influencer',
-        username: profile.username || 'influencer',
+        full_name: profile.full_name || 'Unnamed Account',
+        username: profile.username || 'account',
         avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158'
       }));
       
-      setFeaturedInfluencers(baseInfluencers);
+      setFeaturedAccounts(baseAccounts);
     } catch (error) {
-      console.error("Error in transformAndSetInfluencers:", error);
+      console.error("Error in transformAndSetAccounts:", error);
     }
   };
 
-  // Don't render the section at all if no featured influencers
-  if (featuredInfluencers.length === 0 && !loading) {
+  // Don't render the section at all if no featured accounts
+  if (featuredAccounts.length === 0 && !loading) {
     return null;
   }
 
@@ -87,7 +85,7 @@ const FeaturedInfluencersSection = () => {
     <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
         <div className="flex justify-between items-center mb-2 md:mb-3">
-          <h2 className="text-base md:text-lg font-semibold">Featured Influencers</h2>
+          <h2 className="text-base md:text-lg font-semibold">Featured Accounts</h2>
           <Button variant="ghost" size="sm" asChild>
             <Link to="/explore?tab=influencers" className="flex items-center text-xs">
               View all <ArrowRight className="ml-1 h-3 w-3" />
@@ -97,30 +95,30 @@ const FeaturedInfluencersSection = () => {
         
         {loading ? (
           <div className="text-center py-2">
-            <p className="text-xs text-muted-foreground">Loading featured influencers...</p>
+            <p className="text-xs text-muted-foreground">Loading featured accounts...</p>
           </div>
         ) : isMobile ? (
           <Carousel
             opts={{
               align: "start",
-              loop: featuredInfluencers.length > 1,
+              loop: featuredAccounts.length > 1,
             }}
             className="w-full"
           >
             <CarouselContent className="-ml-1 md:-ml-2">
-              {featuredInfluencers.map((influencer) => (
-                <CarouselItem key={influencer.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+              {featuredAccounts.map((account) => (
+                <CarouselItem key={account.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
                   <InfluencerCard
-                    id={influencer.id}
-                    name={influencer.full_name}
-                    username={influencer.username}
-                    imageUrl={influencer.avatar_url}
-                    category={influencer.category}
+                    id={account.id}
+                    name={account.full_name}
+                    username={account.username}
+                    imageUrl={account.avatar_url}
+                    category={account.category}
                   />
                 </CarouselItem>
               ))}
             </CarouselContent>
-            {featuredInfluencers.length > 1 && (
+            {featuredAccounts.length > 1 && (
               <>
                 <CarouselPrevious className="hidden md:flex" />
                 <CarouselNext className="hidden md:flex" />
@@ -128,15 +126,15 @@ const FeaturedInfluencersSection = () => {
             )}
           </Carousel>
         ) : (
-          <div className={`grid grid-cols-${Math.min(featuredInfluencers.length, 5)} md:grid-cols-${Math.min(featuredInfluencers.length, 5)} lg:grid-cols-${Math.min(featuredInfluencers.length, 5)} gap-2 md:gap-3`}>
-            {featuredInfluencers.map((influencer) => (
+          <div className={`grid grid-cols-${Math.min(featuredAccounts.length, 5)} md:grid-cols-${Math.min(featuredAccounts.length, 5)} lg:grid-cols-${Math.min(featuredAccounts.length, 5)} gap-2 md:gap-3`}>
+            {featuredAccounts.map((account) => (
               <InfluencerCard
-                key={influencer.id}
-                id={influencer.id}
-                name={influencer.full_name}
-                username={influencer.username}
-                imageUrl={influencer.avatar_url}
-                category={influencer.category}
+                key={account.id}
+                id={account.id}
+                name={account.full_name}
+                username={account.username}
+                imageUrl={account.avatar_url}
+                category={account.category}
               />
             ))}
           </div>
@@ -146,4 +144,4 @@ const FeaturedInfluencersSection = () => {
   );
 };
 
-export default FeaturedInfluencersSection;
+export default FeaturedAccountsSection;
