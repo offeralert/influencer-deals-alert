@@ -1,6 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { getPromoCodes } from "@/utils/supabaseQueries";
 import SearchBar from "@/components/ui/search-bar";
 import DealsView from "@/components/explore/DealsView";
 import { Deal } from "@/types/explore";
@@ -15,7 +16,7 @@ const Search = () => {
     const fetchResults = async () => {
       setLoading(true);
       try {
-        const { data, error } = await getUniversalPromoCodes();
+        const { data, error } = await getPromoCodes();
 
         if (error) {
           console.error("Error fetching data:", error);
@@ -48,9 +49,9 @@ const Search = () => {
             promoCode: item.promo_code || "",
             expiryDate: item.expiration_date,
             affiliateLink: item.affiliate_link || "#",
-            influencerName: item.influencer_name || "Unknown Influencer",
+            influencerName: item.profiles?.full_name || "Unknown Influencer",
             influencerImage:
-              item.influencer_image ||
+              item.profiles?.avatar_url ||
               "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
             influencerId: item.influencer_id || "",
             category: item.category || "Fashion",
@@ -74,12 +75,16 @@ const Search = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Search Results</h1>
-      <SearchBar placeholder="Search deals, brands, and more..." disabled />
+      <SearchBar placeholder="Search deals, brands, and more..." disabled={true} />
 
       {loading ? (
         <div className="text-center py-4">Loading...</div>
       ) : searchResults.length > 0 ? (
-        <DealsView deals={searchResults} />
+        <DealsView 
+          deals={searchResults} 
+          sortOption="newest"
+          selectedCategories={[]}
+        />
       ) : query ? (
         <div className="text-center py-4">No results found for "{query}"</div>
       ) : (

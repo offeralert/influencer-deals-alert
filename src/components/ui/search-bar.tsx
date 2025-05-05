@@ -5,12 +5,19 @@ import { Button } from "@/components/ui/button";
 
 interface SearchBarProps {
   placeholder?: string;
-  value: string;
-  onChange: (value: string) => void;
+  value?: string;
+  onChange?: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }
 
-const SearchBar = ({ placeholder = "Search...", value, onChange, className = "" }: SearchBarProps) => {
+const SearchBar = ({ 
+  placeholder = "Search...", 
+  value = "", 
+  onChange = () => {}, 
+  className = "",
+  disabled = false
+}: SearchBarProps) => {
   return (
     <div className={`relative ${className}`}>
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -20,8 +27,9 @@ const SearchBar = ({ placeholder = "Search...", value, onChange, className = "" 
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="pl-9 pr-10"
+        disabled={disabled}
       />
-      {value && (
+      {value && !disabled && (
         <Button
           variant="ghost"
           size="sm"
