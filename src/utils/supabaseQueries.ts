@@ -36,9 +36,11 @@ export interface PromoCode {
 }
 
 export interface PromoCodeWithInfluencer extends PromoCode {
-  influencer_name?: string;
-  influencer_username?: string;
-  influencer_image?: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export interface DomainMapping {
@@ -60,6 +62,13 @@ export const getPromoCodes = () => {
         avatar_url
       )
     `) as unknown as PostgrestFilterBuilder<any, any, PromoCodeWithInfluencer[]>;
+};
+
+// Helper function to access the universal_promo_codes view
+export const getUniversalPromoCodes = () => {
+  return supabase
+    .from('universal_promo_codes')
+    .select('*') as unknown as PostgrestFilterBuilder<any, any, UniversalPromoCode[]>;
 };
 
 // Helper function to extract and clean domain from URL with improved robustness
