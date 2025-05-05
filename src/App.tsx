@@ -1,3 +1,4 @@
+
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -8,7 +9,6 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
-import Search from "./pages/Search";
 import Explore from "./pages/Explore";
 import MyDeals from "./pages/MyDeals";
 import InfluencerApply from "./pages/InfluencerApply";
@@ -37,7 +37,6 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
-              <Route path="/search" element={<Search />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/my-deals" element={<MyDeals />} />
               <Route path="/influencer-apply" element={<InfluencerApply />} />

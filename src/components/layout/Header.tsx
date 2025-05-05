@@ -53,12 +53,6 @@ const Header = () => {
                     Home
                   </button>
                   <button 
-                    onClick={() => handleNavigation("/search")} 
-                    className="text-left text-lg font-medium hover:text-brand-green"
-                  >
-                    Search
-                  </button>
-                  <button 
                     onClick={() => handleNavigation("/explore")} 
                     className="text-left text-lg font-medium hover:text-brand-green"
                   >
@@ -90,14 +84,6 @@ const Header = () => {
           {!isMobile && (
             <NavigationMenu className="ml-6">
               <NavigationMenuList>
-                <NavigationMenuItem>
-                  <NavigationMenuLink
-                    className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
-                    onClick={() => navigate("/search")}
-                  >
-                    Search
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuLink
                     className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
