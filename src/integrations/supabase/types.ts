@@ -139,34 +139,7 @@ export type Database = {
       }
     }
     Views: {
-      universal_promo_codes: {
-        Row: {
-          affiliate_link: string | null
-          brand_name: string | null
-          category: string | null
-          created_at: string | null
-          description: string | null
-          expiration_date: string | null
-          id: string | null
-          influencer_id: string | null
-          influencer_image: string | null
-          influencer_name: string | null
-          influencer_username: string | null
-          is_featured: boolean | null
-          is_trending: boolean | null
-          promo_code: string | null
-          updated_at: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "promo_codes_user_id_fkey"
-            columns: ["influencer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Functions: {
       extract_domain: {

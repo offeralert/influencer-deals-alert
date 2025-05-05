@@ -5,7 +5,7 @@ import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { CATEGORIES } from "@/components/CategoryFilter";
-import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { getPromoCodes } from "@/utils/supabaseQueries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -23,7 +23,7 @@ const PopularCategoriesSection = () => {
       setLoading(true);
       const counts: Record<string, number> = {};
       
-      const { data, error } = await getUniversalPromoCodes();
+      const { data, error } = await getPromoCodes();
       
       if (error) {
         console.error("Error fetching promo codes:", error);

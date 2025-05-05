@@ -28,12 +28,12 @@ const Categories = () => {
     try {
       setLoading(true);
       
-      // Get counts for each category from the universal_promo_codes view
+      // Get counts for each category from the promo_codes table
       const counts: Record<string, number> = {};
       
       for (const category of updatedCategories) {
         const { count, error } = await supabase
-          .from('universal_promo_codes')
+          .from('promo_codes')
           .select('id', { count: 'exact', head: true })
           .eq('category', category);
         
