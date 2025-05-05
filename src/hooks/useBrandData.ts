@@ -2,11 +2,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 
 export const useBrandData = (brandName: string | undefined) => {
   const navigate = useNavigate();
-  const [promoCodes, setPromoCodes] = useState<UniversalPromoCode[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,9 +22,7 @@ export const useBrandData = (brandName: string | undefined) => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
-        .from('universal_promo_codes')
-        .select('*')
+      const { data, error } = await getPromoCodes()
         .eq('brand_name', brandName)
         .order('created_at', { ascending: false });
       

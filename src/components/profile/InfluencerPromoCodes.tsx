@@ -1,9 +1,9 @@
 
 import { DealCard } from "@/components/ui/deal-card";
-import { UniversalPromoCode } from "@/utils/supabaseQueries";
+import { PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 
 interface InfluencerPromoCodesProps {
-  promoCodes: UniversalPromoCode[];
+  promoCodes: PromoCodeWithInfluencer[];
   influencerId: string;
   influencerName: string;
   influencerImage: string;
@@ -42,7 +42,7 @@ const InfluencerPromoCodes = ({
             affiliateLink={code.affiliate_link || "#"}
             influencerName={influencerName}
             influencerImage={influencerImage}
-            influencerId={influencerId} // Pass the correct influencer ID
+            influencerId={influencerId}
             category={code.category || ""}
           />
         ))}

@@ -35,6 +35,12 @@ export interface PromoCode {
   influencer_id: string;
 }
 
+export interface PromoCodeWithInfluencer extends PromoCode {
+  influencer_name?: string;
+  influencer_username?: string;
+  influencer_image?: string;
+}
+
 export interface DomainMapping {
   user_id: string;
   influencer_id: string;
@@ -42,18 +48,18 @@ export interface DomainMapping {
   id: string;
 }
 
-// Helper function to access the universal_promo_codes view with proper typing
-export const getUniversalPromoCodes = () => {
-  return supabase
-    .from('universal_promo_codes')
-    .select('*') as unknown as PostgrestFilterBuilder<any, any, UniversalPromoCode[]>;
-};
-
-// Helper function to access the promo_codes table with proper typing
+// Helper function to access the promo_codes table with join to profiles
 export const getPromoCodes = () => {
   return supabase
     .from('promo_codes')
-    .select('*') as unknown as PostgrestFilterBuilder<any, any, PromoCode[]>;
+    .select(`
+      *,
+      profiles:influencer_id (
+        full_name,
+        username,
+        avatar_url
+      )
+    `) as unknown as PostgrestFilterBuilder<any, any, PromoCodeWithInfluencer[]>;
 };
 
 // Helper function to extract and clean domain from URL with improved robustness
@@ -86,7 +92,6 @@ export const extractDomain = (url: string): string | null => {
 };
 
 // Helper function to add domain mappings for a user-influencer pair
-// Now properly handles multiple domains with improved debugging and transaction support
 export const addDomainMappings = async (
   userId: string, 
   influencerId: string, 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { useInfluencerData } from "@/hooks/useInfluencerData";
 import { useInfluencerFollow } from "@/hooks/useInfluencerFollow";
 import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeader";
@@ -9,7 +9,7 @@ import InfluencerPromoCodes from "@/components/profile/InfluencerPromoCodes";
 
 const InfluencerProfile = () => {
   const { id } = useParams<{ id: string }>();
-  const [promoCodes, setPromoCodes] = useState<UniversalPromoCode[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const { influencer, loading } = useInfluencerData(id);
   const { isFollowing, handleFollowToggle } = useInfluencerFollow(
     id,
@@ -24,7 +24,7 @@ const InfluencerProfile = () => {
 
   const fetchPromoCodes = async () => {
     try {
-      const { data, error } = await getUniversalPromoCodes()
+      const { data, error } = await getPromoCodes()
         .eq('influencer_id', id)
         .order('created_at', { ascending: false });
       

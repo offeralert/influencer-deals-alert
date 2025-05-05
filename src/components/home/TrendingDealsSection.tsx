@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 
 interface Deal {
   id: string;
@@ -16,7 +16,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; // Added this required field
+  influencerId: string; 
   category: string;
 }
 
@@ -33,7 +33,7 @@ const TrendingDealsSection = () => {
       setLoading(true);
       
       // First try to get trending promo codes
-      const { data: trendingData, error: trendingError } = await getUniversalPromoCodes()
+      const { data: trendingData, error: trendingError } = await getPromoCodes()
         .eq('is_trending', true)
         .limit(4);
       
@@ -45,7 +45,7 @@ const TrendingDealsSection = () => {
       
       // If no trending deals found, get the most recent ones
       if (!trendingData || trendingData.length === 0) {
-        const { data: recentData, error: recentError } = await getUniversalPromoCodes()
+        const { data: recentData, error: recentError } = await getPromoCodes()
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -72,7 +72,7 @@ const TrendingDealsSection = () => {
     }
   };
 
-  const transformAndSetDeals = (data: UniversalPromoCode[]) => {
+  const transformAndSetDeals = (data: PromoCodeWithInfluencer[]) => {
     // Transform to our Deal interface
     const formattedDeals = data.map(deal => ({
       id: deal.id || "",
@@ -82,9 +82,9 @@ const TrendingDealsSection = () => {
       promoCode: deal.promo_code || "",
       expiryDate: deal.expiration_date,
       affiliateLink: deal.affiliate_link || "#",
-      influencerName: deal.influencer_name || 'Unknown Influencer',
-      influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      influencerId: deal.influencer_id || "", // Make sure we include the influencer ID
+      influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerId: deal.influencer_id || "", 
       category: deal.category || 'Fashion'
     }));
     

@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES } from "@/components/CategoryFilter";
-import { getUniversalPromoCodes } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 
 interface Deal {
   id: string;
@@ -56,7 +56,7 @@ const CategoryDealsSection = () => {
       const today = new Date();
       
       for (const category of CATEGORIES) {
-        const { data, error } = await getUniversalPromoCodes()
+        const { data, error } = await getPromoCodes()
           .eq('category', category)
           .in('influencer_id', influencerIds)
           .order('created_at', { ascending: false })
@@ -78,8 +78,8 @@ const CategoryDealsSection = () => {
             promoCode: deal.promo_code || "",
             expiryDate: deal.expiration_date,
             affiliateLink: deal.affiliate_link || "#",
-            influencerName: deal.influencer_name || 'Unknown Influencer',
-            influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+            influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+            influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
             influencerId: deal.influencer_id || "", 
             category: deal.category || ""
           }));

@@ -6,7 +6,7 @@ import { DealCard } from "@/components/ui/deal-card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import SearchBar from "@/components/ui/search-bar";
 
 interface SavedDeal {
@@ -119,11 +119,11 @@ const MyDeals = () => {
       // Extract unique influencer IDs
       const influencerIds = [...new Set(followedInfluencerData.map(follow => follow.influencer_id))];
       
-      // Get promo codes from followed influencers using the universal_promo_codes view
+      // Get promo codes from followed influencers using the promo_codes table with profiles join
       // Filter out expired promo codes
       const now = new Date().toISOString().split('T')[0]; // Current date in YYYY-MM-DD format
       
-      const { data: promoCodes, error: promoError } = await getUniversalPromoCodes()
+      const { data: promoCodes, error: promoError } = await getPromoCodes()
         .in('influencer_id', influencerIds)
         .or(`expiration_date.gt.${now},expiration_date.is.null`)
         .order('created_at', { ascending: false });
@@ -146,8 +146,8 @@ const MyDeals = () => {
         promoCode: promo.promo_code || "",
         expiryDate: promo.expiration_date,
         affiliateLink: promo.affiliate_link || "#",
-        influencerName: promo.influencer_name || 'Unknown Influencer',
-        influencerImage: promo.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerName: promo.profiles?.full_name || 'Unknown Influencer',
+        influencerImage: promo.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         influencerId: promo.influencer_id || "",
         category: promo.category || ""
       }));

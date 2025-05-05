@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { Influencer, Deal, Brand, ExploreTab, SortOption } from "@/types/explore";
 
 export const useExploreData = (
@@ -72,7 +72,7 @@ export const useExploreData = (
 
   const fetchDeals = async () => {
     try {
-      let query = getUniversalPromoCodes();
+      let query = getPromoCodes();
       
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
@@ -102,7 +102,7 @@ export const useExploreData = (
         return;
       }
       
-      const formattedDeals = data.map((deal: UniversalPromoCode) => ({
+      const formattedDeals = data.map((deal: PromoCodeWithInfluencer) => ({
         id: deal.id || "",
         title: deal.description || "",
         brandName: deal.brand_name || "",
@@ -110,8 +110,8 @@ export const useExploreData = (
         promoCode: deal.promo_code || "",
         expiryDate: deal.expiration_date,
         affiliateLink: deal.affiliate_link || "#",
-        influencerName: deal.influencer_name || 'Unknown Influencer',
-        influencerImage: deal.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerName: deal.profiles?.full_name || 'Unknown Influencer',
+        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
         influencerId: deal.influencer_id || "",
         category: deal.category || 'Fashion'
       }));
@@ -135,7 +135,7 @@ export const useExploreData = (
 
   const fetchBrands = async () => {
     try {
-      let query = getUniversalPromoCodes();
+      let query = getPromoCodes();
       
       if (selectedCategories.length > 0) {
         query = query.in('category', selectedCategories);
@@ -157,7 +157,7 @@ export const useExploreData = (
       
       const brandMap = new Map<string, number>();
       
-      data.forEach((deal: UniversalPromoCode) => {
+      data.forEach((deal: PromoCodeWithInfluencer) => {
         if (deal.brand_name) {
           const currentCount = brandMap.get(deal.brand_name) || 0;
           brandMap.set(deal.brand_name, currentCount + 1);

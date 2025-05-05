@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { getUniversalPromoCodes, UniversalPromoCode } from "@/utils/supabaseQueries";
+import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import {
   Carousel,
   CarouselContent,
@@ -41,8 +41,8 @@ const FeaturedOffersSection = () => {
     try {
       setLoading(true);
       
-      // Get featured offers from the universal_promo_codes view
-      const { data, error } = await getUniversalPromoCodes()
+      // Get featured offers from promo_codes with profiles join
+      const { data, error } = await getPromoCodes()
         .eq('is_featured', true)
         .limit(4);
       
@@ -55,7 +55,7 @@ const FeaturedOffersSection = () => {
       
       // If no featured offers found, get the most recent ones
       if (!data || data.length === 0) {
-        const { data: recentData, error: recentError } = await getUniversalPromoCodes()
+        const { data: recentData, error: recentError } = await getPromoCodes()
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -85,7 +85,7 @@ const FeaturedOffersSection = () => {
     }
   };
 
-  const transformAndSetOffers = (data: UniversalPromoCode[]) => {
+  const transformAndSetOffers = (data: PromoCodeWithInfluencer[]) => {
     if (!Array.isArray(data)) {
       console.error("Expected array but received:", data);
       setFeaturedOffers([]);
@@ -101,8 +101,8 @@ const FeaturedOffersSection = () => {
       promoCode: offer.promo_code || "",
       expiryDate: offer.expiration_date,
       affiliateLink: offer.affiliate_link || "#",
-      influencerName: offer.influencer_name || 'Unknown Influencer',
-      influencerImage: offer.influencer_image || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerName: offer.profiles?.full_name || 'Unknown Influencer',
+      influencerImage: offer.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
       influencerId: offer.influencer_id || "", 
       category: offer.category || 'Fashion'
     }));
