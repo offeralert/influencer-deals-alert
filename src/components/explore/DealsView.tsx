@@ -24,7 +24,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
   if (filteredDeals.length === 0) {
     return (
       <div>
-        <div className="flex items-center justify-end mb-4">
+        <div className="flex items-center justify-end mb-3">
           <div className="flex items-center space-x-2">
             <Switch 
               id="show-expired" 
@@ -38,7 +38,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
           </div>
         </div>
 
-        <div className="text-center py-16 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
           <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium mb-2">No deals found</h3>
           <p className="text-gray-500">
@@ -55,7 +55,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <div className="text-sm text-muted-foreground">
           {filteredDeals.length} deal{filteredDeals.length !== 1 ? 's' : ''} found
         </div>
@@ -73,11 +73,11 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
       </div>
 
       {sortOption === "category" ? (
-        <div className="mb-8">
+        <div className="mb-6">
           {Array.from(new Set(filteredDeals.map(deal => deal.category))).map(category => (
-            <div key={category} className="mb-6">
-              <h2 className="text-xl font-semibold mb-4">{category}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div key={category} className="mb-5">
+              <h2 className="text-xl font-semibold mb-3">{category}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredDeals
                   .filter(deal => deal.category === category)
                   .map(deal => (
@@ -92,7 +92,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredDeals.map((deal) => (
             <DealCard 
               key={deal.id} 

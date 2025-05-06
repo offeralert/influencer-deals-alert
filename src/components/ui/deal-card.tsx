@@ -52,16 +52,18 @@ export function DealCard({
   return (
     <Card className={`overflow-hidden ${expired ? 'opacity-70' : ''}`}>
       <CardContent className="p-0">
-        <div className="p-4">
+        <div className="p-3">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-medium">{brandName}</h3>
-            <Badge variant="outline" className="text-xs">
-              {category}
+            <Link to={`/brand/${encodeURIComponent(brandName)}`} className="font-medium hover:underline">
+              {brandName}
+            </Link>
+            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50">
+              {discount}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
           
-          <div className="bg-gray-50 dark:bg-gray-800/50 rounded p-3 mb-3 flex justify-between items-center">
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded p-2 mb-3 flex justify-between items-center">
             <div>
               <div className="text-xs text-muted-foreground mb-1">Code:</div>
               <div className="font-mono font-medium">{promoCode}</div>
@@ -90,21 +92,24 @@ export function DealCard({
             </div>
           )}
           
-          <Button 
-            className="w-full mb-3" 
-            onClick={openAffiliate}
-            disabled={expired || !affiliateLink || affiliateLink === "#"}
-          >
-            {expired ? "Expired Offer" : "Shop Now"} <ExternalLink className="h-3 w-3 ml-1" />
-          </Button>
+          <div className="flex justify-end">
+            <Button 
+              className="w-auto" 
+              size="sm"
+              onClick={openAffiliate}
+              disabled={expired || !affiliateLink || affiliateLink === "#"}
+            >
+              {expired ? "Expired Offer" : "Shop Now"} <ExternalLink className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="border-t p-3 bg-muted/20">
+      <CardFooter className="border-t p-2 bg-muted/20">
         <Link 
           to={`/influencer/${influencerId}`} 
           className="flex items-center gap-2 w-full hover:underline"
         >
-          <Avatar className="h-6 w-6">
+          <Avatar className="h-5 w-5">
             <AvatarImage src={influencerImage} alt={influencerName} />
             <AvatarFallback>{influencerName[0]}</AvatarFallback>
           </Avatar>
