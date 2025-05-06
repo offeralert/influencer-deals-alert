@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import PromoCodeForm from "@/components/PromoCodeForm";
 import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface PromoCode {
   id: string;
@@ -143,28 +145,26 @@ const InfluencerDashboard = () => {
     }
   };
 
-  // Handle expiry check - runs when dashboard loads to clean up expired offers
-  useEffect(() => {
-    if (user && promoCodes.length > 0) {
-      const checkForExpiredCodes = async () => {
-        const now = new Date();
-        const expiredCodes = promoCodes.filter(code => {
-          if (code.expiration_date) {
-            const expiryDate = new Date(code.expiration_date);
-            return expiryDate < now;
-          }
-          return false;
-        });
-        
-        if (expiredCodes.length > 0) {
-          console.log(`Found ${expiredCodes.length} expired promo codes`);
-          toast.info(`You have ${expiredCodes.length} expired promo code(s)`);
-        }
-      };
-      
-      checkForExpiredCodes();
-    }
-  }, [user, promoCodes]);
+  const isExpired = (expiryDate: string | null): boolean => {
+    if (!expiryDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(expiryDate);
+    return expiry < today;
+  };
+  
+  const isExpiringSoon = (expiryDate: string | null): boolean => {
+    if (!expiryDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(expiryDate);
+    
+    // Consider "soon" as within 7 days
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(today.getDate() + 7);
+    
+    return expiry >= today && expiry <= sevenDaysFromNow;
+  };
 
   if (isLoading) {
     return (
@@ -194,6 +194,10 @@ const InfluencerDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Current Promo Codes</span>
+                  <div className="flex gap-2 text-sm font-normal">
+                    <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-400">Expired</Badge>
+                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">Expiring Soon</Badge>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -216,8 +220,10 @@ const InfluencerDashboard = () => {
                       <TableBody>
                         {promoCodes.map((code) => (
                           <TableRow key={code.id} className={
-                            code.expiration_date && new Date(code.expiration_date) < new Date() 
+                            isExpired(code.expiration_date) 
                               ? "bg-red-50 dark:bg-red-950/10" 
+                              : isExpiringSoon(code.expiration_date)
+                              ? "bg-yellow-50 dark:bg-yellow-950/10"
                               : ""
                           }>
                             {editingPromoCodeId === code.id ? (
@@ -240,8 +246,21 @@ const InfluencerDashboard = () => {
                                 <TableCell className="max-w-[200px] truncate">{code.description}</TableCell>
                                 <TableCell>
                                   {code.expiration_date 
-                                    ? new Date(code.expiration_date).toLocaleDateString() 
-                                    : "No expiration"}
+                                    ? (
+                                      <div className="flex items-center gap-2">
+                                        <span>{new Date(code.expiration_date).toLocaleDateString()}</span>
+                                        {isExpired(code.expiration_date) && (
+                                          <Badge variant="destructive" className="text-xs">Expired</Badge>
+                                        )}
+                                        {isExpiringSoon(code.expiration_date) && !isExpired(code.expiration_date) && (
+                                          <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400 text-xs">
+                                            Soon
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    )
+                                    : "No expiration"
+                                  }
                                 </TableCell>
                                 <TableCell>
                                   {code.affiliate_link ? (

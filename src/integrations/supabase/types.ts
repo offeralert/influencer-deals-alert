@@ -145,6 +145,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_expired_promo_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       extract_domain: {
         Args: { url: string }
         Returns: string

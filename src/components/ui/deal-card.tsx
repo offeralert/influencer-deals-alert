@@ -1,11 +1,12 @@
-import { Copy, Check, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import { toast } from "sonner";
+
 import { Link } from "react-router-dom";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Copy, ExternalLink, Clock } from "lucide-react";
+import { toast } from "sonner";
+import { isExpired, isExpiringSoon, formatExpiryDate } from "@/utils/dateUtils";
 
 interface DealCardProps {
   id: string;
@@ -32,87 +33,84 @@ export function DealCard({
   influencerName,
   influencerImage,
   influencerId,
-  category,
+  category
 }: DealCardProps) {
-  const [copied, setCopied] = useState(false);
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(promoCode);
+    toast.success("Promo code copied to clipboard!");
+  };
 
-  const handleCopyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(promoCode);
-      setCopied(true);
-      toast.success(`${promoCode} copied to clipboard`);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      toast.error("Failed to copy code to clipboard");
+  const openAffiliate = () => {
+    if (affiliateLink && affiliateLink !== "#") {
+      window.open(affiliateLink, "_blank", "noopener,noreferrer");
     }
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "No expiration";
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        month: "short", 
-        day: "numeric", 
-        year: "numeric"
-      });
-    } catch (e) {
-      return "Invalid date";
-    }
-  };
+  const expired = isExpired(expiryDate);
+  const expiringSoon = isExpiringSoon(expiryDate);
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardContent className="p-2 md:p-3 flex-grow flex flex-col justify-between">
-        <div>
-          <div className="flex justify-between items-start mb-1.5">
-            <Link to={`/brand/${encodeURIComponent(brandName)}`} className="hover:underline">
-              <h3 className="font-medium text-sm md:text-base">{brandName}</h3>
-            </Link>
-            <p className="text-xs text-brand-green font-medium bg-brand-paleGreen px-2 py-0.5 rounded line-clamp-2 max-w-[60%] text-right">
-              {title}
-            </p>
-          </div>
-          
-          <div className="bg-muted rounded-md p-1 md:p-1.5 flex justify-between items-center mb-1.5 mt-2">
-            <code className="text-xs font-mono">{promoCode}</code>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 md:h-7 md:w-7 p-0"
-              onClick={handleCopyCode}
-            >
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-            </Button>
-          </div>
-          
-          <div className="flex justify-between items-center text-[10px] md:text-xs text-muted-foreground mt-1.5 gap-2">
-            <span>Expires: {formatDate(expiryDate)}</span>
-            <Badge variant="outline" className="text-[10px] md:text-xs font-normal text-muted-foreground bg-muted/30">
+    <Card className={`overflow-hidden ${expired ? 'opacity-70' : ''}`}>
+      <CardContent className="p-0">
+        <div className="p-4">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-medium">{brandName}</h3>
+            <Badge variant="outline" className="text-xs">
               {category}
             </Badge>
           </div>
-        </div>
-        
-        <div className="flex justify-between items-center mt-2 pt-1.5 border-t">
-          <Link to={`/influencer/${influencerId}`} className="flex items-center gap-1.5 hover:underline">
-            <Avatar className="h-5 w-5 md:h-6 md:w-6">
-              <AvatarImage src={influencerImage} alt={influencerName} />
-              <AvatarFallback>{influencerName.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-xs">{influencerName}</span>
-          </Link>
+          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
           
-          {affiliateLink && (
-            <Button variant="outline" size="sm" className="h-6 px-2 text-xs" asChild>
-              <a href={affiliateLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
-                Shop <ExternalLink className="h-3 w-3" />
-              </a>
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded p-3 mb-3 flex justify-between items-center">
+            <div>
+              <div className="text-xs text-muted-foreground mb-1">Code:</div>
+              <div className="font-mono font-medium">{promoCode}</div>
+            </div>
+            <Button size="sm" variant="ghost" onClick={handleCopyCode}>
+              <Copy className="h-4 w-4" />
             </Button>
+          </div>
+          
+          {expiryDate && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+              <Clock className="h-3 w-3" />
+              <span>
+                {formatExpiryDate(expiryDate)}
+                {expired && (
+                  <Badge variant="destructive" className="text-[10px] ml-1">
+                    Expired
+                  </Badge>
+                )}
+                {!expired && expiringSoon && (
+                  <Badge variant="outline" className="text-[10px] ml-1 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">
+                    Soon
+                  </Badge>
+                )}
+              </span>
+            </div>
           )}
+          
+          <Button 
+            className="w-full mb-3" 
+            onClick={openAffiliate}
+            disabled={expired || !affiliateLink || affiliateLink === "#"}
+          >
+            {expired ? "Expired Offer" : "Shop Now"} <ExternalLink className="h-3 w-3 ml-1" />
+          </Button>
         </div>
       </CardContent>
+      <CardFooter className="border-t p-3 bg-muted/20">
+        <Link 
+          to={`/influencer/${influencerId}`} 
+          className="flex items-center gap-2 w-full hover:underline"
+        >
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={influencerImage} alt={influencerName} />
+            <AvatarFallback>{influencerName[0]}</AvatarFallback>
+          </Avatar>
+          <span className="text-xs text-muted-foreground">{influencerName}</span>
+        </Link>
+      </CardFooter>
     </Card>
   );
 }
