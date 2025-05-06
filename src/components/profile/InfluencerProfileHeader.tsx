@@ -29,23 +29,27 @@ const InfluencerProfileHeader = ({
           </Avatar>
           
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-2xl font-bold mb-1">{fullName}</h1>
-            <p className="text-muted-foreground mb-3">@{username}</p>
-            
-            <Button 
-              variant={isFollowing ? "outline" : "default"}
-              className="min-w-[120px]"
-              onClick={onFollowToggle}
-            >
-              {isFollowing ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Following
-                </>
-              ) : (
-                "Follow"
-              )}
-            </Button>
+            <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
+              <div>
+                <h1 className="text-2xl font-bold mb-1">{fullName}</h1>
+                <p className="text-muted-foreground">@{username}</p>
+              </div>
+              
+              <Button 
+                variant={isFollowing ? "outline" : "default"}
+                className="min-w-[120px] md:ml-auto"
+                onClick={onFollowToggle}
+              >
+                {isFollowing ? (
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Following
+                  </>
+                ) : (
+                  "Follow"
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

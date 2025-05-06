@@ -18,31 +18,29 @@ const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCa
 
   return (
     <Card className="overflow-hidden">
-      <Link to={`/influencer/${id}`}>
-        <CardContent className="p-3">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={imageUrl} alt={name} />
-              <AvatarFallback>{name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
+      <CardContent className="p-3">
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={imageUrl} alt={name} />
+            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <Link to={`/influencer/${id}`} className="hover:underline">
               <h3 className="font-semibold text-sm truncate mb-0.5">{name}</h3>
               <p className="text-xs text-gray-500 truncate">@{username}</p>
-            </div>
+            </Link>
           </div>
-        </CardContent>
-      </Link>
-      <CardFooter className="bg-gray-50 dark:bg-gray-800 p-2">
-        <Button 
-          onClick={handleFollowToggle} 
-          variant={isFollowing ? "outline" : "default"} 
-          size="sm"
-          className="w-full text-xs h-8"
-          disabled={isProcessing}
-        >
-          {isProcessing ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
-        </Button>
-      </CardFooter>
+          <Button 
+            onClick={handleFollowToggle} 
+            variant={isFollowing ? "outline" : "default"} 
+            size="sm"
+            className="text-xs h-8 whitespace-nowrap ml-1"
+            disabled={isProcessing}
+          >
+            {isProcessing ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   );
 };
