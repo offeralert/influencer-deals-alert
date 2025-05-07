@@ -59,5 +59,5 @@ export const formatExpiryDate = (dateString: string | null | undefined): string 
   }
   
   // Regular date format
-  return date.toLocaleDateString();
+  return `Expires: ${date.toLocaleDateString()}`;
 };
