@@ -39,25 +39,5 @@ export const formatExpiryDate = (dateString: string | null | undefined): string 
   if (!dateString) return "No expiration";
   
   const date = new Date(dateString);
-  
-  // If it's expired
-  if (isExpired(dateString)) {
-    return `Expired (${date.toLocaleDateString()})`;
-  }
-  
-  // If it's expiring within 7 days
-  if (isExpiringSoon(dateString)) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Expires today";
-    if (diffDays === 1) return "Expires tomorrow";
-    return `Expires in ${diffDays} days`;
-  }
-  
-  // Regular date format
   return `Expires: ${date.toLocaleDateString()}`;
 };

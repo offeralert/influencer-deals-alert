@@ -4,9 +4,9 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Copy, ExternalLink, Clock } from "lucide-react";
+import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { isExpired, isExpiringSoon, formatExpiryDate } from "@/utils/dateUtils";
+import { formatExpiryDate } from "@/utils/dateUtils";
 
 interface DealCardProps {
   id: string;
@@ -46,74 +46,59 @@ export function DealCard({
     }
   };
 
-  const expired = isExpired(expiryDate);
-  const expiringSoon = isExpiringSoon(expiryDate);
-
   return (
-    <Card className={`overflow-hidden ${expired ? 'opacity-70' : ''}`}>
-      <CardContent className="p-3">
-        <div className="flex justify-between items-start mb-2">
-          <Link to={`/brand/${encodeURIComponent(brandName)}`} className="font-medium hover:underline">
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
+          <Link to={`/brand/${encodeURIComponent(brandName)}`} className="font-bold text-base hover:underline">
             {brandName}
           </Link>
-          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50">
+          <Badge className="bg-green-500 hover:bg-green-600 text-white border-0">
             {discount}
           </Badge>
         </div>
         
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{title}</p>
-        
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded p-2 mb-2 flex justify-between items-center">
-          <div className="overflow-hidden">
-            <div className="text-xs text-muted-foreground mb-0.5">Code:</div>
-            <div className="font-mono font-medium text-sm whitespace-nowrap overflow-hidden text-ellipsis pr-2" style={{ maxWidth: "85%" }}>
-              {promoCode}
-            </div>
+        <div className="bg-slate-50 dark:bg-slate-800 rounded-md p-2 mb-3 flex justify-between items-center">
+          <div className="font-mono text-sm truncate pr-2" style={{ maxWidth: "calc(100% - 30px)" }}>
+            {promoCode}
           </div>
-          <Button size="sm" variant="ghost" onClick={handleCopyCode} className="ml-auto">
+          <Button size="sm" variant="ghost" onClick={handleCopyCode} className="p-1 h-auto">
             <Copy className="h-4 w-4" />
           </Button>
         </div>
         
-        {expiryDate && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
-            <Clock className="h-3 w-3" />
-            <span>
-              Expires on: {new Date(expiryDate).toLocaleDateString()}
-              {expired && (
-                <Badge variant="destructive" className="text-[10px] ml-1">
-                  Expired
-                </Badge>
-              )}
-              {!expired && expiringSoon && (
-                <Badge variant="outline" className="text-[10px] ml-1 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">
-                  Soon
-                </Badge>
-              )}
-            </span>
+        <div className="flex items-center text-xs text-muted-foreground mb-0">
+          <div className="flex-1 truncate">
+            {expiryDate && (
+              <span>Expires: {new Date(expiryDate).toLocaleDateString()}</span>
+            )}
           </div>
-        )}
+          <Badge variant="outline" className="ml-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            {category}
+          </Badge>
+        </div>
       </CardContent>
       
-      <CardFooter className="border-t p-2 bg-muted/20 flex justify-between items-center">
+      <CardFooter className="border-t p-3 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
         <Link 
           to={`/influencer/${influencerId}`} 
-          className="flex items-center gap-2 hover:underline flex-shrink"
+          className="flex items-center gap-2 hover:underline"
         >
-          <Avatar className="h-5 w-5">
+          <Avatar className="h-6 w-6">
             <AvatarImage src={influencerImage} alt={influencerName} />
             <AvatarFallback>{influencerName[0]}</AvatarFallback>
           </Avatar>
-          <span className="text-xs text-muted-foreground truncate max-w-[100px]">{influencerName}</span>
+          <span className="text-xs text-muted-foreground truncate max-w-[120px]">{influencerName}</span>
         </Link>
         
         <Button 
           size="sm"
-          className="h-7 text-xs px-2 py-0"
+          variant="ghost"
+          className="h-7 text-xs px-3 py-0 flex items-center gap-1"
           onClick={openAffiliate}
-          disabled={expired || !affiliateLink || affiliateLink === "#"}
+          disabled={!affiliateLink || affiliateLink === "#"}
         >
-          {expired ? "Expired" : "Shop Now"} <ExternalLink className="h-3 w-3 ml-1" />
+          Shop <ExternalLink className="h-3 w-3" />
         </Button>
       </CardFooter>
     </Card>
