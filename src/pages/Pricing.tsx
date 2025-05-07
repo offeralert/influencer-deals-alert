@@ -1,13 +1,11 @@
 
-import { Check } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useEffect, useState } from "react";
+import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiersGrid";
+import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -15,7 +13,7 @@ const PricingPage = () => {
   const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   
-  const pricingTiers = [
+  const pricingTiers: PricingTier[] = [
     {
       id: "starter",
       name: "Starter",
@@ -147,75 +145,14 @@ const PricingPage = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-        {pricingTiers.map((tier) => (
-          <Card 
-            key={tier.name}
-            className={`relative flex flex-col ${
-              tier.highlighted 
-                ? 'border-primary shadow-lg scale-105' 
-                : ''
-            }`}
-          >
-            {tier.badge && (
-              <Badge 
-                className="absolute -top-3 right-4 bg-primary hover:bg-primary"
-              >
-                {tier.badge}
-              </Badge>
-            )}
-            
-            <CardHeader>
-              <CardTitle className="text-2xl">{tier.name}</CardTitle>
-              <CardDescription>{tier.description}</CardDescription>
-            </CardHeader>
-            
-            <CardContent className="flex-grow">
-              <div className="mb-4">
-                <div className="text-4xl font-bold">{tier.price}</div>
-                {tier.price !== "Free" && (
-                  <div className="text-sm text-muted-foreground mt-1">per month</div>
-                )}
-                {tier.costPerOffer && (
-                  <div className="text-sm text-muted-foreground mt-1">
-                    {tier.costPerOffer}
-                  </div>
-                )}
-              </div>
-              
-              <ul className="space-y-3">
-                {tier.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-            
-            <CardFooter>
-              <Button 
-                className="w-full" 
-                variant={tier.highlighted ? "default" : "outline"}
-                onClick={() => handleSubscribe(tier)}
-                disabled={loadingPlan !== null}
-              >
-                {loadingPlan === tier.id ? (
-                  "Processing..."
-                ) : (
-                  tier.ctaText
-                )}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      <PricingTiersGrid 
+        pricingTiers={pricingTiers}
+        isLoading={isLoading}
+        loadingPlan={loadingPlan}
+        onSubscribe={handleSubscribe}
+      />
 
-      <div className="mt-12 text-center">
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          We offer a 30-day full refund guarantee. If for any reason you are not satisfied with our product within 30 days of your purchase, we will gladly give you a full refund.
-        </p>
-      </div>
+      <RefundGuarantee />
     </div>
   );
 };
