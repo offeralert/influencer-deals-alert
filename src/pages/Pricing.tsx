@@ -5,12 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useEffect, useState } from "react";
 
 const PricingPage = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   
   const pricingTiers = [
     {
+      id: "starter",
       name: "Starter",
       price: "Free",
       description: "Perfect for trying out Offer Alert",
@@ -25,6 +32,7 @@ const PricingPage = () => {
       badge: null
     },
     {
+      id: "growth",
       name: "Growth",
       price: "$29",
       description: "Ideal for influencers building their business",
@@ -40,6 +48,7 @@ const PricingPage = () => {
       badge: "Recommended"
     },
     {
+      id: "pro",
       name: "Pro",
       price: "$49",
       description: "Best for full-time influencers",
@@ -55,6 +64,7 @@ const PricingPage = () => {
       badge: null
     },
     {
+      id: "enterprise",
       name: "Enterprise",
       price: "$499",
       description: "Ideal for agencies and high-volume partners",
@@ -70,9 +80,62 @@ const PricingPage = () => {
     }
   ];
 
-  const handleSignup = (tier) => {
-    toast.info(`Selected the ${tier} plan`);
-    navigate('/signup?tab=influencer');
+  useEffect(() => {
+    // Check for query params after successful subscription checkout
+    const params = new URLSearchParams(window.location.search);
+    const subscriptionStatus = params.get('subscription');
+    const plan = params.get('plan');
+    
+    if (subscriptionStatus === 'success' && plan) {
+      toast.success(`Successfully subscribed to ${plan} plan!`);
+      // Remove the query params
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (subscriptionStatus === 'canceled') {
+      toast.info("Subscription process was canceled");
+      // Remove the query params
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const handleSubscribe = async (tier) => {
+    if (!user) {
+      toast.info(`Please sign up as an influencer to select the ${tier.name} plan`);
+      navigate('/signup?tab=influencer');
+      return;
+    }
+    
+    if (!profile?.is_influencer) {
+      toast.info("You need to be an influencer to subscribe");
+      navigate('/influencer-apply');
+      return;
+    }
+
+    // If user is already on this plan, navigate to dashboard
+    if (subscriptionTier === tier.name) {
+      toast.info(`You are already on the ${tier.name} plan`);
+      navigate('/influencer-dashboard');
+      return;
+    }
+    
+    // For free tier, just navigate to dashboard
+    if (tier.id === "starter") {
+      navigate('/influencer-dashboard');
+      return;
+    }
+    
+    try {
+      setLoadingPlan(tier.id);
+      
+      const checkoutUrl = await createCheckoutSession(tier.name as any);
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      }
+    } catch (error) {
+      console.error("Error creating checkout session:", error);
+      toast.error("Failed to create checkout session");
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   return (
@@ -92,13 +155,21 @@ const PricingPage = () => {
               tier.highlighted 
                 ? 'border-primary shadow-lg scale-105' 
                 : ''
-            }`}
+            } ${subscriptionTier === tier.name ? 'border-green-500 border-2' : ''}`}
           >
             {tier.badge && (
               <Badge 
                 className="absolute -top-3 right-4 bg-primary hover:bg-primary"
               >
                 {tier.badge}
+              </Badge>
+            )}
+            
+            {subscriptionTier === tier.name && (
+              <Badge 
+                className="absolute -top-3 left-4 bg-green-500 hover:bg-green-600"
+              >
+                Current Plan
               </Badge>
             )}
             
@@ -134,9 +205,16 @@ const PricingPage = () => {
               <Button 
                 className="w-full" 
                 variant={tier.highlighted ? "default" : "outline"}
-                onClick={() => handleSignup(tier.name)}
+                onClick={() => handleSubscribe(tier)}
+                disabled={loadingPlan !== null || (subscriptionTier === tier.name)}
               >
-                {tier.ctaText}
+                {loadingPlan === tier.id ? (
+                  "Processing..."
+                ) : subscriptionTier === tier.name ? (
+                  "Current Plan"
+                ) : (
+                  tier.ctaText
+                )}
               </Button>
             </CardFooter>
           </Card>

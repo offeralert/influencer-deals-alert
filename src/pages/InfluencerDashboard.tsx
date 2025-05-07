@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,6 +10,7 @@ import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface PromoCode {
   id: string;
@@ -29,6 +29,16 @@ const InfluencerDashboard = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [editingPromoCodeId, setEditingPromoCodeId] = useState<string | null>(null);
+  const { 
+    subscribed, 
+    subscriptionTier, 
+    subscriptionEnd, 
+    maxOffers,
+    isLoading: loadingSubscription,
+    refresh: refreshSubscription,
+    createCheckoutSession,
+    openCustomerPortal
+  } = useSubscription();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -119,7 +129,7 @@ const InfluencerDashboard = () => {
   };
 
   // Handle manual deletion of promo code
-  const handleDeletePromoCode = async (id: string) => {
+  const const handleDeletePromoCode = async (id: string) => {
     if (!user) return;
     
     try {
@@ -166,7 +176,30 @@ const InfluencerDashboard = () => {
     return expiry >= today && expiry <= sevenDaysFromNow;
   };
 
-  if (isLoading) {
+  const formatSubscriptionEndDate = (dateString: string | null) => {
+    if (!dateString) return "No active subscription";
+    return new Date(dateString).toLocaleDateString(undefined, { 
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const handleUpgradeClick = async (planType: "Growth" | "Pro" | "Enterprise") => {
+    const url = await createCheckoutSession(planType);
+    if (url) {
+      window.location.href = url;
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    const url = await openCustomerPortal();
+    if (url) {
+      window.location.href = url;
+    }
+  };
+
+  if (isLoading || loadingSubscription) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
         <div>Loading...</div>
@@ -181,7 +214,69 @@ const InfluencerDashboard = () => {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Influencer Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Influencer Dashboard</h1>
+          
+          <div className="flex items-center gap-2">
+            {subscribed ? (
+              <Button 
+                variant="outline" 
+                onClick={handleManageSubscription}
+              >
+                Manage Subscription
+              </Button>
+            ) : (
+              <Button
+                onClick={() => navigate("/pricing")}
+              >
+                Upgrade Plan
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        {/* Subscription Status Card */}
+        <Card className="mb-8">
+          <CardContent className="py-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h2 className="text-xl font-semibold mb-1">Subscription Status</h2>
+                <p className="text-muted-foreground">
+                  {subscribed 
+                    ? `${subscriptionTier} plan • Renews: ${formatSubscriptionEndDate(subscriptionEnd)}`
+                    : "Starter plan (Free)"
+                  }
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="text-sm text-muted-foreground mb-1">Offers</div>
+                  <div className="font-semibold">
+                    {promoCodes.length} / {maxOffers}
+                  </div>
+                </div>
+                
+                {subscribed ? (
+                  <Button 
+                    variant="outline" 
+                    className="whitespace-nowrap"
+                    onClick={handleManageSubscription}
+                  >
+                    Manage Subscription
+                  </Button>
+                ) : (
+                  <Button
+                    className="whitespace-nowrap"
+                    onClick={() => navigate("/pricing")}
+                  >
+                    Upgrade Plan
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         <Tabs defaultValue="promocodes" className="space-y-6">
           <TabsList>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +15,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface PromoCodeFormProps {
   onPromoCodeAdded: () => void;
@@ -33,6 +34,7 @@ const CATEGORIES = [
 
 const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   const { user } = useAuth();
+  const { subscriptionTier, maxOffers } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     brandName: "",
@@ -42,6 +44,31 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     description: "",
     category: "Fashion", // Default category
   });
+  const [currentOfferCount, setCurrentOfferCount] = useState(0);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
+
+  // Fetch current offer count
+  useEffect(() => {
+    const fetchOfferCount = async () => {
+      if (!user) return;
+      
+      try {
+        const { count, error } = await supabase
+          .from('promo_codes')
+          .select('*', { count: 'exact', head: true })
+          .eq('influencer_id', user.id);
+        
+        if (error) throw error;
+        setCurrentOfferCount(count || 0);
+      } catch (err) {
+        console.error("Error fetching offer count:", err);
+      } finally {
+        setIsLoadingCount(false);
+      }
+    };
+
+    fetchOfferCount();
+  }, [user]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -102,6 +129,23 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       return;
     }
 
+    // Check if user has reached their subscription offer limit
+    if (currentOfferCount >= maxOffers) {
+      const requiredTier = currentOfferCount >= 20 
+        ? "Enterprise" 
+        : currentOfferCount >= 10 
+          ? "Pro" 
+          : "Growth";
+      
+      toast.error(`You've reached your limit of ${maxOffers} offers. Upgrade to ${requiredTier} to add more.`, {
+        action: {
+          label: "Upgrade",
+          onClick: () => window.location.href = "/pricing"
+        },
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -138,6 +182,9 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
         category: "Fashion",
       });
       
+      // Update the current offer count
+      setCurrentOfferCount(prev => prev + 1);
+      
       // Notify parent component
       onPromoCodeAdded();
     } catch (error) {
@@ -151,101 +198,128 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   return (
     <Card>
       <CardContent className="pt-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="brandName">Brand Name*</Label>
-              <Input
-                id="brandName"
-                name="brandName"
-                value={formData.brandName}
-                onChange={handleChange}
-                placeholder="e.g. Nike, Amazon"
-                required
-                disabled={isLoading}
-              />
+        {isLoadingCount ? (
+          <div className="flex justify-center py-4">Loading...</div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <div className="text-sm text-muted-foreground">
+                Using {currentOfferCount} of {maxOffers} available offers
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Current plan:</span> {subscriptionTier}
+              </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="promoCode">Promo Code*</Label>
-              <Input
-                id="promoCode"
-                name="promoCode"
-                value={formData.promoCode}
-                onChange={handleChange}
-                placeholder="e.g. SAVE20"
-                required
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="category">Category*</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => handleSelectChange("category", value)}
-                disabled={isLoading}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="brandName">Brand Name*</Label>
+                  <Input
+                    id="brandName"
+                    name="brandName"
+                    value={formData.brandName}
+                    onChange={handleChange}
+                    placeholder="e.g. Nike, Amazon"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="promoCode">Promo Code*</Label>
+                  <Input
+                    id="promoCode"
+                    name="promoCode"
+                    value={formData.promoCode}
+                    onChange={handleChange}
+                    placeholder="e.g. SAVE20"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category*</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => handleSelectChange("category", value)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="expirationDate">Expiration Date</Label>
+                  <Input
+                    id="expirationDate"
+                    name="expirationDate"
+                    type="date"
+                    value={formData.expirationDate}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="affiliateLink">Affiliate Link</Label>
+                  <Input
+                    id="affiliateLink"
+                    name="affiliateLink"
+                    value={formData.affiliateLink}
+                    onChange={handleChange}
+                    placeholder="https://"
+                    disabled={isLoading}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Description*</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Briefly describe the offer (e.g. 20% off all items)"
+                  required
+                  disabled={isLoading}
+                  className="min-h-[80px]"
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full bg-brand-green hover:bg-brand-green/90"
+                disabled={isLoading || currentOfferCount >= maxOffers}
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="expirationDate">Expiration Date</Label>
-              <Input
-                id="expirationDate"
-                name="expirationDate"
-                type="date"
-                value={formData.expirationDate}
-                onChange={handleChange}
-                disabled={isLoading}
-              />
-            </div>
-            
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="affiliateLink">Affiliate Link</Label>
-              <Input
-                id="affiliateLink"
-                name="affiliateLink"
-                value={formData.affiliateLink}
-                onChange={handleChange}
-                placeholder="https://"
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description*</Label>
-            <Textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Briefly describe the offer (e.g. 20% off all items)"
-              required
-              disabled={isLoading}
-              className="min-h-[80px]"
-            />
-          </div>
-          
-          <Button
-            type="submit"
-            className="w-full bg-brand-green hover:bg-brand-green/90"
-            disabled={isLoading}
-          >
-            {isLoading ? "Adding Promo Code..." : "Add Promo Code"}
-          </Button>
-        </form>
+                {isLoading ? "Adding Promo Code..." : "Add Promo Code"}
+              </Button>
+
+              {currentOfferCount >= maxOffers && (
+                <div className="text-center mt-2">
+                  <Button 
+                    variant="outline" 
+                    className="text-sm"
+                    onClick={() => window.location.href = "/pricing"}
+                  >
+                    Upgrade your plan to add more offers
+                  </Button>
+                </div>
+              )}
+            </form>
+          </>
+        )}
       </CardContent>
     </Card>
   );
