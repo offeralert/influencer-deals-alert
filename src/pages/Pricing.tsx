@@ -74,7 +74,7 @@ const PricingPage = () => {
         "Direct support from the Offer Alert team",
         "Cancel anytime"
       ],
-      ctaText: "Apply Now",
+      ctaText: "Upgrade Now",
       highlighted: false,
       badge: null
     }
