@@ -102,16 +102,15 @@ serve(async (req) => {
     
     switch (planType) {
       case "Growth":
-        // Using test price IDs - replace with your actual price IDs in production
-        priceId = Deno.env.get("STRIPE_PRICE_GROWTH") || "price_growth";
+        priceId = "prod_SGnRrAW83TfaUf"; // Real Growth plan product ID
         amount = 2900; // $29/month
         break;
       case "Pro":
-        priceId = Deno.env.get("STRIPE_PRICE_PRO") || "price_pro";
+        priceId = "prod_SGnSw59Chig0Yc"; // Real Pro plan product ID
         amount = 4900; // $49/month
         break;
       case "Enterprise":
-        priceId = Deno.env.get("STRIPE_PRICE_ENTERPRISE") || "price_enterprise";
+        priceId = "prod_SGnT1pV20fBz9b"; // Real Enterprise plan product ID
         amount = 49900; // $499/month
         break;
       default:
@@ -126,13 +125,10 @@ serve(async (req) => {
       customer: customerId,
       line_items: [
         {
-          // Price ID or price data
+          // Use the product ID directly
           price_data: {
             currency: "usd",
-            product_data: {
-              name: `${planType} Plan`,
-              description: `${planType} subscription for Offer Alert`,
-            },
+            product: priceId,
             unit_amount: amount,
             recurring: {
               interval: "month",
