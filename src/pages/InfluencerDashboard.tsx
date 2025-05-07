@@ -129,7 +129,7 @@ const InfluencerDashboard = () => {
   };
 
   // Handle manual deletion of promo code
-  const const handleDeletePromoCode = async (id: string) => {
+  const handleDeletePromoCode = async (id: string) => {
     if (!user) return;
     
     try {
