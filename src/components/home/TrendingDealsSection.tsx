@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -76,7 +75,7 @@ const TrendingDealsSection = () => {
     // Transform to our Deal interface
     const formattedDeals = data.map(deal => ({
       id: deal.id || "",
-      title: deal.description || "",
+      title: deal.description || "", // Using description for the offer detail
       brandName: deal.brand_name || "",
       discount: deal.promo_code || "",
       promoCode: deal.promo_code || "",
@@ -95,22 +94,22 @@ const TrendingDealsSection = () => {
     setTrendingDeals([
       {
         id: "1",
-        title: "Summer Collection 2025",
+        title: "30% OFF", // This is now the title/description displayed in the top right
         brandName: "FashionNova",
-        discount: "30% OFF",
+        discount: "SUMMER30",
         promoCode: "SUMMER30",
         expiryDate: "2025-08-31",
         affiliateLink: "https://example.com",
         influencerName: "Sophia Chen",
         influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-        influencerId: "sample-influencer-1", // Always include the influencer ID
+        influencerId: "sample-influencer-1",
         category: "Fashion"
       },
       {
         id: "2",
-        title: "Premium Fitness Tracker",
+        title: "25% OFF",
         brandName: "FitGear",
-        discount: "25% OFF",
+        discount: "FIT25",
         promoCode: "FIT25",
         expiryDate: "2025-07-15",
         affiliateLink: "https://example.com",
@@ -121,9 +120,9 @@ const TrendingDealsSection = () => {
       },
       {
         id: "3",
-        title: "Gourmet Cooking Set",
+        title: "20% OFF",
         brandName: "ChefChoice",
-        discount: "20% OFF",
+        discount: "CHEF20",
         promoCode: "CHEF20",
         expiryDate: "2025-09-10",
         affiliateLink: "https://example.com",
@@ -134,9 +133,9 @@ const TrendingDealsSection = () => {
       },
       {
         id: "4",
-        title: "Smart Home Bundle",
+        title: "15% OFF",
         brandName: "TechLife",
-        discount: "15% OFF",
+        discount: "SMART15",
         promoCode: "SMART15",
         expiryDate: "2025-07-30",
         affiliateLink: "https://example.com",

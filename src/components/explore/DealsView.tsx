@@ -10,8 +10,6 @@ interface DealsViewProps {
 }
 
 const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) => {
-  // No more filtering by expiration - we're removing that filter
-
   if (deals.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">

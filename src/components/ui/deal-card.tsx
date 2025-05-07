@@ -54,7 +54,7 @@ export function DealCard({
             {brandName}
           </Link>
           <Badge className="bg-green-500 hover:bg-green-600 text-white border-0">
-            {discount}
+            {title}
           </Badge>
         </div>
         
@@ -68,7 +68,7 @@ export function DealCard({
         </div>
         
         <div className="flex items-center text-xs text-muted-foreground mb-0">
-          <div className="flex-1 truncate">
+          <div className="flex-1">
             {expiryDate && (
               <span>Expires: {new Date(expiryDate).toLocaleDateString()}</span>
             )}
