@@ -17,10 +17,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 142 76% 36%;
+    --primary: 144 100% 39%; /* Updated to match the bright green from the image */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 85 50% 53%;
+    --secondary: 151 94% 68%; /* Adjusted to be a lighter shade of the primary green */
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 4.8% 95.9%;
@@ -34,7 +34,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 142 76% 36%;
+    --ring: 144 100% 39%; /* Updated to match primary green */
 
     --radius: 0.5rem;
 
@@ -58,10 +58,10 @@
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 142 76% 36%;
+    --primary: 144 100% 39%; /* Updated to match the bright green from the image */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 85 50% 53%;
+    --secondary: 151 94% 68%; /* Adjusted to be a lighter shade of the primary green */
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
@@ -75,7 +75,7 @@
 
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 142 76% 36%;
+    --ring: 144 100% 39%; /* Updated to match primary green */
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

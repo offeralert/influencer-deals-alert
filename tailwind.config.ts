@@ -68,9 +68,9 @@ export default {
 					pink: "#EC407A",
 					light: "#F5F3FF",
 					dark: "#1A1A2E",
-					green: "#4CAF50", // Adding green for the brand color
-					lightGreen: "#8BC34A",
-					paleGreen: "#F2FCE2"
+					green: "#00C853", // Updated to a more vibrant green that matches the image
+					lightGreen: "#69F0AE",
+					paleGreen: "#E8F5E9"
 				}
 			},
 			borderRadius: {
