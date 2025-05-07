@@ -64,7 +64,7 @@ serve(async (req) => {
       logStep("No customer found, updating as unsubscribed state (Starter tier)");
       await supabaseClient.from("subscribers").upsert({
         email: user.email,
-        user_id: user.id,
+        influencer_id: user.id,
         stripe_customer_id: null,
         subscribed: false,
         subscription_tier: "Starter",
@@ -120,7 +120,7 @@ serve(async (req) => {
 
     await supabaseClient.from("subscribers").upsert({
       email: user.email,
-      user_id: user.id,
+      influencer_id: user.id,
       stripe_customer_id: customerId,
       subscribed: hasActiveSub,
       subscription_tier: subscriptionTier,

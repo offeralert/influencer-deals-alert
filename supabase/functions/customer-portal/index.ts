@@ -44,54 +44,30 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user is an influencer
+    // Verify the user is an influencer
     const { data: profileData, error: profileError } = await supabaseClient
       .from("profiles")
       .select("is_influencer")
       .eq("id", user.id)
       .single();
     
-    if (profileError) throw new Error(`Profile error: ${profileError.message}`);
-    if (!profileData?.is_influencer) throw new Error("User is not an influencer");
+    if (profileError || !profileData?.is_influencer) {
+      throw new Error("User is not an influencer");
+    }
     logStep("Verified user is an influencer");
 
-    // Check if the user already has a Stripe customer ID
-    const { data: subscriber } = await supabaseClient
-      .from("subscribers")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    
-    // Try to find customer either from our DB or by email lookup
-    let customerId = subscriber?.stripe_customer_id;
-    if (!customerId) {
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      if (customers.data.length === 0) {
-        throw new Error("No Stripe customer found for this user");
-      }
-      customerId = customers.data[0].id;
-      
-      // Update our DB with the found customer ID
-      await supabaseClient
-        .from("subscribers")
-        .upsert({
-          email: user.email,
-          user_id: user.id,
-          stripe_customer_id: customerId,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'email' });
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    if (customers.data.length === 0) {
+      throw new Error("No Stripe customer found for this user");
     }
-    
+    const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    const origin = req.headers.get("origin") || "http://localhost:5173";
-    const returnUrl = `${origin}/influencer-dashboard`;
-    
+    const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: returnUrl,
+      return_url: `${origin}/influencer-dashboard`,
     });
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 
