@@ -155,7 +155,7 @@ const PricingPage = () => {
               tier.highlighted 
                 ? 'border-primary shadow-lg scale-105' 
                 : ''
-            } ${subscriptionTier === tier.name ? 'border-green-500 border-2' : ''}`}
+            }`}
           >
             {tier.badge && (
               <Badge 
@@ -167,7 +167,7 @@ const PricingPage = () => {
             
             {subscriptionTier === tier.name && (
               <Badge 
-                className="absolute -top-3 left-4 bg-green-500 hover:bg-green-600"
+                className="absolute -top-3 left-4 bg-primary hover:bg-primary"
               >
                 Current Plan
               </Badge>
@@ -219,6 +219,12 @@ const PricingPage = () => {
             </CardFooter>
           </Card>
         ))}
+      </div>
+
+      <div className="mt-12 text-center">
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          We offer a 30-day full refund guarantee. If for any reason you are not satisfied with our product within 30 days of your purchase, we will gladly give you a full refund.
+        </p>
       </div>
     </div>
   );
