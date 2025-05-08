@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-export type SubscriptionTier = "Starter" | "Growth" | "Pro" | "Enterprise";
+export type SubscriptionTier = "Starter" | "Boost" | "Growth" | "Pro" | "Elite";
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -13,7 +13,7 @@ interface SubscriptionData {
   maxOffers: number;
   isLoading: boolean;
   refresh: () => Promise<void>;
-  createCheckoutSession: (planType: SubscriptionTier) => Promise<string | null>;
+  createCheckoutSession: (planType: SubscriptionTier, productId?: string | null) => Promise<string | null>;
   openCustomerPortal: () => Promise<string | null>;
 }
 
@@ -27,9 +27,10 @@ export const useSubscription = (): SubscriptionData => {
   // Calculate max offers based on subscription tier
   const maxOffers = useCallback(() => {
     switch (subscriptionTier) {
+      case "Boost": return 3;
       case "Growth": return 10;
       case "Pro": return 20;
-      case "Enterprise": return 999; // Effectively unlimited
+      case "Elite": return Infinity; // Effectively unlimited
       default: return 1; // Starter tier
     }
   }, [subscriptionTier]);
@@ -63,7 +64,10 @@ export const useSubscription = (): SubscriptionData => {
     }
   }, [user, profile]);
 
-  const createCheckoutSession = async (planType: SubscriptionTier): Promise<string | null> => {
+  const createCheckoutSession = async (
+    planType: SubscriptionTier, 
+    productId: string | null = null
+  ): Promise<string | null> => {
     if (!user) {
       toast.error("You must be logged in to subscribe");
       return null;
@@ -71,7 +75,7 @@ export const useSubscription = (): SubscriptionData => {
 
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType }
+        body: { planType, productId }
       });
 
       if (error) {

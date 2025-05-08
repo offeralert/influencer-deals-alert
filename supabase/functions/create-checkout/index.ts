@@ -24,13 +24,13 @@ serve(async (req) => {
 
     // Retrieve the request body
     const requestData = await req.json();
-    const { planType } = requestData;
+    const { planType, productId } = requestData;
     
     if (!planType) {
       throw new Error("Plan type must be specified");
     }
 
-    logStep("Plan type", { planType });
+    logStep("Plan type", { planType, productId });
 
     // Initialize services
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -97,27 +97,81 @@ serve(async (req) => {
     }
 
     // Determine price ID based on selected plan
-    let priceId;
-    let amount; 
+    let priceData;
     
-    switch (planType) {
-      case "Growth":
-        priceId = "prod_SGnRrAW83TfaUf"; // Real Growth plan product ID
-        amount = 2900; // $29/month
-        break;
-      case "Pro":
-        priceId = "prod_SGnSw59Chig0Yc"; // Real Pro plan product ID
-        amount = 4900; // $49/month
-        break;
-      case "Enterprise":
-        priceId = "prod_SGnT1pV20fBz9b"; // Real Enterprise plan product ID
-        amount = 49900; // $499/month
-        break;
-      default:
-        throw new Error(`Invalid plan type: ${planType}`);
+    // Check if we have a specific product ID (for the Boost plan)
+    if (productId === "prod_SH4j01JgfxJSfl") {
+      // For Boost plan with specific product ID
+      priceData = {
+        currency: "usd",
+        product: productId,
+        unit_amount: 1200, // $12/month
+        recurring: {
+          interval: "month",
+        },
+      };
+      logStep("Using specified product ID for Boost plan", { productId });
+    } else {
+      // For other plans, use amount based on plan type
+      switch (planType) {
+        case "Boost":
+          priceData = {
+            currency: "usd",
+            product_data: { 
+              name: "Boost Plan",
+              description: "Up to 3 offers"
+            },
+            unit_amount: 1200, // $12/month
+            recurring: {
+              interval: "month",
+            },
+          };
+          break;
+        case "Growth":
+          priceData = {
+            currency: "usd",
+            product_data: { 
+              name: "Growth Plan",
+              description: "Up to 10 offers" 
+            },
+            unit_amount: 2900, // $29/month
+            recurring: {
+              interval: "month",
+            },
+          };
+          break;
+        case "Pro":
+          priceData = {
+            currency: "usd",
+            product_data: { 
+              name: "Pro Plan",
+              description: "Up to 20 offers" 
+            },
+            unit_amount: 4900, // $49/month
+            recurring: {
+              interval: "month",
+            },
+          };
+          break;
+        case "Elite":
+          priceData = {
+            currency: "usd",
+            product_data: { 
+              name: "Elite Plan",
+              description: "Unlimited offers" 
+            },
+            unit_amount: 49900, // $499/month
+            recurring: {
+              interval: "month",
+            },
+          };
+          break;
+        default:
+          throw new Error(`Invalid plan type: ${planType}`);
+      }
     }
     
-    logStep("Selected pricing plan", { planType, priceId, amount });
+    logStep("Selected pricing plan", { planType, priceData });
 
     // Create a checkout session
     const origin = req.headers.get("origin") || "http://localhost:3000";
@@ -125,15 +179,7 @@ serve(async (req) => {
       customer: customerId,
       line_items: [
         {
-          // Use the product ID directly
-          price_data: {
-            currency: "usd",
-            product: priceId,
-            unit_amount: amount,
-            recurring: {
-              interval: "month",
-            },
-          },
+          price_data: priceData,
           quantity: 1,
         },
       ],

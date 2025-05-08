@@ -14,6 +14,7 @@ export interface PricingTierProps {
   highlighted: boolean;
   badge: string | null;
   costPerOffer?: string;
+  maxOffers: number;
   isLoading: boolean;
   loadingPlan: string | null;
   onSubscribe: (tier: any) => void;
@@ -29,6 +30,7 @@ export const PricingTierCard = ({
   highlighted,
   badge,
   costPerOffer,
+  maxOffers,
   isLoading,
   loadingPlan,
   onSubscribe
@@ -50,13 +52,13 @@ export const PricingTierCard = ({
       )}
       
       <CardHeader>
-        <CardTitle className="text-2xl">{name}</CardTitle>
+        <CardTitle className="text-xl">{name}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       
       <CardContent className="flex-grow">
         <div className="mb-4">
-          <div className="text-4xl font-bold">{price}</div>
+          <div className="text-3xl font-bold">{price}</div>
           {price !== "Free" && (
             <div className="text-sm text-muted-foreground mt-1">per month</div>
           )}
@@ -67,10 +69,20 @@ export const PricingTierCard = ({
           )}
         </div>
         
-        <ul className="space-y-3">
+        <div className="mt-2 mb-4 text-sm font-medium">
+          {maxOffers === Infinity ? (
+            "Unlimited offers"
+          ) : maxOffers === 1 ? (
+            "1 offer"
+          ) : (
+            `Up to ${maxOffers} offers`
+          )}
+        </div>
+        
+        <ul className="space-y-2 text-sm">
           {features.map((feature, index) => (
             <li key={index} className="flex items-center gap-2">
-              <Check className="h-5 w-5 text-primary flex-shrink-0" />
+              <Check className="h-4 w-4 text-primary flex-shrink-0" />
               <span>{feature}</span>
             </li>
           ))}
@@ -82,7 +94,7 @@ export const PricingTierCard = ({
           className="w-full" 
           variant={highlighted ? "default" : "outline"}
           onClick={() => onSubscribe({id, name})}
-          disabled={loadingPlan !== null}
+          disabled={isLoading || loadingPlan !== null}
         >
           {loadingPlan === id ? (
             "Processing..."

@@ -21,29 +21,48 @@ const PricingPage = () => {
       description: "Perfect for trying out Offer Alert",
       features: [
         "Upload 1 offer",
-        "Appear in user search and category pages", 
+        "Appear in user search results", 
         "Feature in AI deal notifications",
         "Cancel anytime"
       ],
       ctaText: "Get Started",
       highlighted: false,
-      badge: null
+      badge: null,
+      maxOffers: 1
+    },
+    {
+      id: "boost",
+      name: "Boost",
+      price: "$12",
+      description: "For new influencers growing their audience",
+      features: [
+        "Upload up to 3 offers",
+        "Improve earning potential",
+        "Enhanced search exposure",
+        "Cancel anytime"
+      ],
+      costPerOffer: "~$4.00/offer",
+      ctaText: "Upgrade Now",
+      highlighted: false,
+      badge: null,
+      maxOffers: 3
     },
     {
       id: "growth",
       name: "Growth",
       price: "$29",
-      description: "Ideal for influencers building their business",
+      description: "Ideal for influencers scaling their business",
       features: [
         "Upload up to 10 offers",
-        "Improve earning potential",
-        "Enhanced exposure across Offer Alert",
+        "Increased exposure across Offer Alert",
+        "Priority in search results",
         "Cancel anytime"
       ],
-      costPerOffer: "~$3.00/offer",
+      costPerOffer: "~$2.90/offer",
       ctaText: "Upgrade Now",
       highlighted: true,
-      badge: "Recommended"
+      badge: "Popular",
+      maxOffers: 10
     },
     {
       id: "pro",
@@ -56,16 +75,17 @@ const PricingPage = () => {
         "Expand reach outside of your network",
         "Cancel anytime"
       ],
-      costPerOffer: "~$2.50/offer",
+      costPerOffer: "~$2.45/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
-      badge: null
+      badge: null,
+      maxOffers: 20
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
+      id: "elite",
+      name: "Elite",
       price: "$499",
-      description: "Ideal for agencies and high-volume partners",
+      description: "For agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
         "Custom user journey development",
@@ -74,7 +94,8 @@ const PricingPage = () => {
       ],
       ctaText: "Upgrade Now",
       highlighted: false,
-      badge: null
+      badge: null,
+      maxOffers: Infinity
     }
   ];
 
@@ -124,7 +145,13 @@ const PricingPage = () => {
     try {
       setLoadingPlan(tier.id);
       
-      const checkoutUrl = await createCheckoutSession(tier.name as any);
+      // Pass special product ID for Boost plan
+      let productId = null;
+      if (tier.id === "boost") {
+        productId = "prod_SH4j01JgfxJSfl";
+      }
+      
+      const checkoutUrl = await createCheckoutSession(tier.name as any, productId);
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
       }

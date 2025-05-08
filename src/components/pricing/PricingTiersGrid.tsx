@@ -11,6 +11,7 @@ export interface PricingTier {
   highlighted: boolean;
   badge: string | null;
   costPerOffer?: string;
+  maxOffers: number;
 }
 
 interface PricingTiersGridProps {
@@ -27,7 +28,7 @@ export const PricingTiersGrid = ({
   onSubscribe
 }: PricingTiersGridProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-7xl mx-auto">
       {pricingTiers.map((tier) => (
         <PricingTierCard
           key={tier.id}

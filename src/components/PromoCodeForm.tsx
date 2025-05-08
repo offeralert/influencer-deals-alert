@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useSubscription } from "@/hooks/useSubscription";
+import { ArrowRight } from "lucide-react";
 
 interface PromoCodeFormProps {
   onPromoCodeAdded: () => void;
@@ -32,6 +34,14 @@ const CATEGORIES = [
   "Beauty"
 ];
 
+const SUBSCRIPTION_TIERS = [
+  { name: "Starter", maxOffers: 1, price: "Free" },
+  { name: "Boost", maxOffers: 3, price: "$12/mo" },
+  { name: "Growth", maxOffers: 10, price: "$29/mo" },
+  { name: "Pro", maxOffers: 20, price: "$49/mo" },
+  { name: "Elite", maxOffers: Infinity, price: "$499/mo" },
+];
+
 const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   const { user } = useAuth();
   const { subscriptionTier, maxOffers } = useSubscription();
@@ -46,6 +56,17 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   });
   const [currentOfferCount, setCurrentOfferCount] = useState(0);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
+
+  // Get the next tier for upgrade suggestions
+  const getNextTier = () => {
+    const currentTierIndex = SUBSCRIPTION_TIERS.findIndex(tier => tier.name === subscriptionTier);
+    if (currentTierIndex < SUBSCRIPTION_TIERS.length - 1) {
+      return SUBSCRIPTION_TIERS[currentTierIndex + 1];
+    }
+    return null;
+  };
+  
+  const nextTier = getNextTier();
 
   // Fetch current offer count
   useEffect(() => {
@@ -131,15 +152,20 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
 
     // Check if user has reached their subscription offer limit
     if (currentOfferCount >= maxOffers) {
-      const requiredTier = currentOfferCount >= 20 
-        ? "Enterprise" 
-        : currentOfferCount >= 10 
-          ? "Pro" 
-          : "Growth";
+      // Find the next subscription tier that would accommodate more offers
+      let requiredTier = "Boost";
       
-      toast.error(`You've reached your limit of ${maxOffers} offers. Upgrade to ${requiredTier} to add more.`, {
+      if (currentOfferCount >= 20) {
+        requiredTier = "Elite";
+      } else if (currentOfferCount >= 10) {
+        requiredTier = "Pro";
+      } else if (currentOfferCount >= 3) {
+        requiredTier = "Growth";
+      }
+      
+      toast.error(`You've reached your limit of ${maxOffers} offers with the ${subscriptionTier} plan.`, {
         action: {
-          label: "Upgrade",
+          label: `Upgrade to ${requiredTier}`,
           onClick: () => window.location.href = "/pricing"
         },
       });
@@ -185,6 +211,17 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       // Update the current offer count
       setCurrentOfferCount(prev => prev + 1);
       
+      // Show upgrade suggestions if approaching the limit
+      if (currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+        toast("Running out of offer slots!", {
+          description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
+          action: {
+            label: "Upgrade Plan",
+            onClick: () => window.location.href = "/pricing"
+          }
+        });
+      }
+      
       // Notify parent component
       onPromoCodeAdded();
     } catch (error) {
@@ -202,13 +239,28 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
           <div className="flex justify-center py-4">Loading...</div>
         ) : (
           <>
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-muted-foreground">
-                Using {currentOfferCount} of {maxOffers} available offers
+            <div className="flex justify-between items-center mb-6 bg-muted/30 p-4 rounded-lg">
+              <div className="space-y-1">
+                <div className="text-sm font-medium flex items-center">
+                  <span className="mr-2">Current plan:</span>
+                  <span className="font-semibold text-primary">{subscriptionTier}</span>
+                </div>
+                <div className="text-sm flex items-center text-muted-foreground">
+                  Using {currentOfferCount} of {maxOffers === Infinity ? "unlimited" : maxOffers} available offers
+                </div>
               </div>
-              <div className="text-sm">
-                <span className="font-medium">Current plan:</span> {subscriptionTier}
-              </div>
+              
+              {nextTier && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => window.location.href = "/pricing"}
+                >
+                  <span>Upgrade to {nextTier.name}</span>
+                  <ArrowRight className="ml-2 h-3 w-3" />
+                </Button>
+              )}
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -222,7 +274,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g. Nike, Amazon"
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || currentOfferCount >= maxOffers}
                   />
                 </div>
                 
@@ -235,7 +287,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g. SAVE20"
                     required
-                    disabled={isLoading}
+                    disabled={isLoading || currentOfferCount >= maxOffers}
                   />
                 </div>
                 
@@ -244,7 +296,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   <Select
                     value={formData.category}
                     onValueChange={(value) => handleSelectChange("category", value)}
-                    disabled={isLoading}
+                    disabled={isLoading || currentOfferCount >= maxOffers}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a category" />
@@ -267,7 +319,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     type="date"
                     value={formData.expirationDate}
                     onChange={handleChange}
-                    disabled={isLoading}
+                    disabled={isLoading || currentOfferCount >= maxOffers}
                   />
                 </div>
                 
@@ -279,7 +331,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     value={formData.affiliateLink}
                     onChange={handleChange}
                     placeholder="https://"
-                    disabled={isLoading}
+                    disabled={isLoading || currentOfferCount >= maxOffers}
                   />
                 </div>
               </div>
@@ -293,7 +345,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   onChange={handleChange}
                   placeholder="Briefly describe the offer (e.g. 20% off all items)"
                   required
-                  disabled={isLoading}
+                  disabled={isLoading || currentOfferCount >= maxOffers}
                   className="min-h-[80px]"
                 />
               </div>
@@ -307,13 +359,17 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
               </Button>
 
               {currentOfferCount >= maxOffers && (
-                <div className="text-center mt-2">
+                <div className="mt-4 p-4 bg-muted/30 rounded-lg text-center">
+                  <p className="text-sm mb-3">
+                    You've reached your offer limit with the {subscriptionTier} plan.
+                    {nextTier && ` Upgrade to ${nextTier.name} for ${nextTier.maxOffers === Infinity ? 'unlimited' : nextTier.maxOffers} offers.`}
+                  </p>
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     className="text-sm"
                     onClick={() => window.location.href = "/pricing"}
                   >
-                    Upgrade your plan to add more offers
+                    Upgrade Plan
                   </Button>
                 </div>
               )}
