@@ -69,16 +69,6 @@ export const PricingTierCard = ({
           )}
         </div>
         
-        <div className="mt-2 mb-4 text-sm font-medium">
-          {maxOffers === Infinity ? (
-            "Unlimited offers"
-          ) : maxOffers === 1 ? (
-            "1 offer"
-          ) : (
-            `Up to ${maxOffers} offers`
-          )}
-        </div>
-        
         <ul className="space-y-2 text-sm">
           {features.map((feature, index) => (
             <li key={index} className="flex items-center gap-2">
