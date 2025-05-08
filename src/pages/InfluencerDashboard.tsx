@@ -185,7 +185,7 @@ const InfluencerDashboard = () => {
     });
   };
 
-  const handleUpgradeClick = async (planType: "Growth" | "Pro" | "Enterprise") => {
+  const handleUpgradeClick = async (planType: "Growth" | "Pro" | "Elite") => {
     const url = await createCheckoutSession(planType);
     if (url) {
       window.location.href = url;
