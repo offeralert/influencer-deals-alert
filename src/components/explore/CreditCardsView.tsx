@@ -30,6 +30,7 @@ const CreditCardsView = ({ creditCards }: CreditCardsViewProps) => {
           username={card.username}
           imageUrl={card.avatar_url}
           category={card.category}
+          isCreditCard={true}
         />
       ))}
     </div>

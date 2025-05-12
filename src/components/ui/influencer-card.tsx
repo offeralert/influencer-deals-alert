@@ -11,9 +11,10 @@ interface InfluencerCardProps {
   username: string;
   imageUrl: string;
   category?: string;
+  isCreditCard?: boolean;
 }
 
-const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCardProps) => {
+const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard = false }: InfluencerCardProps) => {
   const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
 
   return (
@@ -27,7 +28,9 @@ const InfluencerCard = ({ id, name, username, imageUrl, category }: InfluencerCa
           <div className="flex-1 min-w-0">
             <Link to={`/influencer/${id}`} className="hover:underline">
               <h3 className="font-semibold text-sm truncate mb-0.5">{name}</h3>
-              <p className="text-xs text-gray-500 truncate">@{username}</p>
+              {!isCreditCard && (
+                <p className="text-xs text-gray-500 truncate">@{username}</p>
+              )}
             </Link>
           </div>
           <Button 

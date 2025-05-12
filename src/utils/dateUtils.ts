@@ -36,7 +36,7 @@ export const isExpiringSoon = (dateString: string | null | undefined, days: numb
  * Format a date to a more user-friendly string
  */
 export const formatExpiryDate = (dateString: string | null | undefined): string => {
-  if (!dateString) return "No expiration";
+  if (!dateString) return "No expiration date";
   
   const date = new Date(dateString);
   return `Expires: ${date.toLocaleDateString()}`;

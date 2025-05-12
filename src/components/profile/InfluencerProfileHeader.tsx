@@ -10,6 +10,7 @@ interface InfluencerProfileHeaderProps {
   avatarUrl: string;
   isFollowing: boolean;
   onFollowToggle: () => void;
+  isCreditCard?: boolean;
 }
 
 const InfluencerProfileHeader = ({
@@ -17,7 +18,8 @@ const InfluencerProfileHeader = ({
   username,
   avatarUrl,
   isFollowing,
-  onFollowToggle
+  onFollowToggle,
+  isCreditCard = false
 }: InfluencerProfileHeaderProps) => {
   return (
     <Card className="mb-8">
@@ -32,7 +34,9 @@ const InfluencerProfileHeader = ({
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
               <div>
                 <h1 className="text-2xl font-bold mb-1">{fullName}</h1>
-                <p className="text-muted-foreground">@{username}</p>
+                {!isCreditCard && (
+                  <p className="text-muted-foreground">@{username}</p>
+                )}
               </div>
               
               <Button 

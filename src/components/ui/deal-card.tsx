@@ -69,8 +69,10 @@ export function DealCard({
         
         <div className="flex items-center text-xs text-muted-foreground mb-0">
           <div className="flex-1">
-            {expiryDate && (
+            {expiryDate ? (
               <span>Expires: {new Date(expiryDate).toLocaleDateString()}</span>
+            ) : (
+              <span>No expiration date</span>
             )}
           </div>
           <Badge variant="outline" className="ml-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
