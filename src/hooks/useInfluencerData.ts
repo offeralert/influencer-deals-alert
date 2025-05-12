@@ -8,6 +8,7 @@ interface InfluencerProfile {
   full_name: string;
   username: string;
   avatar_url: string;
+  is_creditcard?: boolean; // Add this property
 }
 
 export const useInfluencerData = (id: string | undefined) => {
@@ -46,6 +47,7 @@ export const useInfluencerData = (id: string | undefined) => {
         full_name: profileData.full_name || 'Unnamed Influencer',
         username: profileData.username || 'influencer',
         avatar_url: profileData.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        is_creditcard: profileData.is_creditcard || false,
       });
       
     } catch (error) {
