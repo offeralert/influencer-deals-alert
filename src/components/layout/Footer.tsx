@@ -1,5 +1,5 @@
 
-import { Instagram, Mail, UserPlus } from "lucide-react";
+import { Instagram, Mail, UserPlus, Gift } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -45,6 +45,16 @@ const Footer = () => {
               </li>
               <li><Link to="/pricing" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Pricing</Link></li>
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
+              <li>
+                <a 
+                  href="https://rewardful.com/offeralert" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-gray-600 dark:text-gray-400 hover:text-brand-purple flex items-center gap-2"
+                >
+                  <Gift size={16} /> Affiliate Program
+                </a>
+              </li>
             </ul>
           </div>
           

@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { UserPlus, Instagram, Mail } from "lucide-react";
+import { UserPlus, Instagram, Mail, Gift } from "lucide-react";
 
 const MobileFooter = () => {
   return (
@@ -82,6 +82,16 @@ const MobileFooter = () => {
                   Dashboard
                 </Link>
               </li>
+              <li>
+                <a 
+                  href="https://rewardful.com/offeralert" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"
+                >
+                  <Gift size={14} /> Affiliate Program
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -95,4 +105,3 @@ const MobileFooter = () => {
 };
 
 export default MobileFooter;
-
