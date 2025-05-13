@@ -23,6 +23,7 @@ import InfluencerProfile from "./pages/InfluencerProfile";
 import BrandProfile from "./pages/BrandProfile";
 import Privacy from "./pages/Privacy";
 import Pricing from "./pages/Pricing";
+import AffiliateProgram from "./pages/AffiliateProgram";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/brand/:brandName" element={<BrandProfile />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/affiliate-program" element={<AffiliateProgram />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

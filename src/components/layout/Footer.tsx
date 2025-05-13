@@ -46,14 +46,12 @@ const Footer = () => {
               <li><Link to="/pricing" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Pricing</Link></li>
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
               <li>
-                <a 
-                  href="https://offer-alert.getrewardful.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <Link 
+                  to="/affiliate-program" 
                   className="text-gray-600 dark:text-gray-400 hover:text-brand-purple flex items-center gap-2"
                 >
                   <Gift size={16} /> Affiliate Program
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

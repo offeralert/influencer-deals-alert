@@ -83,14 +83,12 @@ const MobileFooter = () => {
                 </Link>
               </li>
               <li>
-                <a 
-                  href="https://offer-alert.getrewardful.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <Link 
+                  to="/affiliate-program" 
                   className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"
                 >
                   <Gift size={14} /> Affiliate Program
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
