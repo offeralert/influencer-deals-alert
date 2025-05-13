@@ -24,13 +24,13 @@ serve(async (req) => {
 
     // Retrieve the request body
     const requestData = await req.json();
-    const { planType, productId } = requestData;
+    const { planType, productId, referralId } = requestData;
     
     if (!planType) {
       throw new Error("Plan type must be specified");
     }
 
-    logStep("Plan type", { planType, productId });
+    logStep("Plan type", { planType, productId, referralId });
 
     // Initialize services
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -173,9 +173,10 @@ serve(async (req) => {
     
     logStep("Selected pricing plan", { planType, priceData });
 
-    // Create a checkout session
+    // Create a checkout session with client_reference_id for Rewardful tracking
     const origin = req.headers.get("origin") || "http://localhost:3000";
-    const session = await stripe.checkout.sessions.create({
+    
+    const sessionOptions: any = {
       customer: customerId,
       line_items: [
         {
@@ -192,7 +193,15 @@ serve(async (req) => {
           plan_type: planType,
         },
       },
-    });
+    };
+    
+    // Add client_reference_id if referral ID exists
+    if (referralId) {
+      sessionOptions.client_reference_id = referralId;
+      logStep("Added referral ID to checkout session", { referralId });
+    }
+    
+    const session = await stripe.checkout.sessions.create(sessionOptions);
     
     logStep("Created checkout session", { sessionId: session.id });
 

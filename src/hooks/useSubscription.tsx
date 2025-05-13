@@ -1,7 +1,9 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { getReferralId } from "@/lib/rewardful";
 
 export type SubscriptionTier = "Starter" | "Boost" | "Growth" | "Pro" | "Elite";
 
@@ -73,8 +75,15 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
+      // Get the referral ID from localStorage if it exists
+      const referralId = getReferralId();
+      
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { planType, productId }
+        body: { 
+          planType, 
+          productId,
+          referralId // Pass referral ID to the edge function
+        }
       });
 
       if (error) {
