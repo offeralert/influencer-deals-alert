@@ -47,7 +47,7 @@ const Footer = () => {
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
               <li>
                 <a 
-                  href="https://rewardful.com/offeralert" 
+                  href="https://offer-alert.getrewardful.com" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-gray-600 dark:text-gray-400 hover:text-brand-purple flex items-center gap-2"

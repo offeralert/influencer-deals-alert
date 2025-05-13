@@ -84,7 +84,7 @@ const MobileFooter = () => {
               </li>
               <li>
                 <a 
-                  href="https://rewardful.com/offeralert" 
+                  href="https://offer-alert.getrewardful.com" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"
