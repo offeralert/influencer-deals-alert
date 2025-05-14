@@ -77,6 +77,7 @@ export const useSubscription = (): SubscriptionData => {
     try {
       // Get the referral ID from localStorage if it exists
       const referralId = getReferralId();
+      console.log("Creating checkout with referral ID:", referralId);
       
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 

@@ -185,7 +185,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/pricing?subscription=success&plan=${planType}`,
+      success_url: `${origin}/pricing?subscription=success&plan=${planType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?subscription=canceled`,
       subscription_data: {
         metadata: {

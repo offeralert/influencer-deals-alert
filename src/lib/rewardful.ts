@@ -33,8 +33,11 @@ export const trackConversion = (data: {
 }): void => {
   try {
     if (window.rewardful && typeof window.rewardful === 'function') {
+      console.log('Calling Rewardful convert with data:', data);
       window.rewardful('convert', data);
-      console.log('Rewardful conversion tracked:', data);
+      console.log('Rewardful conversion tracked successfully');
+    } else {
+      console.error('Rewardful not available for conversion tracking');
     }
   } catch (error) {
     console.error('Error tracking Rewardful conversion:', error);
@@ -44,7 +47,9 @@ export const trackConversion = (data: {
 // Get stored referral ID (if any)
 export const getReferralId = (): string | null => {
   try {
-    return localStorage.getItem('rewardful_referral');
+    const referralId = localStorage.getItem('rewardful_referral');
+    console.log('Retrieved Rewardful referral ID:', referralId);
+    return referralId;
   } catch (error) {
     console.error('Error getting stored Rewardful referral:', error);
     return null;
