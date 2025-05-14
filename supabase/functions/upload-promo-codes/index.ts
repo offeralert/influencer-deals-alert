@@ -13,8 +13,8 @@ interface PromoCode {
   promo_code: string;
   description: string;
   expiration_date?: string;
-  affiliate_link?: string;
-  category: string; // Make sure category is included
+  affiliate_link: string; // Now required 
+  category: string; 
 }
 
 serve(async (req) => {
@@ -49,16 +49,16 @@ serve(async (req) => {
     const body = await req.json();
     const promoCodes: PromoCode[] = body.promoCodes;
   
-    // Ensure all promoCodes have the required fields including category
+    // Ensure all promoCodes have the required fields including category and affiliate link
     const hasInvalidData = promoCodes.some(item => 
-      !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category
+      !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category || !item.affiliate_link
     );
     
     if (hasInvalidData) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, and category." 
+          error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, category, and affiliate_link." 
         }),
         { 
           headers: { "Content-Type": "application/json" },

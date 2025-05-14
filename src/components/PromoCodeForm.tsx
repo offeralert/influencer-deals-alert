@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -144,7 +145,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       return;
     }
 
-    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim()) {
+    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -181,7 +182,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
         promo_code: formData.promoCode,
         description: formData.description,
         expiration_date: formData.expirationDate || null,
-        affiliate_link: formData.affiliateLink || null,
+        affiliate_link: formData.affiliateLink,
         category: formData.category,
       }).select();
 
@@ -333,13 +334,14 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                 </div>
                 
                 <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="affiliateLink">Affiliate Link</Label>
+                  <Label htmlFor="affiliateLink">Affiliate Link*</Label>
                   <Input
                     id="affiliateLink"
                     name="affiliateLink"
                     value={formData.affiliateLink}
                     onChange={handleChange}
                     placeholder="https://"
+                    required
                     disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   />
                 </div>
