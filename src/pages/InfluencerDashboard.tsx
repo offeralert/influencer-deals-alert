@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuthGate } from "@/hooks/useAuthGate";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 interface PromoCode {
   id: string;
@@ -24,7 +26,7 @@ interface PromoCode {
 }
 
 const InfluencerDashboard = () => {
-  const { user, profile, isLoading } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
@@ -40,19 +42,11 @@ const InfluencerDashboard = () => {
     openCustomerPortal
   } = useSubscription();
 
-  useEffect(() => {
-    console.log("InfluencerDashboard auth state:", { isLoading, user, profile });
-    
-    if (!isLoading) {
-      if (!user) {
-        console.log("No user, redirecting to login");
-        navigate("/login");
-      } else if (!profile?.is_influencer) {
-        console.log("User is not an influencer, redirecting to apply page");
-        navigate("/influencer-apply");
-      }
-    }
-  }, [user, isLoading, profile, navigate]);
+  // Use our auth gate hook to check if user is authorized to view this page
+  const { isLoading: authLoading, isAuthorized } = useAuthGate({
+    requiredRole: "influencer",
+    redirectTo: "/login"
+  });
 
   useEffect(() => {
     if (user) {
@@ -213,22 +207,21 @@ const InfluencerDashboard = () => {
     }
   };
 
-  if (isLoading || loadingSubscription) {
+  // Show loading state while authentication checks are being performed
+  if (authLoading || loadingSubscription) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-        <div>Loading...</div>
+        <div className="text-center">
+          <div className="text-2xl font-semibold mb-2">Loading dashboard...</div>
+          <div className="text-muted-foreground">Please wait while we verify your account</div>
+        </div>
       </div>
     );
   }
 
-  if (!user || !profile?.is_influencer) {
-    console.log("Not showing dashboard, user check failed", { user, profile });
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-        <div>Checking credentials...</div>
-      </div>
-    ); 
-    // Will redirect via useEffect
+  // Not showing dashboard if not authorized (redirect handled by the hook)
+  if (!isAuthorized) {
+    return null;
   }
 
   return (
