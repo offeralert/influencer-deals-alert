@@ -4,7 +4,7 @@
  */
 
 // Default avatar image to use when a user doesn't have their own profile picture
-export const DEFAULT_AVATAR_URL = "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=200&h=200&fit=crop&crop=faces&auto=format";
+export const DEFAULT_AVATAR_URL = "/lovable-uploads/bb8661cd-9515-4e04-b2db-e6ca442d0b03.png";
 
 /**
  * Gets the appropriate avatar URL to display
@@ -30,4 +30,3 @@ export const getInitials = (username?: string | null, email?: string | null): st
   }
   return "UN"; // Unknown - fallback
 };
-
