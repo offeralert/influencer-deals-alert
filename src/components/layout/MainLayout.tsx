@@ -4,7 +4,8 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 
@@ -21,6 +22,7 @@ const MainLayout = () => {
       </main>
       {!isMobile && <Footer />}
       {isMobile && <BottomNav />}
+      <SonnerToaster position="top-right" />
       <Toaster />
     </div>
   );

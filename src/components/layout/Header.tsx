@@ -32,6 +32,9 @@ const Header = () => {
     navigate(path);
   };
 
+  // Helper to determine if the user is an influencer
+  const isInfluencer = profile?.is_influencer === true;
+
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur-sm bg-background/75">
       <div className="container flex h-16 items-center justify-between">
@@ -64,7 +67,7 @@ const Header = () => {
                   >
                     My Deals
                   </button>
-                  {profile?.is_influencer && (
+                  {isInfluencer && (
                     <button 
                       onClick={() => handleNavigation("/influencer-dashboard")} 
                       className="text-left text-lg font-medium text-brand-green"
@@ -100,7 +103,7 @@ const Header = () => {
                     My Deals
                   </NavigationMenuLink>
                 </NavigationMenuItem>
-                {profile?.is_influencer && (
+                {isInfluencer && (
                   <NavigationMenuItem>
                     <NavigationMenuLink
                       className="cursor-pointer px-4 py-2 text-sm font-medium text-brand-green hover:text-brand-green/90"
@@ -160,7 +163,7 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/my-deals">My Deals</Link>
                   </DropdownMenuItem>
-                  {profile?.is_influencer && (
+                  {isInfluencer && (
                     <DropdownMenuItem asChild>
                       <Link to="/influencer-dashboard">Influencer Dashboard</Link>
                     </DropdownMenuItem>
