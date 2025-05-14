@@ -193,9 +193,16 @@ const InfluencerDashboard = () => {
   };
 
   const handleManageSubscription = async () => {
-    const url = await openCustomerPortal();
-    if (url) {
-      window.location.href = url;
+    try {
+      const url = await openCustomerPortal();
+      if (url) {
+        window.location.href = url;
+      } else {
+        toast.error("Unable to open customer portal. Please try again later.");
+      }
+    } catch (error) {
+      console.error("Error opening customer portal:", error);
+      toast.error("Failed to open customer portal. Please try again later.");
     }
   };
 
