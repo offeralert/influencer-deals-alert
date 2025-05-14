@@ -25,3 +25,11 @@ export function isExpiringSoon(expiryDate: string | null): boolean {
   
   return expiry >= today && expiry <= sevenDaysFromNow;
 }
+
+/**
+ * Format an expiry date for display
+ */
+export function formatExpiryDate(expiryDate: string | null): string {
+  if (!expiryDate) return 'No expiration date';
+  return new Date(expiryDate).toLocaleDateString();
+}
