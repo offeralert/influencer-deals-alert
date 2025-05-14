@@ -111,15 +111,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setProfile(null);
       
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Error during sign out:', error);
-        toast({
-          variant: "destructive",
-          title: "Error signing out",
-          description: error.message,
-        });
-        return;
+      // Only attempt to call signOut API if we have a valid session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error('Error during sign out:', error);
+          toast({
+            variant: "destructive",
+            title: "Error signing out",
+            description: error.message,
+          });
+          return;
+        }
       }
       
       toast({
