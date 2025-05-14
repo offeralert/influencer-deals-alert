@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { Database } from "@/integrations/supabase/types";
 
 type ProfileType = {
@@ -33,25 +33,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (event, currentSession) => {
+        console.log("Auth state changed:", event, currentSession?.user?.email);
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         
-        if (session?.user) {
-          fetchProfile(session.user.id);
+        if (currentSession?.user) {
+          fetchProfile(currentSession.user.id);
         } else {
           setProfile(null);
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log("Got existing session:", currentSession?.user?.email);
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
       
-      if (session?.user) {
-        fetchProfile(session.user.id);
+      if (currentSession?.user) {
+        fetchProfile(currentSession.user.id);
       }
       
       setIsLoading(false);
@@ -75,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      console.log("Fetched profile:", data);
       setProfile(data);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
@@ -102,19 +107,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signOut();
         if (error) {
           console.error('Error during sign out:', error);
-          toast.error("Error signing out");
+          toast({
+            variant: "destructive",
+            title: "Error signing out",
+            description: error.message,
+          });
           return;
         }
       }
       
-      toast.success("Logged out successfully");
+      toast({
+        title: "Logged out successfully",
+      });
       
       // Force refresh if needed after successful logout
       window.location.href = '/';
       
     } catch (error) {
       console.error('Error in signOut function:', error);
-      toast.error("Error signing out");
+      toast({
+        variant: "destructive", 
+        title: "Error signing out",
+      });
     }
   };
 
