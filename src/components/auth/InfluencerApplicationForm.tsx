@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -123,15 +124,17 @@ const InfluencerApplicationForm = () => {
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
-            is_influencer: false,
-            pending_influencer: true,
+            is_influencer: true, // Changed from false to true to give immediate influencer status
+            // Removed pending_influencer flag since we're making them influencers right away
+            full_name: formData.fullName,
+            username: formData.socialHandle,
             application_date: new Date().toISOString()
           })
           .eq('id', data.user.id);
 
         if (profileError) {
           console.error("Error updating profile:", profileError);
-          toast.error("Account created but application status couldn't be updated");
+          toast.error("Account created but status couldn't be updated");
           return;
         }
 
@@ -158,10 +161,15 @@ const InfluencerApplicationForm = () => {
             return;
           }
         }
-      }
 
-      toast.success("Application submitted! We'll review your info and get back to you soon.");
-      navigate("/login");
+        // No longer redirect to login - user is already signed in
+        toast.success("Welcome! Your influencer account has been created.");
+        
+        // Short delay to allow session to be established
+        setTimeout(() => {
+          navigate("/"); // Redirect to home page after successful signup
+        }, 500);
+      }
     } catch (error) {
       console.error("Unexpected error during application:", error);
       toast.error("An unexpected error occurred. Please try again.");
