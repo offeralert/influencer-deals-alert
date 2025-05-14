@@ -8,6 +8,8 @@ import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -29,11 +32,14 @@ const Login = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing again
+    if (loginError) setLoginError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormLoading(true);
+    setLoginError(null);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -42,11 +48,14 @@ const Login = () => {
       });
 
       if (error) {
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: error.message,
-        });
+        // Set a user-friendly error message based on the error
+        if (error.message.includes("Invalid login credentials")) {
+          setLoginError("The email or password you entered is incorrect. Please try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          setLoginError("Please verify your email address before logging in.");
+        } else {
+          setLoginError(error.message);
+        }
         console.error("Login error:", error);
         return;
       }
@@ -57,11 +66,7 @@ const Login = () => {
       navigate("/");
     } catch (error) {
       console.error("Unexpected error during login:", error);
-      toast({
-        variant: "destructive",
-        title: "An unexpected error occurred",
-        description: "Please try again.",
-      });
+      setLoginError("An unexpected error occurred. Please try again.");
     } finally {
       setFormLoading(false);
     }
@@ -91,6 +96,12 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {loginError && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{loginError}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
