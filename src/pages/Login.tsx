@@ -4,17 +4,27 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
+  const { user, isLoading } = useAuth();
+  const [formLoading, setFormLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !isLoading) {
+      console.log("User already logged in, redirecting to home");
+      navigate("/");
+    }
+  }, [user, isLoading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,7 +33,7 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
+    setFormLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -53,9 +63,23 @@ const Login = () => {
         description: "Please try again.",
       });
     } finally {
-      setIsLoading(false);
+      setFormLoading(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12 px-4">
+        <p>Checking authentication...</p>
+      </div>
+    );
+  }
+
+  // Don't render the login form if already authenticated
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12 px-4">
@@ -78,7 +102,7 @@ const Login = () => {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={formLoading}
               />
             </div>
             <div className="space-y-2">
@@ -99,11 +123,11 @@ const Login = () => {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                disabled={isLoading}
+                disabled={formLoading}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
+            <Button type="submit" className="w-full" disabled={formLoading}>
+              {formLoading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
 

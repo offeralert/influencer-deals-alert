@@ -33,15 +33,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log("AuthProvider: Initializing auth state");
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.email);
+        
+        // Only update state synchronously here
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
+        // Use setTimeout to fetch profile to avoid Supabase deadlock
         if (currentSession?.user) {
-          fetchProfile(currentSession.user.id);
+          setTimeout(() => {
+            fetchProfile(currentSession.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -59,6 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       setIsLoading(false);
+    }).catch(error => {
+      console.error("Error getting session:", error);
+      setIsLoading(false);
     });
 
     return () => {
@@ -68,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -94,34 +105,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
+      console.log("Signing out user");
       // Clear local state first to ensure UI updates quickly
       setSession(null);
       setUser(null);
       setProfile(null);
       
-      // Check session existence in a more reliable way
-      const { data } = await supabase.auth.getSession();
-      
-      if (data.session) {
-        // Only attempt to sign out if there's a session
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error('Error during sign out:', error);
-          toast({
-            variant: "destructive",
-            title: "Error signing out",
-            description: error.message,
-          });
-          return;
-        }
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error during sign out:', error);
+        toast({
+          variant: "destructive",
+          title: "Error signing out",
+          description: error.message,
+        });
+        return;
       }
       
       toast({
         title: "Logged out successfully",
       });
-      
-      // Force refresh if needed after successful logout
-      window.location.href = '/';
       
     } catch (error) {
       console.error('Error in signOut function:', error);
