@@ -2,13 +2,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 interface InfluencerProfile {
   id: string;
   full_name: string;
   username: string;
   avatar_url: string;
-  is_creditcard?: boolean; // Add this property
+  is_creditcard?: boolean;
 }
 
 export const useInfluencerData = (id: string | undefined) => {
@@ -46,7 +47,7 @@ export const useInfluencerData = (id: string | undefined) => {
         id: profileData.id,
         full_name: profileData.full_name || 'Unnamed Influencer',
         username: profileData.username || 'influencer',
-        avatar_url: profileData.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        avatar_url: profileData.avatar_url || DEFAULT_AVATAR_URL,
         is_creditcard: profileData.is_creditcard || false,
       });
       

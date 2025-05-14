@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PromoCodeForm from "@/components/PromoCodeForm";
 import EditProfileForm from "@/components/EditProfileForm";
+import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
 
 interface PromoCode {
   id: string;
@@ -27,7 +27,7 @@ const Profile = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
-  
+
   // Remove unused state
   // const [editingProfile, setEditingProfile] = useState(false);
 
@@ -91,17 +91,17 @@ const Profile = () => {
     return null; // Will redirect via useEffect
   }
 
+  const initials = getInitials(profile?.username, user.email);
+  const avatarUrl = getAvatarUrl(profile?.avatar_url);
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-4xl mx-auto">
         <Card>
           <CardHeader className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={profile?.avatar_url} alt={profile?.username || user.email} />
-              <AvatarFallback>
-                {profile?.username?.substring(0, 2).toUpperCase() || 
-                 user.email?.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
+              <AvatarImage src={avatarUrl} alt={profile?.username || user.email} />
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div className="space-y-1 text-center sm:text-left">
               <CardTitle className="text-2xl">{profile?.full_name || 'User'}</CardTitle>

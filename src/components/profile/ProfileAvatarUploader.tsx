@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Upload } from "lucide-react";
+import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
 
 interface ProfileAvatarUploaderProps {
   initialAvatarUrl: string | null;
@@ -39,13 +40,13 @@ const ProfileAvatarUploader = ({
     reader.readAsDataURL(file);
   };
 
-  const initials = username?.substring(0, 2).toUpperCase() || 
-                   email?.substring(0, 2).toUpperCase();
+  const initials = getInitials(username, email);
+  const avatarUrl = getAvatarUrl(previewImage);
 
   return (
     <div className="flex flex-col items-center gap-4 mb-6">
       <Avatar className="h-24 w-24">
-        <AvatarImage src={previewImage || ""} alt="Profile" />
+        <AvatarImage src={avatarUrl} alt="Profile" />
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
       

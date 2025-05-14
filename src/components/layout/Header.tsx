@@ -20,6 +20,8 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -34,6 +36,10 @@ const Header = () => {
 
   // Helper to determine if the user is an influencer
   const isInfluencer = profile?.is_influencer === true;
+  
+  // Get avatar and initials
+  const initials = user ? getInitials(profile?.username, user.email) : "G";
+  const avatarUrl = user ? getAvatarUrl(profile?.avatar_url) : null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur-sm bg-background/75">
@@ -151,8 +157,11 @@ const Header = () => {
               )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={avatarUrl || undefined} alt="User" />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
                     <span className="sr-only">User menu</span>
                   </Button>
                 </DropdownMenuTrigger>

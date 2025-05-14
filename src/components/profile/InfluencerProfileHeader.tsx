@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Check } from "lucide-react";
+import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
 
 interface InfluencerProfileHeaderProps {
   fullName: string;
@@ -21,13 +22,16 @@ const InfluencerProfileHeader = ({
   onFollowToggle,
   isCreditCard = false
 }: InfluencerProfileHeaderProps) => {
+  const initials = getInitials(username, null);
+  const displayAvatarUrl = getAvatarUrl(avatarUrl);
+
   return (
     <Card className="mb-8">
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           <Avatar className="h-24 w-24">
-            <AvatarImage src={avatarUrl} alt={fullName} />
-            <AvatarFallback>{fullName[0]}</AvatarFallback>
+            <AvatarImage src={displayAvatarUrl} alt={fullName} />
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           
           <div className="flex-1 text-center md:text-left">
