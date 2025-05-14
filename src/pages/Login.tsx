@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
@@ -32,16 +32,26 @@ const Login = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message,
+        });
         console.error("Login error:", error);
         return;
       }
 
-      toast.success("Successfully logged in!");
+      toast({
+        title: "Successfully logged in!",
+      });
       navigate("/");
     } catch (error) {
       console.error("Unexpected error during login:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      toast({
+        variant: "destructive",
+        title: "An unexpected error occurred",
+        description: "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
