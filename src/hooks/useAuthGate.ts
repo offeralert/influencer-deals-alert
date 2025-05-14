@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type AuthGateOptions = {
   requiredRole?: "influencer" | "admin" | null;
@@ -46,6 +47,7 @@ export function useAuthGate(options: AuthGateOptions = {}) {
           setIsAuthorized(false);
           setIsLoading(false);
           console.log("Auth gate: Not an influencer, redirecting to /influencer-apply");
+          toast.error("This page requires influencer status. Please apply to become an influencer.");
           navigate("/influencer-apply");
           return;
         }
