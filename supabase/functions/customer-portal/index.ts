@@ -65,23 +65,10 @@ serve(async (req) => {
     logStep("Found Stripe customer", { customerId });
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
-    
-    // Provide configuration for the portal
-    // This configuration specifies basic settings for the customer portal
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/influencer-dashboard`,
-      configuration: {
-        features: {
-          subscription_cancel: { enabled: true },
-          subscription_pause: { enabled: false },
-          invoice_history: { enabled: true },
-          payment_method_update: { enabled: true },
-          subscription_update: { enabled: true }
-        },
-      },
     });
-    
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });
 
     return new Response(JSON.stringify({ url: portalSession.url }), {
@@ -91,18 +78,6 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in customer-portal", { message: errorMessage });
-    
-    // Provide a more specific error message if it's about Stripe configuration
-    if (errorMessage.includes("No configuration provided")) {
-      return new Response(JSON.stringify({ 
-        error: "Stripe Customer Portal is not configured. Please set up your Customer Portal settings in the Stripe Dashboard.",
-        details: errorMessage
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      });
-    }
-    
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

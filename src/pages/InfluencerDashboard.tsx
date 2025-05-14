@@ -41,22 +41,15 @@ const InfluencerDashboard = () => {
   } = useSubscription();
 
   useEffect(() => {
-    console.log("InfluencerDashboard auth state:", { isLoading, user, profile });
-    
-    if (!isLoading) {
-      if (!user) {
-        console.log("No user, redirecting to login");
-        navigate("/login");
-      } else if (!profile?.is_influencer) {
-        console.log("User is not an influencer, redirecting to apply page");
-        navigate("/influencer-apply");
-      }
+    if (!isLoading && !user) {
+      navigate("/login");
+    } else if (!isLoading && user && !profile?.is_influencer) {
+      navigate("/influencer-apply");
     }
   }, [user, isLoading, profile, navigate]);
 
   useEffect(() => {
     if (user) {
-      console.log("Fetching promo codes for user:", user.id);
       fetchPromoCodes();
 
       // Subscribe to changes in the promo_codes table
@@ -200,16 +193,9 @@ const InfluencerDashboard = () => {
   };
 
   const handleManageSubscription = async () => {
-    try {
-      const url = await openCustomerPortal();
-      if (url) {
-        window.location.href = url;
-      } else {
-        toast.error("Unable to open customer portal. Please try again later.");
-      }
-    } catch (error) {
-      console.error("Error opening customer portal:", error);
-      toast.error("Failed to open customer portal. Please try again later.");
+    const url = await openCustomerPortal();
+    if (url) {
+      window.location.href = url;
     }
   };
 
@@ -222,13 +208,7 @@ const InfluencerDashboard = () => {
   }
 
   if (!user || !profile?.is_influencer) {
-    console.log("Not showing dashboard, user check failed", { user, profile });
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-        <div>Checking credentials...</div>
-      </div>
-    ); 
-    // Will redirect via useEffect
+    return null; // Will redirect via useEffect
   }
 
   return (

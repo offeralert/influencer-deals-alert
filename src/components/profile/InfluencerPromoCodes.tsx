@@ -1,7 +1,6 @@
 
 import { DealCard } from "@/components/ui/deal-card";
 import { PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
-import { isExpired, isExpiringSoon } from "@/utils/dateUtils";
 
 interface InfluencerPromoCodesProps {
   promoCodes: PromoCodeWithInfluencer[];

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,17 +116,10 @@ export const useSubscription = (): SubscriptionData => {
         return null;
       }
 
-      if (!data?.url) {
-        console.error("No portal URL returned from function");
-        toast.error("Failed to open customer portal: No portal URL returned");
-        return null;
-      }
-
-      return data.url;
+      return data?.url || null;
     } catch (error) {
       console.error("Error in openCustomerPortal:", error);
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      toast.error(`Failed to open customer portal: ${errorMessage}`);
+      toast.error("Failed to open customer portal");
       return null;
     }
   };
