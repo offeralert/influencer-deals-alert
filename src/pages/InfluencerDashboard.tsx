@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +10,11 @@ import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { AlertCircle } from "lucide-react";
 
 interface PromoCode {
   id: string;
@@ -248,6 +250,19 @@ const InfluencerDashboard = () => {
           </div>
         </div>
         
+        {/* Bypass Notification Banner */}
+        {BYPASS_OFFER_LIMITS && (
+          <div className="mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div>
+              <h3 className="font-semibold text-green-800 dark:text-green-300">Limited Time Promotion</h3>
+              <p className="text-green-700 dark:text-green-400 text-sm">
+                We're temporarily allowing unlimited promo code submissions for all influencers. Keep adding offers with no limits!
+              </p>
+            </div>
+          </div>
+        )}
+        
         {/* Subscription Status Card */}
         <Card className="mb-8">
           <CardContent className="py-6">
@@ -266,7 +281,7 @@ const InfluencerDashboard = () => {
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground mb-1">Offers</div>
                   <div className="font-semibold">
-                    {promoCodes.length} / {maxOffers}
+                    {promoCodes.length} / {BYPASS_OFFER_LIMITS ? "Unlimited" : maxOffers}
                   </div>
                 </div>
                 

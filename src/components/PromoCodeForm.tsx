@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +15,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { useSubscription } from "@/hooks/useSubscription";
-import { ArrowRight } from "lucide-react";
+import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
+import { ArrowRight, Info } from "lucide-react";
 
 interface PromoCodeFormProps {
   onPromoCodeAdded: () => void;
@@ -44,7 +43,7 @@ const SUBSCRIPTION_TIERS = [
 
 const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
   const { user } = useAuth();
-  const { subscriptionTier, maxOffers } = useSubscription();
+  const { subscriptionTier, maxOffers, bypassOfferLimits } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     brandName: "",
@@ -151,7 +150,8 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
     }
 
     // Check if user has reached their subscription offer limit
-    if (currentOfferCount >= maxOffers) {
+    // BUT bypass the check if BYPASS_OFFER_LIMITS is true
+    if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
       // Find the next subscription tier that would accommodate more offers
       let requiredTier = "Boost";
       
@@ -211,8 +211,8 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
       // Update the current offer count
       setCurrentOfferCount(prev => prev + 1);
       
-      // Show upgrade suggestions if approaching the limit
-      if (currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+      // Show upgrade suggestions if approaching the limit AND not bypassing limits
+      if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
         toast("Running out of offer slots!", {
           description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
           action: {
@@ -246,11 +246,20 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   <span className="font-semibold text-primary">{subscriptionTier}</span>
                 </div>
                 <div className="text-sm flex items-center text-muted-foreground">
-                  Using {currentOfferCount} of {maxOffers === Infinity ? "unlimited" : maxOffers} available offers
+                  Using {currentOfferCount} of {bypassOfferLimits 
+                    ? "unlimited (temporary promotion)" 
+                    : (maxOffers === Infinity ? "unlimited" : maxOffers)} available offers
                 </div>
               </div>
               
-              {nextTier && (
+              {bypassOfferLimits && (
+                <div className="flex items-center bg-green-100 dark:bg-green-900/20 px-3 py-2 rounded-md text-green-800 dark:text-green-300 text-xs">
+                  <Info className="h-3 w-3 mr-1" />
+                  <span>Unlimited promo submissions enabled!</span>
+                </div>
+              )}
+              
+              {!bypassOfferLimits && nextTier && (
                 <Button 
                   variant="outline" 
                   size="sm"
@@ -274,7 +283,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g. Nike, Amazon"
                     required
-                    disabled={isLoading || currentOfferCount >= maxOffers}
+                    disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   />
                 </div>
                 
@@ -287,7 +296,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g. SAVE20"
                     required
-                    disabled={isLoading || currentOfferCount >= maxOffers}
+                    disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   />
                 </div>
                 
@@ -296,7 +305,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   <Select
                     value={formData.category}
                     onValueChange={(value) => handleSelectChange("category", value)}
-                    disabled={isLoading || currentOfferCount >= maxOffers}
+                    disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a category" />
@@ -319,7 +328,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     type="date"
                     value={formData.expirationDate}
                     onChange={handleChange}
-                    disabled={isLoading || currentOfferCount >= maxOffers}
+                    disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   />
                 </div>
                 
@@ -331,7 +340,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                     value={formData.affiliateLink}
                     onChange={handleChange}
                     placeholder="https://"
-                    disabled={isLoading || currentOfferCount >= maxOffers}
+                    disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   />
                 </div>
               </div>
@@ -345,7 +354,7 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   onChange={handleChange}
                   placeholder="Briefly describe the offer (e.g. 20% off all items)"
                   required
-                  disabled={isLoading || currentOfferCount >= maxOffers}
+                  disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
                   className="min-h-[80px]"
                 />
               </div>
@@ -353,12 +362,12 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
               <Button
                 type="submit"
                 className="w-full bg-brand-green hover:bg-brand-green/90"
-                disabled={isLoading || currentOfferCount >= maxOffers}
+                disabled={isLoading || (!bypassOfferLimits && currentOfferCount >= maxOffers)}
               >
                 {isLoading ? "Adding Promo Code..." : "Add Promo Code"}
               </Button>
 
-              {currentOfferCount >= maxOffers && (
+              {!bypassOfferLimits && currentOfferCount >= maxOffers && (
                 <div className="mt-4 p-4 bg-muted/30 rounded-lg text-center">
                   <p className="text-sm mb-3">
                     You've reached your offer limit with the {subscriptionTier} plan.
@@ -371,6 +380,14 @@ const PromoCodeForm = ({ onPromoCodeAdded }: PromoCodeFormProps) => {
                   >
                     Upgrade Plan
                   </Button>
+                </div>
+              )}
+              
+              {bypassOfferLimits && (
+                <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center text-green-800 dark:text-green-300">
+                  <p className="text-sm">
+                    <span className="font-semibold">Limited time promotion:</span> Submit unlimited promo codes regardless of your plan tier!
+                  </p>
                 </div>
               )}
             </form>

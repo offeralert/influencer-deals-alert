@@ -2,11 +2,12 @@
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSubscription } from "@/hooks/useSubscription";
+import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useEffect, useState } from "react";
 import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiersGrid";
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
 import { trackConversion, getReferralId } from "@/lib/rewardful";
+import { AlertCircle } from "lucide-react";
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const PricingPage = () => {
   const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   
+  // Update the pricing tiers based on the bypass flag
   const pricingTiers: PricingTier[] = [
     {
       id: "starter",
@@ -21,15 +23,15 @@ const PricingPage = () => {
       price: "Free",
       description: "Perfect for trying out Offer Alert",
       features: [
-        "Upload 1 offer",
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload 1 offer",
         "Appear in user search results", 
         "Feature in AI deal notifications",
         "Cancel anytime"
       ],
       ctaText: "Get Started",
       highlighted: false,
-      badge: null,
-      maxOffers: 1
+      badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
+      maxOffers: BYPASS_OFFER_LIMITS ? Infinity : 1
     },
     {
       id: "boost",
@@ -37,16 +39,16 @@ const PricingPage = () => {
       price: "$12",
       description: "For new influencers growing their audience",
       features: [
-        "Upload up to 3 offers",
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 3 offers",
         "Improve earning potential",
         "Enhanced search exposure",
         "Cancel anytime"
       ],
-      costPerOffer: "~$4.00/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$4.00/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
-      badge: null,
-      maxOffers: 3
+      badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
+      maxOffers: BYPASS_OFFER_LIMITS ? Infinity : 3
     },
     {
       id: "growth",
@@ -54,16 +56,16 @@ const PricingPage = () => {
       price: "$29",
       description: "Ideal for influencers scaling their business",
       features: [
-        "Upload up to 10 offers",
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 10 offers",
         "Increased exposure across Offer Alert",
         "Priority in search results",
         "Cancel anytime"
       ],
-      costPerOffer: "~$2.90/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$2.90/offer",
       ctaText: "Upgrade Now",
       highlighted: true,
-      badge: "Popular",
-      maxOffers: 10
+      badge: BYPASS_OFFER_LIMITS ? "Promo" : "Popular",
+      maxOffers: BYPASS_OFFER_LIMITS ? Infinity : 10
     },
     {
       id: "pro",
@@ -71,16 +73,16 @@ const PricingPage = () => {
       price: "$49",
       description: "Best for full-time influencers",
       features: [
-        "Upload up to 20 offers",
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 20 offers",
         "Featured exposure and alert prioritization",
         "Expand reach outside of your network",
         "Cancel anytime"
       ],
-      costPerOffer: "~$2.45/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$2.45/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
-      badge: null,
-      maxOffers: 20
+      badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
+      maxOffers: BYPASS_OFFER_LIMITS ? Infinity : 20
     },
     {
       id: "elite",
@@ -218,6 +220,22 @@ const PricingPage = () => {
           Choose the perfect plan for your creator journey. All plans are monthly with no long-term contracts.
         </p>
       </div>
+
+      {/* Special Promotion Banner */}
+      {BYPASS_OFFER_LIMITS && (
+        <div className="max-w-4xl mx-auto mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <h3 className="font-bold text-green-800 dark:text-green-300">
+              Limited Time Promotion: Unlimited Offers on All Plans!
+            </h3>
+          </div>
+          <p className="text-green-700 dark:text-green-400">
+            We're temporarily removing offer limits on all subscription tiers. Subscribe to any plan 
+            and get unlimited promo code submissions! Regular limits will be restored later.
+          </p>
+        </div>
+      )}
 
       <PricingTiersGrid 
         pricingTiers={pricingTiers}

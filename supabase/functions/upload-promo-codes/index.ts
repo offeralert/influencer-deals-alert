@@ -1,7 +1,11 @@
+
 // This is a read-only file, but we need to make sure it handles the category field
 
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
+
+// Set this to true to bypass the offer limit check in edge function
+const BYPASS_OFFER_LIMITS = true;
 
 interface PromoCode {
   user_id: string;
@@ -45,23 +49,57 @@ serve(async (req) => {
     const body = await req.json();
     const promoCodes: PromoCode[] = body.promoCodes;
   
-  // Ensure all promoCodes have the required fields including category
-  const hasInvalidData = promoCodes.some(item => 
-    !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category
-  );
-  
-  if (hasInvalidData) {
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, and category." 
-      }),
-      { 
-        headers: { "Content-Type": "application/json" },
-        status: 400 
-      }
+    // Ensure all promoCodes have the required fields including category
+    const hasInvalidData = promoCodes.some(item => 
+      !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category
     );
-  }
+    
+    if (hasInvalidData) {
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, and category." 
+        }),
+        { 
+          headers: { "Content-Type": "application/json" },
+          status: 400 
+        }
+      );
+    }
+    
+    // If we're bypassing offer limits, skip the offer count check
+    if (!BYPASS_OFFER_LIMITS) {
+      // Check subscription limit
+      const { data: subscriptionData } = await supabaseClient.functions.invoke('check-subscription');
+      
+      if (subscriptionData) {
+        const { subscribed, subscription_tier } = subscriptionData;
+        
+        // Get current offer count
+        const { count: currentCount } = await supabaseClient
+          .from('promo_codes')
+          .select('*', { count: 'exact', head: true })
+          .eq('influencer_id', user.user.id);
+        
+        // Calculate max offers based on tier
+        let maxOffers = 1; // Starter tier default
+        if (subscription_tier === "Boost") maxOffers = 3;
+        else if (subscription_tier === "Growth") maxOffers = 10;
+        else if (subscription_tier === "Pro") maxOffers = 20;
+        else if (subscription_tier === "Elite") maxOffers = Infinity;
+        
+        // Check if this batch would exceed the limit
+        if (currentCount !== null && currentCount + promoCodes.length > maxOffers) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: `You've reached your limit of ${maxOffers} offers with the ${subscription_tier} plan.`
+            }),
+            { headers: { "Content-Type": "application/json" }, status: 403 }
+          );
+        }
+      }
+    }
 
     const { data, error } = await supabaseClient
       .from("promo_codes")

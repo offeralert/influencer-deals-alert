@@ -6,12 +6,16 @@ import { getReferralId } from "@/lib/rewardful";
 
 export type SubscriptionTier = "Starter" | "Boost" | "Growth" | "Pro" | "Elite";
 
+// Add a constant to control offer limit bypass
+export const BYPASS_OFFER_LIMITS = true; // Can be toggled to false when returning to normal limits
+
 interface SubscriptionData {
   subscribed: boolean;
   subscriptionTier: SubscriptionTier;
   subscriptionEnd: string | null;
   maxOffers: number;
   isLoading: boolean;
+  bypassOfferLimits: boolean; // Add flag to the return type
   refresh: () => Promise<void>;
   createCheckoutSession: (planType: SubscriptionTier, productId?: string | null) => Promise<string | null>;
   openCustomerPortal: () => Promise<string | null>;
@@ -26,6 +30,12 @@ export const useSubscription = (): SubscriptionData => {
 
   // Calculate max offers based on subscription tier
   const maxOffers = useCallback(() => {
+    // If bypassing limits, return a very large number effectively making it unlimited
+    if (BYPASS_OFFER_LIMITS) {
+      return Infinity;
+    }
+    
+    // Otherwise use normal tier-based limits
     switch (subscriptionTier) {
       case "Boost": return 3;
       case "Growth": return 10;
@@ -140,6 +150,7 @@ export const useSubscription = (): SubscriptionData => {
     subscriptionEnd,
     maxOffers: maxOffers(),
     isLoading,
+    bypassOfferLimits: BYPASS_OFFER_LIMITS, // Add flag to the return data
     refresh,
     createCheckoutSession,
     openCustomerPortal
