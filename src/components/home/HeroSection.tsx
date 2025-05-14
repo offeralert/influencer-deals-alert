@@ -37,7 +37,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
           <div className="space-y-4 md:space-y-6">
             <h1 className="text-2xl md:text-4xl font-bold leading-tight">
-              Shop Smarter. <span className="text-brand-green">Save More Money.</span> Support Your Favorite Influencers.
+              Shop. <span className="text-brand-green">Save.</span> Influencers Get Paid.
             </h1>
             <p className="text-sm md:text-lg text-muted-foreground">Follow the influencers you love and get automatic alerts with their latest promo codes and affiliate links while you shop online. You save money and they keep 100% of the commission.</p>
             <div className="flex flex-col sm:flex-row gap-3">
