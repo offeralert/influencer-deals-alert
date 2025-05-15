@@ -6,7 +6,6 @@ import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useEffect, useState } from "react";
 import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiersGrid";
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
-import { trackConversion, getReferralId } from "@/lib/rewardful";
 import { AlertCircle } from "lucide-react";
 
 const PricingPage = () => {
@@ -107,50 +106,9 @@ const PricingPage = () => {
     const params = new URLSearchParams(window.location.search);
     const subscriptionStatus = params.get('subscription');
     const plan = params.get('plan');
-    const sessionId = params.get('session_id');
     
     if (subscriptionStatus === 'success' && plan) {
       toast.success(`Successfully subscribed to ${plan} plan!`);
-      
-      // Track conversion with Rewardful if session ID is present
-      if (sessionId) {
-        console.log("Tracking conversion with Rewardful", { sessionId, plan });
-        
-        // Get subscription value based on plan
-        let value = 0;
-        switch (plan) {
-          case "Boost":
-            value = 12;
-            break;
-          case "Growth":
-            value = 29;
-            break;
-          case "Pro":
-            value = 49;
-            break;
-          case "Elite":
-            value = 499;
-            break;
-          default:
-            value = 0;
-        }
-        
-        // Track the conversion with Rewardful
-        trackConversion({
-          orderId: sessionId,
-          value: value,
-          currency: 'USD',
-          email: user?.email,
-          customerId: user?.id
-        });
-        
-        console.log("Conversion tracked", { 
-          orderId: sessionId, 
-          value, 
-          email: user?.email, 
-          customerId: user?.id 
-        });
-      }
       
       // Remove the query params
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -189,10 +147,6 @@ const PricingPage = () => {
     
     try {
       setLoadingPlan(tier.id);
-      
-      // Get referral ID from localStorage if it exists
-      const referralId = getReferralId();
-      console.log("Getting referral ID:", referralId);
       
       // Pass special product ID for Boost plan
       let productId = null;

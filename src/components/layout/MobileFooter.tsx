@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { UserPlus, Instagram, Mail, Gift } from "lucide-react";
+import { UserPlus, Instagram, Mail } from "lucide-react";
 
 const MobileFooter = () => {
   return (
@@ -80,14 +80,6 @@ const MobileFooter = () => {
               <li>
                 <Link to="/influencer-dashboard" className="text-sm text-gray-600 dark:text-gray-400">
                   Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/affiliate-program" 
-                  className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"
-                >
-                  <Gift size={14} /> Affiliate Program
                 </Link>
               </li>
             </ul>
