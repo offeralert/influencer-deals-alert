@@ -65,7 +65,7 @@ const HeroSection = () => {
             </div>
           </div>
           <div className="hidden lg:block relative">
-            <img src="/lovable-uploads/6250f286-c8e5-4885-894a-d2619dcafeb6.png" alt="Online Shopping and Deals" className="rounded-lg shadow-xl object-cover h-auto w-full" />
+            <img src="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" alt="Online Shopping Experience" className="rounded-lg shadow-xl object-cover h-auto w-full" />
             <div className="absolute -top-4 -right-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
               <div className="gradient-bg p-2 rounded-md text-white font-medium text-sm">30% OFF</div>
             </div>
