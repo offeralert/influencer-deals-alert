@@ -188,7 +188,7 @@ const MyAlerts = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
             <h2 className="font-medium">Get notified of new offers</h2>
-            <p className="text-sm text-muted-foreground">Download our browser extension to receive alerts when new offers are available.</p>
+            <p className="text-sm text-muted-foreground">Download our browser extension for instant offer alerts.</p>
           </div>
           <Button size="sm" className="whitespace-nowrap" asChild>
             <a 
