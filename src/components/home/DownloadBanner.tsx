@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { Download } from "lucide-react";
 
 const DownloadBanner = () => {
@@ -12,10 +11,14 @@ const DownloadBanner = () => {
             Get the most out of Offer Alert — download our browser extension.
           </p>
           <Button size="sm" className="h-8 whitespace-nowrap ml-4" asChild>
-            <Link to="/extension-download">
+            <a 
+              href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
               <Download className="mr-2 h-3 w-3" />
               Download Extension
-            </Link>
+            </a>
           </Button>
         </div>
       </div>

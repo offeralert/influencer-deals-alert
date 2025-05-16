@@ -12,10 +12,14 @@ const BrowserExtensionPromo = () => {
             Get the most out of Offer Alert — download the browser extension to unlock real-time savings.
           </p>
           <Button size="sm" className="md:size-lg" asChild>
-            <Link to="/extension-download">
+            <a 
+              href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
               <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
               Download Extension
-            </Link>
+            </a>
           </Button>
         </div>
       </div>

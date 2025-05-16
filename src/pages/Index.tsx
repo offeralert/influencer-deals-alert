@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
@@ -27,7 +26,7 @@ const Index = () => {
           <div className="max-w-5xl mx-auto px-4">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome, {profile?.full_name || profile?.username || 'Influencer'}</h1>
             <p className="text-lg text-muted-foreground mb-6">
-              Manage your promo codes and view your analytics from your influencer dashboard.
+              Manage your promo codes from your influencer dashboard.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-brand-green hover:bg-brand-green/90" asChild>

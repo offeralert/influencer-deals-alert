@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -226,6 +225,10 @@ const InfluencerDashboard = () => {
     return null;
   }
 
+  // Check if there are any expired or expiring soon promo codes
+  const hasExpiredCodes = promoCodes.some(code => isExpired(code.expiration_date));
+  const hasExpiringSoonCodes = promoCodes.some(code => isExpiringSoon(code.expiration_date) && !isExpired(code.expiration_date));
+
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
@@ -317,10 +320,21 @@ const InfluencerDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Current Promo Codes</span>
-                  <div className="flex gap-2 text-sm font-normal">
-                    <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-400">Expired</Badge>
-                    <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">Expiring Soon</Badge>
-                  </div>
+                  {/* Only show badge legend if there are expired or expiring soon codes */}
+                  {(hasExpiredCodes || hasExpiringSoonCodes) && (
+                    <div className="flex gap-2 text-sm font-normal">
+                      {hasExpiredCodes && (
+                        <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-400">
+                          Expired
+                        </Badge>
+                      )}
+                      {hasExpiringSoonCodes && (
+                        <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">
+                          Expiring Soon
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>

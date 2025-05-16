@@ -42,10 +42,18 @@ const HeroSection = () => {
             <p className="text-sm md:text-lg text-muted-foreground">Follow the influencers you love and get automatic alerts with their latest promo codes and affiliate links while you shop online. You save money and they keep 100% of the commission.</p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="h-10 md:h-12" asChild>
-                {user ? <Link to="/extension-download">
+                {user ? 
+                  <a 
+                    href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                     Download Extension
-                  </Link> : <Link to="/signup">Create Account</Link>}
+                  </a> 
+                  : 
+                  <Link to="/signup">Create Account</Link>
+                }
               </Button>
               <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
                 <Link to="/explore">Explore Deals</Link>
