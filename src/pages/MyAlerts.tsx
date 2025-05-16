@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import SearchBar from "@/components/ui/search-bar";
+import { Download } from "lucide-react";
 
 interface SavedDeal {
   id: string;
@@ -23,7 +23,7 @@ interface SavedDeal {
   category: string;
 }
 
-const MyDeals = () => {
+const MyAlerts = () => {
   const { user } = useAuth();
   const [savedDeals, setSavedDeals] = useState<SavedDeal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -184,19 +184,38 @@ const MyDeals = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-100">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 className="font-medium">Get notified of new offers</h2>
+            <p className="text-sm text-muted-foreground">Download our browser extension to receive alerts when new offers are available.</p>
+          </div>
+          <Button size="sm" className="whitespace-nowrap" asChild>
+            <a 
+              href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download Extension
+            </a>
+          </Button>
+        </div>
+      </div>
+      
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold">My Saved Deals</h1>
+        <h1 className="text-3xl font-bold">My Alerts</h1>
         <SearchBar 
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search saved deals..."
+          placeholder="Search saved alerts..."
           className="w-full md:w-80"
         />
       </div>
       
       {isLoading ? (
         <div className="text-center py-16">
-          <p>Loading your saved deals...</p>
+          <p>Loading your saved alerts...</p>
         </div>
       ) : filteredDeals.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -219,7 +238,7 @@ const MyDeals = () => {
         </div>
       ) : (
         <div className="text-center py-16 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium mb-2">You haven't saved any deals yet</h3>
+          <h3 className="text-lg font-medium mb-2">You haven't saved any alerts yet</h3>
           <p className="text-gray-500 mb-4">
             Follow influencers to see their deals here, or explore all deals.
           </p>
@@ -237,4 +256,4 @@ const MyDeals = () => {
   );
 };
 
-export default MyDeals;
+export default MyAlerts;

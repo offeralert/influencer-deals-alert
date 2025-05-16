@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
@@ -37,7 +38,7 @@ const Index = () => {
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link to="/my-deals">
-                  View My Deals
+                  View My Alerts
                 </Link>
               </Button>
             </div>

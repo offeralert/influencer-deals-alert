@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { Home, Compass, Bookmark } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -20,7 +19,7 @@ const BottomNav = () => {
     },
     {
       path: "/my-deals",
-      label: "My Deals",
+      label: "My Alerts",
       icon: Bookmark,
     },
   ];

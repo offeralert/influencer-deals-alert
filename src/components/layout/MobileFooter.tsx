@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { UserPlus, Instagram, Mail } from "lucide-react";
 

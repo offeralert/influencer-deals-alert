@@ -1,4 +1,3 @@
-
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -10,7 +9,7 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import Explore from "./pages/Explore";
-import MyDeals from "./pages/MyDeals";
+import MyAlerts from "./pages/MyAlerts";
 import InfluencerApply from "./pages/InfluencerApply";
 import CsvUpload from "./pages/CsvUpload";
 import InfluencerDashboard from "./pages/InfluencerDashboard";
@@ -38,7 +37,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/explore" element={<Explore />} />
-              <Route path="/my-deals" element={<MyDeals />} />
+              <Route path="/my-deals" element={<MyAlerts />} />
               <Route path="/influencer-apply" element={<InfluencerApply />} />
               <Route path="/csv-upload" element={<CsvUpload />} />
               <Route path="/influencer-dashboard" element={<InfluencerDashboard />} />
