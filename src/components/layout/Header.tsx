@@ -71,7 +71,7 @@ const Header = () => {
                     onClick={() => handleNavigation("/my-deals")} 
                     className="text-left text-lg font-medium hover:text-brand-green"
                   >
-                    My Deals
+                    My Alerts
                   </button>
                   {isInfluencer && (
                     <button 
@@ -106,7 +106,7 @@ const Header = () => {
                     className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
                     onClick={() => navigate("/my-deals")}
                   >
-                    My Deals
+                    My Alerts
                   </NavigationMenuLink>
                 </NavigationMenuItem>
                 {isInfluencer && (
@@ -170,7 +170,7 @@ const Header = () => {
                     <Link to="/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/my-deals">My Deals</Link>
+                    <Link to="/my-deals">My Alerts</Link>
                   </DropdownMenuItem>
                   {isInfluencer && (
                     <DropdownMenuItem asChild>
