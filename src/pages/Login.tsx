@@ -9,12 +9,13 @@ import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
   const { user, isLoading } = useAuth();
   const [formLoading, setFormLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,6 +35,10 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing again
     if (loginError) setLoginError(null);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -126,16 +131,33 @@ const Login = () => {
                   Forgot password?
                 </Link>
               </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                disabled={formLoading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  disabled={formLoading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  onClick={togglePasswordVisibility}
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <EyeOff size={18} aria-hidden="true" />
+                  ) : (
+                    <Eye size={18} aria-hidden="true" />
+                  )}
+                  <span className="sr-only">
+                    {showPassword ? "Hide password" : "Show password"}
+                  </span>
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={formLoading}>
               {formLoading ? "Signing in..." : "Sign In"}
@@ -152,11 +174,11 @@ const Login = () => {
         <CardFooter className="flex flex-col">
           <p className="text-xs text-center text-muted-foreground mt-4">
             By signing in, you agree to our{" "}
-            <Link to="/terms" className="text-brand-purple hover:underline">
+            <Link to="/terms" className="text-brand-purple hover:underline" target="_blank" rel="noopener noreferrer">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link to="/privacy" className="text-brand-purple hover:underline">
+            <Link to="/privacy" className="text-brand-purple hover:underline" target="_blank" rel="noopener noreferrer">
               Privacy Policy
             </Link>
             .
