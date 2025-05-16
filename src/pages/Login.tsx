@@ -136,7 +136,7 @@ const Login = () => {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder=""
                   required
                   value={formData.password}
                   onChange={handleChange}

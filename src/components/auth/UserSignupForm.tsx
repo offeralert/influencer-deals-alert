@@ -143,7 +143,7 @@ const UserSignupForm = () => {
             id="password"
             name="password"
             type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
+            placeholder=""
             required
             minLength={8}
             value={formData.password}
@@ -174,7 +174,7 @@ const UserSignupForm = () => {
             id="confirmPassword"
             name="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
-            placeholder="••••••••"
+            placeholder=""
             required
             value={formData.confirmPassword}
             onChange={handleChange}
