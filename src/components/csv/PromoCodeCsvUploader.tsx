@@ -18,7 +18,7 @@ interface PromoCode {
   promo_code: string;
   description: string;
   expiration_date?: string;
-  affiliate_link?: string;
+  affiliate_link: string;
   category: string;
   email: string; // Email to match with influencer
   user_id?: string; // Will be populated based on email match
@@ -45,13 +45,13 @@ const PromoCodeCsvUploader = () => {
       
       try {
         // Parse and validate the CSV file
-        const requiredHeaders = ['brand_name', 'promo_code', 'description', 'category', 'email'];
+        const requiredHeaders = ['brand_name', 'promo_code', 'description', 'category', 'email', 'affiliate_link'];
         const { data, errors } = await parseAndValidateCsv(selectedFile, requiredHeaders, (row) => {
           // Validate required fields in each row
-          if (!row.brand_name || !row.promo_code || !row.description || !row.category || !row.email) {
+          if (!row.brand_name || !row.promo_code || !row.description || !row.category || !row.email || !row.affiliate_link) {
             return { 
               valid: false, 
-              error: 'Missing required fields (brand_name, promo_code, description, category, or email)' 
+              error: 'Missing required fields (brand_name, promo_code, description, category, email, or affiliate_link)' 
             };
           }
           return { valid: true };
@@ -67,7 +67,7 @@ const PromoCodeCsvUploader = () => {
             promo_code: row.promo_code,
             description: row.description,
             expiration_date: row.expiration_date || undefined,
-            affiliate_link: row.affiliate_link || undefined,
+            affiliate_link: row.affiliate_link,
             category: row.category,
             email: row.email
           }));
@@ -291,6 +291,7 @@ const PromoCodeCsvUploader = () => {
         />
         <p className="text-sm text-muted-foreground">
           Your CSV file should include the columns shown above. The <code>email</code> field must match an existing influencer account.
+          The <code>affiliate_link</code> field is required for all promo codes.
         </p>
       </div>
     </div>

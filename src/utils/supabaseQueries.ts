@@ -8,7 +8,7 @@ export interface PromoCode {
   promo_code: string;
   description: string;
   expiration_date?: string;
-  affiliate_link?: string;
+  affiliate_link: string;
   category: string;
   is_featured?: boolean;
   is_trending?: boolean;

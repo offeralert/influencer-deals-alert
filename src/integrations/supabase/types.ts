@@ -68,7 +68,7 @@ export type Database = {
       }
       promo_codes: {
         Row: {
-          affiliate_link: string | null
+          affiliate_link: string
           brand_name: string
           category: string
           created_at: string
@@ -82,7 +82,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          affiliate_link?: string | null
+          affiliate_link: string
           brand_name: string
           category: string
           created_at?: string
@@ -96,7 +96,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          affiliate_link?: string | null
+          affiliate_link?: string
           brand_name?: string
           category?: string
           created_at?: string

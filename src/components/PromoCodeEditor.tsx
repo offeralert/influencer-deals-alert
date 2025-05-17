@@ -21,7 +21,7 @@ interface PromoCode {
   promo_code: string;
   description: string;
   expiration_date: string | null;
-  affiliate_link: string | null;
+  affiliate_link: string;
   category: string;
 }
 
@@ -64,7 +64,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const updateFollowerDomains = async (influencerId: string, newAffiliateLink: string | null, oldAffiliateLink: string | null) => {
+  const updateFollowerDomains = async (influencerId: string, newAffiliateLink: string, oldAffiliateLink: string | null) => {
     // Skip if nothing changed or no new link
     if (newAffiliateLink === oldAffiliateLink || !newAffiliateLink) return;
     
@@ -104,7 +104,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim()) {
+    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -131,7 +131,7 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
           promo_code: formData.promoCode,
           description: formData.description,
           expiration_date: formData.expirationDate || null,
-          affiliate_link: formData.affiliateLink || null,
+          affiliate_link: formData.affiliateLink,
           category: formData.category,
         })
         .eq("id", promoCode.id);
@@ -217,13 +217,14 @@ const PromoCodeEditor = ({ promoCode, onSave, onCancel }: PromoCodeEditorProps) 
         </div>
         
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="affiliateLink">Affiliate Link</Label>
+          <Label htmlFor="affiliateLink">Affiliate Link*</Label>
           <Input
             id="affiliateLink"
             name="affiliateLink"
             value={formData.affiliateLink}
             onChange={handleChange}
             placeholder="https://"
+            required
             disabled={isLoading}
           />
         </div>
