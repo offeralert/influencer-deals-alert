@@ -12,7 +12,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { PROMO_CODE_CATEGORIES } from "@/constants/promoCodeConstants";
-import { InfoCircle } from "lucide-react";
+import { Info } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -82,7 +82,7 @@ const PromoCodeFormFields = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoCircle className="h-4 w-4 text-muted-foreground" />
+                  <Info className="h-4 w-4 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">This URL is used by the browser extension to trigger offer notifications.</p>
@@ -140,7 +140,7 @@ const PromoCodeFormFields = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <InfoCircle className="h-4 w-4 text-muted-foreground" />
+                  <Info className="h-4 w-4 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="max-w-xs">This is your affiliate tracking link — you'll earn commissions when users shop through it.</p>
