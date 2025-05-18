@@ -224,27 +224,47 @@ export const syncUserDomainMap = async (
       // Handle deletion of a specific promo code
       console.log(`Handling deletion of promo code ${promoCodeId}`);
       
-      // Get the domain of the deleted promo code
+      // Get the brand_url and affiliate_link of the deleted promo code
       const { data: deletedPromo } = await supabase
         .from('promo_codes')
-        .select('affiliate_link')
+        .select('brand_url, affiliate_link')
         .eq('id', promoCodeId)
         .single();
       
-      if (deletedPromo && deletedPromo.affiliate_link) {
-        const domain = extractDomain(deletedPromo.affiliate_link);
-        if (domain) {
-          console.log(`Found domain ${domain} from deleted promo code`);
+      // Process domains from both URLs, prioritizing brand_url
+      if (deletedPromo) {
+        const domainsToCheck = new Set<string>();
+        
+        // Check brand_url first (primary source for domain mapping)
+        if (deletedPromo.brand_url) {
+          const brandDomain = extractDomain(deletedPromo.brand_url);
+          if (brandDomain) domainsToCheck.add(brandDomain);
+        }
+        
+        // Then check affiliate_link
+        if (deletedPromo.affiliate_link) {
+          const affiliateDomain = extractDomain(deletedPromo.affiliate_link);
+          if (affiliateDomain) domainsToCheck.add(affiliateDomain);
+        }
+        
+        // Process each domain
+        for (const domain of domainsToCheck) {
+          console.log(`Checking if domain ${domain} is still used in other promo codes`);
           
           // Check if this domain exists in other active promo codes of this influencer
           const { data: otherPromos } = await supabase
             .from('promo_codes')
-            .select('affiliate_link')
+            .select('brand_url, affiliate_link')
             .eq('influencer_id', influencerId)
             .neq('id', promoCodeId);
           
           const otherDomains = new Set<string>();
           otherPromos?.forEach(promo => {
+            // Check both URLs, prioritizing brand_url
+            if (promo.brand_url) {
+              const extractedDomain = extractDomain(promo.brand_url);
+              if (extractedDomain) otherDomains.add(extractedDomain);
+            }
             if (promo.affiliate_link) {
               const extractedDomain = extractDomain(promo.affiliate_link);
               if (extractedDomain) otherDomains.add(extractedDomain);
@@ -281,7 +301,7 @@ export const syncUserDomainMap = async (
       // Get all promo codes from this influencer
       const { data: promos, error: promosError } = await supabase
         .from('promo_codes')
-        .select('affiliate_link, expiration_date')
+        .select('brand_url, affiliate_link, expiration_date')
         .eq('influencer_id', influencerId);
       
       if (promosError) {
@@ -299,11 +319,16 @@ export const syncUserDomainMap = async (
         return true;
       }) || [];
       
+      // Collect both brand_url and affiliate_link values
+      const brandUrls = validPromos
+        .map(promo => promo.brand_url)
+        .filter(url => url) as string[];
+        
       const affiliateLinks = validPromos
         .map(promo => promo.affiliate_link)
         .filter(link => link) as string[];
       
-      console.log(`Found ${affiliateLinks.length} valid affiliate links for influencer ${influencerId}`);
+      console.log(`Found ${brandUrls.length} valid brand URLs and ${affiliateLinks.length} affiliate links for influencer ${influencerId}`);
       
       // Update domain mappings for each follower
       for (const userId of followerIds) {
@@ -314,8 +339,50 @@ export const syncUserDomainMap = async (
           .eq('user_id', userId)
           .eq('influencer_id', influencerId);
         
-        // Then add new domain mappings based on current promo codes
-        await addDomainMappings(userId, influencerId, affiliateLinks);
+        // Extract and add domains from brand URLs first (primary source)
+        const domainsToBeMapped = new Set<string>();
+        
+        // Process brand URLs first (primary source)
+        brandUrls.forEach(url => {
+          const domain = extractDomain(url);
+          if (domain) domainsToBeMapped.add(domain);
+        });
+        
+        // Then process affiliate links (secondary source)
+        affiliateLinks.forEach(url => {
+          const domain = extractDomain(url);
+          if (domain) domainsToBeMapped.add(domain);
+        });
+        
+        // Convert to array for insertion
+        const domainsArray = Array.from(domainsToBeMapped);
+        
+        // Add new domain mappings based on current promo codes
+        if (domainsArray.length > 0) {
+          for (const domain of domainsArray) {
+            await supabase
+              .from('user_domain_map')
+              .upsert({
+                user_id: userId,
+                influencer_id: influencerId,
+                domain: domain
+              }, {
+                onConflict: 'user_id,influencer_id,domain',
+                ignoreDuplicates: true
+              });
+          }
+        } else {
+          // If no domains were extracted, add a null domain mapping
+          await supabase
+            .from('user_domain_map')
+            .upsert({
+              user_id: userId,
+              influencer_id: influencerId,
+              domain: null
+            }, {
+              onConflict: 'user_id,influencer_id,domain'
+            });
+        }
       }
     }
     

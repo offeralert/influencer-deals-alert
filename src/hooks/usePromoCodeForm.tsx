@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -89,11 +88,13 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       // Extract domains from both URLs
       const domains: string[] = [];
       
+      // Primary source: brand_url - this is the main domain used for notification triggering
       if (brandUrl) {
         const brandDomain = extractDomain(brandUrl);
         if (brandDomain) domains.push(brandDomain);
       }
       
+      // Secondary source: affiliate_link - also extract this for mapping
       if (affiliateLink) {
         const affiliateDomain = extractDomain(affiliateLink);
         if (affiliateDomain && !domains.includes(affiliateDomain)) domains.push(affiliateDomain);
@@ -185,7 +186,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         return;
       }
 
-      // Update domain mappings for all followers from both brand URL and affiliate link
+      // Update domain mappings for all followers with brand_url as primary source
       await updateFollowerDomains(user.id, formData.brandUrl, formData.affiliateLink);
 
       toast.success("Promo code added successfully!");
