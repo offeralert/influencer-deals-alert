@@ -9,6 +9,7 @@ import { SUBSCRIPTION_TIERS } from "@/constants/promoCodeConstants";
 
 interface PromoCodeFormData {
   brandName: string;
+  brandUrl: string;
   promoCode: string;
   expirationDate: string;
   affiliateLink: string;
@@ -26,6 +27,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<PromoCodeFormData>({
     brandName: "",
+    brandUrl: "",
     promoCode: "",
     expirationDate: "",
     affiliateLink: "",
@@ -80,13 +82,24 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const updateFollowerDomains = async (influencerId: string, affiliateLink: string | null) => {
-    if (!influencerId || !affiliateLink) return;
+  const updateFollowerDomains = async (influencerId: string, brandUrl: string | null, affiliateLink: string | null) => {
+    if (!influencerId) return;
     
     try {
-      // Extract domain from the affiliate link
-      const domain = extractDomain(affiliateLink);
-      if (!domain) return;
+      // Extract domains from both URLs
+      const domains: string[] = [];
+      
+      if (brandUrl) {
+        const brandDomain = extractDomain(brandUrl);
+        if (brandDomain) domains.push(brandDomain);
+      }
+      
+      if (affiliateLink) {
+        const affiliateDomain = extractDomain(affiliateLink);
+        if (affiliateDomain && !domains.includes(affiliateDomain)) domains.push(affiliateDomain);
+      }
+      
+      if (domains.length === 0) return;
       
       // Get all followers of this influencer
       const { data: followers, error: followerError } = await supabase
@@ -97,20 +110,21 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         
       if (followerError || !followers || followers.length === 0) return;
       
-      // Add new domain for each follower
-      const domainEntries = followers.map(follower => ({
-        user_id: follower.user_id,
-        influencer_id: influencerId,
-        domain: domain
-      }));
-      
-      await supabase
-        .from('user_domain_map')
-        .upsert(domainEntries, { 
-          onConflict: 'user_id,influencer_id,domain',
-          ignoreDuplicates: true 
-        });
+      // Add new domains for each follower
+      for (const domain of domains) {
+        const domainEntries = followers.map(follower => ({
+          user_id: follower.user_id,
+          influencer_id: influencerId,
+          domain: domain
+        }));
         
+        await supabase
+          .from('user_domain_map')
+          .upsert(domainEntries, { 
+            onConflict: 'user_id,influencer_id,domain',
+            ignoreDuplicates: true 
+          });
+      }
     } catch (error) {
       console.error("Error updating follower domains:", error);
     }
@@ -123,7 +137,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       return;
     }
 
-    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
+    if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -157,6 +171,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       const { error, data } = await supabase.from("promo_codes").insert({
         influencer_id: user.id,
         brand_name: formData.brandName,
+        brand_url: formData.brandUrl,
         promo_code: formData.promoCode,
         description: formData.description,
         expiration_date: formData.expirationDate || null,
@@ -170,16 +185,15 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         return;
       }
 
-      // Update domain mappings for all followers if there's an affiliate link
-      if (formData.affiliateLink) {
-        await updateFollowerDomains(user.id, formData.affiliateLink);
-      }
+      // Update domain mappings for all followers from both brand URL and affiliate link
+      await updateFollowerDomains(user.id, formData.brandUrl, formData.affiliateLink);
 
       toast.success("Promo code added successfully!");
       
       // Reset form
       setFormData({
         brandName: "",
+        brandUrl: "",
         promoCode: "",
         expirationDate: "",
         affiliateLink: "",

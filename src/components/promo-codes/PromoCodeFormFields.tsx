@@ -12,9 +12,17 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { PROMO_CODE_CATEGORIES } from "@/constants/promoCodeConstants";
+import { InfoCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface PromoCodeFormData {
   brandName: string;
+  brandUrl: string;
   promoCode: string;
   expirationDate: string;
   affiliateLink: string;
@@ -69,6 +77,32 @@ const PromoCodeFormFields = ({
         </div>
         
         <div className="space-y-2">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="brandUrl">Brand URL*</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">This URL is used by the browser extension to trigger offer notifications.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <Input
+            id="brandUrl"
+            name="brandUrl"
+            type="url"
+            value={formData.brandUrl}
+            onChange={handleChange}
+            placeholder="https://example.com"
+            required
+            disabled={isLoading || disabled}
+          />
+        </div>
+        
+        <div className="space-y-2">
           <Label htmlFor="category">Category*</Label>
           <Select
             value={formData.category}
@@ -101,7 +135,19 @@ const PromoCodeFormFields = ({
         </div>
         
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="affiliateLink">Affiliate Link*</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="affiliateLink">Affiliate Link*</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InfoCircle className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">This is your affiliate tracking link — you'll earn commissions when users shop through it.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Input
             id="affiliateLink"
             name="affiliateLink"
