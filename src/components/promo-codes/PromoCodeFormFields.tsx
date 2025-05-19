@@ -167,10 +167,10 @@ const PromoCodeFormFields = ({
           name="description"
           value={formData.description}
           onChange={handleChange}
-          placeholder="Briefly describe the offer (e.g. 20% off all items)"
+          placeholder="10% off"
           required
           disabled={isLoading || disabled}
-          className="min-h-[80px]"
+          className="min-h-[60px]"
         />
       </div>
       
