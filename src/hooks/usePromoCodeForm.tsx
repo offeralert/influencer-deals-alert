@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -81,26 +82,18 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const updateFollowerDomains = async (influencerId: string, brandUrl: string | null, affiliateLink: string | null) => {
-    if (!influencerId) return;
+  const updateFollowerDomains = async (influencerId: string, brandUrl: string | null) => {
+    if (!influencerId || !brandUrl) return;
     
     try {
-      // Extract domains from both URLs
-      const domains: string[] = [];
-      
-      // Primary source: brand_url - this is the main domain used for notification triggering
-      if (brandUrl) {
-        const brandDomain = extractDomain(brandUrl);
-        if (brandDomain) domains.push(brandDomain);
+      // Extract domain from brand URL only
+      const brandDomain = extractDomain(brandUrl);
+      if (!brandDomain) {
+        console.error("Could not extract domain from brand URL:", brandUrl);
+        return;
       }
       
-      // Secondary source: affiliate_link - also extract this for mapping
-      if (affiliateLink) {
-        const affiliateDomain = extractDomain(affiliateLink);
-        if (affiliateDomain && !domains.includes(affiliateDomain)) domains.push(affiliateDomain);
-      }
-      
-      if (domains.length === 0) return;
+      console.log("Extracted domain for mapping:", brandDomain);
       
       // Get all followers of this influencer
       const { data: followers, error: followerError } = await supabase
@@ -111,21 +104,21 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         
       if (followerError || !followers || followers.length === 0) return;
       
-      // Add new domains for each follower
-      for (const domain of domains) {
-        const domainEntries = followers.map(follower => ({
-          user_id: follower.user_id,
-          influencer_id: influencerId,
-          domain: domain
-        }));
-        
+      // Add domain mapping for each follower
+      for (const follower of followers) {
         await supabase
           .from('user_domain_map')
-          .upsert(domainEntries, { 
+          .upsert({
+            user_id: follower.user_id,
+            influencer_id: influencerId,
+            domain: brandDomain
+          }, { 
             onConflict: 'user_id,influencer_id,domain',
             ignoreDuplicates: true 
           });
       }
+      
+      console.log(`Domain mappings updated for ${followers.length} followers with domain ${brandDomain}`);
     } catch (error) {
       console.error("Error updating follower domains:", error);
     }
@@ -140,6 +133,12 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
 
     if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate the brand URL format
+    if (!formData.brandUrl.match(/^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+([/?#].*)?$/i)) {
+      toast.error("Please enter a valid brand URL");
       return;
     }
 
@@ -186,8 +185,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         return;
       }
 
-      // Update domain mappings for all followers with brand_url as primary source
-      await updateFollowerDomains(user.id, formData.brandUrl, formData.affiliateLink);
+      // Update domain mappings for all followers with brand_url as the ONLY source
+      await updateFollowerDomains(user.id, formData.brandUrl);
 
       toast.success("Promo code added successfully!");
       

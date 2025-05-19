@@ -1,6 +1,4 @@
 
-// This is a read-only file, but we need to make sure it handles the category field
-
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -50,7 +48,7 @@ serve(async (req) => {
     const body = await req.json();
     const promoCodes: PromoCode[] = body.promoCodes;
   
-    // Ensure all promoCodes have the required fields including category, affiliate link, and brand_url
+    // Ensure all promoCodes have the required fields including brand_url
     const hasInvalidData = promoCodes.some(item => 
       !item.user_id || !item.brand_name || !item.promo_code || !item.description || 
       !item.category || !item.affiliate_link || !item.brand_url
