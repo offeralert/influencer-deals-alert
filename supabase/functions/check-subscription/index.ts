@@ -110,7 +110,7 @@ serve(async (req) => {
               ? item.price.product 
               : item.price.product.id;
             
-            // Match by product ID
+            // Match by product ID using the updated product IDs
             switch (productId) {
               case 'prod_SH4j01JgfxJSfl':
                 subscriptionTier = "Boost";

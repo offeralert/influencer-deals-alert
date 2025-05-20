@@ -143,8 +143,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     }
 
     // Check if user has reached their subscription offer limit
-    // BUT bypass the check if BYPASS_OFFER_LIMITS is true
-    if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
+    // Removed the bypassOfferLimits check to enforce limits
+    if (currentOfferCount >= maxOffers) {
       // Find the next subscription tier that would accommodate more offers
       let requiredTier = "Boost";
       
@@ -204,8 +204,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       // Update the current offer count
       setCurrentOfferCount(prev => prev + 1);
       
-      // Show upgrade suggestions if approaching the limit AND not bypassing limits
-      if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+      // Show upgrade suggestions if approaching the limit
+      if (currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
         toast("Running out of offer slots!", {
           description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
           action: {

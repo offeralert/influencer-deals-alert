@@ -2,8 +2,8 @@
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
-// Set this to true to bypass the offer limit check in edge function
-const BYPASS_OFFER_LIMITS = true;
+// Set this to false to enforce the offer limit check in edge function
+const BYPASS_OFFER_LIMITS = false;
 
 interface PromoCode {
   user_id: string;
@@ -12,7 +12,7 @@ interface PromoCode {
   description: string;
   expiration_date?: string;
   affiliate_link: string;
-  brand_url: string; // Ensure brand_url is defined in the interface
+  brand_url: string;
   category: string; 
 }
 
