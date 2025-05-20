@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -155,10 +154,14 @@ const PricingPage = () => {
     try {
       setLoadingPlan(tier.id);
       
-      // Pass special product ID for Boost plan
+      // Pass specific product ID for each plan
       let productId = null;
       if (tier.id === "boost") {
-        productId = "prod_SH4j01JgfxJSfl";
+        productId = "prod_SH4j01JgfxJSfl"; // Boost plan
+      } else if (tier.id === "growth") {
+        productId = "prod_SGnRrAW83TfaUf"; // Growth plan
+      } else if (tier.id === "pro") {
+        productId = "prod_SGnSw59Chig0Yc"; // Pro plan
       }
       
       const checkoutUrl = await createCheckoutSession(tier.name as any, productId);
