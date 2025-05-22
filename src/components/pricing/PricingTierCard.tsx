@@ -40,7 +40,7 @@ export const PricingTierCard = ({
   onSubscribe
 }: PricingTierProps) => {
   const [isClicked, setIsClicked] = useState(false);
-  const { trackEvent } = useMetaTracking();
+  const { trackEvent, track } = useMetaTracking();
   
   // Get numeric price for tracking
   const getNumericPrice = () => {
@@ -52,8 +52,27 @@ export const PricingTierCard = ({
   const handleSubscribeClick = () => {
     setIsClicked(true);
     
-    // Track InitiateCheckout event
-    trackEvent('InitiateCheckout', {
+    // Track InitiateCheckout event - both client-side and server-side
+    // Using both methods for redundancy and to ensure tracking works
+    
+    // Client-side tracking (faster)
+    if (window.fbq) {
+      try {
+        console.log(`[Meta Pixel] Tracking InitiateCheckout for ${name}`);
+        window.fbq('track', 'InitiateCheckout', {
+          content_name: name,
+          content_category: 'subscription_plan',
+          content_ids: [id],
+          value: getNumericPrice(),
+          currency: 'USD'
+        });
+      } catch (error) {
+        console.error('[Meta Pixel] Error tracking event:', error);
+      }
+    }
+    
+    // Server-side tracking (more reliable) - using our track method that does both
+    track('InitiateCheckout', {
       content_name: name,
       content_category: 'subscription_plan',
       content_ids: [id],

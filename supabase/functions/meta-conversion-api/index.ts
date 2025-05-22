@@ -48,6 +48,14 @@ serve(async (req) => {
       logStep("Authorization header present");
     }
 
+    // For InitiateCheckout events, add extra logging
+    if (eventName === 'InitiateCheckout') {
+      logStep("Processing InitiateCheckout event", { 
+        plan: eventData.customData?.content_name,
+        value: eventData.customData?.value 
+      });
+    }
+
     // Prepare data for Meta Conversion API
     const eventTime = Math.floor(Date.now() / 1000);
     const eventId = crypto.randomUUID();
