@@ -70,7 +70,6 @@ export type Database = {
         Row: {
           affiliate_link: string
           brand_name: string
-          brand_url: string
           category: string
           created_at: string
           description: string
@@ -85,7 +84,6 @@ export type Database = {
         Insert: {
           affiliate_link: string
           brand_name: string
-          brand_url?: string
           category: string
           created_at?: string
           description: string
@@ -100,7 +98,6 @@ export type Database = {
         Update: {
           affiliate_link?: string
           brand_name?: string
-          brand_url?: string
           category?: string
           created_at?: string
           description?: string

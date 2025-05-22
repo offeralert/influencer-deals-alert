@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,8 +5,8 @@ import { toast } from "sonner";
 
 export type SubscriptionTier = "Starter" | "Boost" | "Growth" | "Pro" | "Elite";
 
-// Changed bypass flag to false to reinstate offer limits
-export const BYPASS_OFFER_LIMITS = false;
+// Add a constant to control offer limit bypass
+export const BYPASS_OFFER_LIMITS = true; // Can be toggled to false when returning to normal limits
 
 interface SubscriptionData {
   subscribed: boolean;
@@ -15,7 +14,7 @@ interface SubscriptionData {
   subscriptionEnd: string | null;
   maxOffers: number;
   isLoading: boolean;
-  bypassOfferLimits: boolean;
+  bypassOfferLimits: boolean; // Add flag to the return type
   refresh: () => Promise<void>;
   createCheckoutSession: (planType: SubscriptionTier, productId?: string | null) => Promise<string | null>;
   openCustomerPortal: () => Promise<string | null>;
@@ -146,7 +145,7 @@ export const useSubscription = (): SubscriptionData => {
     subscriptionEnd,
     maxOffers: maxOffers(),
     isLoading,
-    bypassOfferLimits: BYPASS_OFFER_LIMITS,
+    bypassOfferLimits: BYPASS_OFFER_LIMITS, // Add flag to the return data
     refresh,
     createCheckoutSession,
     openCustomerPortal

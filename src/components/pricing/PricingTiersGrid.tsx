@@ -12,7 +12,6 @@ export interface PricingTier {
   badge: string | null;
   costPerOffer?: string;
   maxOffers: number;
-  isEnquiry?: boolean;
 }
 
 interface PricingTiersGridProps {

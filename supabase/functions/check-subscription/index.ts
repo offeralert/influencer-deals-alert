@@ -100,48 +100,28 @@ serve(async (req) => {
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
       logStep("Active subscription found", { subscriptionId: subscription.id, endDate: subscriptionEnd });
       
-      // Determine subscription tier from product ID
+      // Determine subscription tier from price/product
       try {
-        const items = subscription.items.data;
-        if (items && items.length > 0) {
-          const item = items[0];
-          if (item.price && item.price.product) {
-            const productId = typeof item.price.product === 'string' 
-              ? item.price.product 
-              : item.price.product.id;
-            
-            // Match by product ID using the updated product IDs
-            switch (productId) {
-              case 'prod_SH4j01JgfxJSfl':
-                subscriptionTier = "Boost";
-                break;
-              case 'prod_SGnRrAW83TfaUf':
-                subscriptionTier = "Growth";
-                break;
-              case 'prod_SGnSw59Chig0Yc':
-                subscriptionTier = "Pro";
-                break;
-              default:
-                // If we can't determine by product ID, fall back to price
-                const amount = item.price.unit_amount || 0;
-                if (amount <= 500) {
-                  subscriptionTier = "Boost";
-                } else if (amount <= 1200) {
-                  subscriptionTier = "Growth";
-                } else if (amount <= 2000) {
-                  subscriptionTier = "Pro";
-                } else {
-                  subscriptionTier = "Elite";
-                }
-                break;
-            }
-            
-            logStep("Determined subscription tier by product ID", { 
-              productId, 
-              subscriptionTier 
-            });
-          }
+        const priceId = subscription.items.data[0].price.id;
+        const price = await stripe.prices.retrieve(priceId);
+        const amount = price.unit_amount || 0;
+        
+        const productId = price.product as string;
+        
+        // Special case for Boost plan with specific product ID
+        if (productId === "prod_SH4j01JgfxJSfl") {
+          subscriptionTier = "Boost";
+        } else if (amount <= 1299) {
+          subscriptionTier = "Boost";
+        } else if (amount <= 2999) {
+          subscriptionTier = "Growth";
+        } else if (amount <= 4999) {
+          subscriptionTier = "Pro";
+        } else {
+          subscriptionTier = "Elite";
         }
+        
+        logStep("Determined subscription tier", { priceId, amount, subscriptionTier });
       } catch (error) {
         console.error("Error determining tier:", error);
         // Default to Growth if there's an error determining the tier

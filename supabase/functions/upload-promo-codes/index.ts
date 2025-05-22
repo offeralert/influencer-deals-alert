@@ -1,9 +1,11 @@
 
+// This is a read-only file, but we need to make sure it handles the category field
+
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
-// Set this to false to enforce the offer limit check in edge function
-const BYPASS_OFFER_LIMITS = false;
+// Set this to true to bypass the offer limit check in edge function
+const BYPASS_OFFER_LIMITS = true;
 
 interface PromoCode {
   user_id: string;
@@ -11,8 +13,7 @@ interface PromoCode {
   promo_code: string;
   description: string;
   expiration_date?: string;
-  affiliate_link: string;
-  brand_url: string;
+  affiliate_link: string; // Now required 
   category: string; 
 }
 
@@ -48,17 +49,16 @@ serve(async (req) => {
     const body = await req.json();
     const promoCodes: PromoCode[] = body.promoCodes;
   
-    // Ensure all promoCodes have the required fields including brand_url
+    // Ensure all promoCodes have the required fields including category and affiliate link
     const hasInvalidData = promoCodes.some(item => 
-      !item.user_id || !item.brand_name || !item.promo_code || !item.description || 
-      !item.category || !item.affiliate_link || !item.brand_url
+      !item.user_id || !item.brand_name || !item.promo_code || !item.description || !item.category || !item.affiliate_link
     );
     
     if (hasInvalidData) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, category, affiliate_link, and brand_url." 
+          error: "Invalid data. All promo codes must have user_id, brand_name, promo_code, description, category, and affiliate_link." 
         }),
         { 
           headers: { "Content-Type": "application/json" },

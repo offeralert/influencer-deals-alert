@@ -8,11 +8,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
-import UpdateNotifier from "./UpdateNotifier";
 
 const MainLayout = () => {
   const isMobile = useIsMobile();
-  useScrollToTop();
+  useScrollToTop(); // Add this line to enable scroll to top behavior
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -25,7 +24,6 @@ const MainLayout = () => {
       {isMobile && <BottomNav />}
       <SonnerToaster position="top-right" />
       <Toaster />
-      <UpdateNotifier />
     </div>
   );
 };

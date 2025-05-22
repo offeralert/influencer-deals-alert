@@ -15,7 +15,6 @@ export interface PricingTierProps {
   badge: string | null;
   costPerOffer?: string;
   maxOffers: number;
-  isEnquiry?: boolean;
   isLoading: boolean;
   loadingPlan: string | null;
   onSubscribe: (tier: any) => void;
@@ -32,7 +31,6 @@ export const PricingTierCard = ({
   badge,
   costPerOffer,
   maxOffers,
-  isEnquiry,
   isLoading,
   loadingPlan,
   onSubscribe
@@ -61,7 +59,7 @@ export const PricingTierCard = ({
       <CardContent className="flex-grow">
         <div className="mb-4">
           <div className="text-3xl font-bold">{price}</div>
-          {price !== "Free" && price !== "Custom" && (
+          {price !== "Free" && (
             <div className="text-sm text-muted-foreground mt-1">per month</div>
           )}
           {costPerOffer && (
