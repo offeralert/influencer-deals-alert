@@ -39,7 +39,7 @@ const HeroSection = () => {
             <h1 className="text-2xl md:text-4xl font-bold leading-tight">
               Shop. <span className="text-brand-green">Save.</span> Influencers Get Paid.
             </h1>
-            <p className="text-sm md:text-lg text-muted-foreground">Follow the influencers you love and get automatic alerts with their latest promo codes and affiliate links while you shop online. You save money and they keep 100% of the commission.</p>
+            <p className="text-sm md:text-lg text-muted-foreground">Follow the influencers you love and get automatic alerts with their latest promo codes and affiliate links while you shop online. You save money and they keep 100% of the commission. <span className="text-brand-green font-medium">Win. Win.</span></p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="h-10 md:h-12" asChild>
                 {user ? 
