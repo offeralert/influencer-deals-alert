@@ -32,11 +32,11 @@ serve(async (req) => {
     logStep("Event received", { eventName, eventData });
 
     // Get Meta configuration
-    const pixelId = Deno.env.get("META_PIXEL_ID");
+    const pixelId = Deno.env.get("META_PIXEL_ID") || "1210607367458076";
     const accessToken = Deno.env.get("META_API_ACCESS_TOKEN");
     
-    if (!pixelId || !accessToken) {
-      throw new Error("META_PIXEL_ID or META_API_ACCESS_TOKEN is not set");
+    if (!accessToken) {
+      throw new Error("META_API_ACCESS_TOKEN is not set");
     }
 
     // Get user information from auth header if available
