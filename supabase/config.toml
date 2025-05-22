@@ -1,11 +1,4 @@
 
-project_id = "tfcnrglreufvmacvsaak"
-
-[functions.check-subscription]
-verify_jwt = true
-
-[functions.create-checkout]
-verify_jwt = true
-
-[functions.customer-portal]
-verify_jwt = true
+[functions]
+[functions.meta-conversion-api]
+verify_jwt = false

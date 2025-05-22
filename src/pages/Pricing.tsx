@@ -7,6 +7,16 @@ import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiers
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
 import { AlertCircle } from "lucide-react";
 
+// Helper function to track Meta Pixel events
+const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
+  if (window.fbq) {
+    window.fbq('track', eventName, params);
+    console.log(`Meta Pixel event tracked: ${eventName}`, params);
+  } else {
+    console.warn('Meta Pixel not loaded. Event not tracked:', eventName);
+  }
+};
+
 const PricingPage = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -110,6 +120,13 @@ const PricingPage = () => {
     if (subscriptionStatus === 'success' && plan) {
       toast.success(`Successfully subscribed to ${plan} plan!`);
       
+      // Track successful subscription completion
+      trackMetaEvent('SubscriptionComplete', {
+        content_name: plan,
+        currency: 'USD',
+        value: getPlanValue(plan)
+      });
+      
       // Remove the query params
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (subscriptionStatus === 'canceled') {
@@ -118,6 +135,17 @@ const PricingPage = () => {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, [user]);
+
+  // Helper function to get plan monetary value for tracking
+  const getPlanValue = (planName: string): number => {
+    switch (planName) {
+      case 'Boost': return 5;
+      case 'Growth': return 12;
+      case 'Pro': return 20;
+      case 'Elite': return 499;
+      default: return 0;
+    }
+  };
 
   const handleSubscribe = async (tier) => {
     if (!user) {
@@ -131,6 +159,15 @@ const PricingPage = () => {
       navigate('/influencer-apply');
       return;
     }
+
+    // Track subscription initiated event
+    trackMetaEvent('SubscriptionInitiated', {
+      content_name: tier.name,
+      content_category: 'subscription_plan',
+      content_ids: [tier.id],
+      value: getPlanValue(tier.name),
+      currency: 'USD'
+    });
 
     // If user is already on this plan, navigate to dashboard
     if (subscriptionTier === tier.name) {

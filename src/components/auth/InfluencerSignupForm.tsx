@@ -9,6 +9,16 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 
+// Helper function to track Meta Pixel events
+const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
+  if (window.fbq) {
+    window.fbq('track', eventName, params);
+    console.log(`Meta Pixel event tracked: ${eventName}`, params);
+  } else {
+    console.warn('Meta Pixel not loaded. Event not tracked:', eventName);
+  }
+};
+
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -85,6 +95,15 @@ const InfluencerSignupForm = () => {
           toast.error("Account created but influencer status couldn't be updated");
           return;
         }
+        
+        // Track successful influencer signup with Meta Pixel
+        trackMetaEvent('InfluencerSignup', {
+          content_name: 'influencer_registration',
+          status: 'complete',
+          user_data: {
+            email_hashed: true // Meta will automatically hash the email if present in the page
+          }
+        });
       }
 
       toast.success("Signup successful! You can now log in as an influencer.");
