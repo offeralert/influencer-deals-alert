@@ -25,6 +25,8 @@ import Privacy from "./pages/Privacy";
 import Pricing from "./pages/Pricing";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import HowItWorks from "./pages/HowItWorks";
+import WhyJoin from "./pages/WhyJoin";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,8 @@ const App = () => (
               <Route path="/brand/:brandName" element={<BrandProfile />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/why-join" element={<WhyJoin />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

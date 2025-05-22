@@ -29,6 +29,7 @@ const Footer = () => {
               <li><Link to="/explore" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Explore</Link></li>
               <li><Link to="/explore?tab=brands" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Brands</Link></li>
               <li><Link to="/categories" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Categories</Link></li>
+              <li><Link to="/how-it-works" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">How It Works</Link></li>
             </ul>
           </div>
           
@@ -45,6 +46,7 @@ const Footer = () => {
               </li>
               <li><Link to="/pricing" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Pricing</Link></li>
               <li><Link to="/influencer-dashboard" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Dashboard</Link></li>
+              <li><Link to="/why-join" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Why Join</Link></li>
             </ul>
           </div>
           
