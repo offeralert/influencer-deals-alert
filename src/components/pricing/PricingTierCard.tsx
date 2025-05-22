@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 
 export interface PricingTierProps {
   id: string;
@@ -37,6 +38,19 @@ export const PricingTierCard = ({
   loadingPlan,
   onSubscribe
 }: PricingTierProps) => {
+  const [isClicked, setIsClicked] = useState(false);
+  
+  // Handle the click with a slight delay to ensure tracking completes
+  const handleSubscribeClick = () => {
+    setIsClicked(true);
+    
+    // Ensure pixel has time to fire before navigation
+    setTimeout(() => {
+      onSubscribe({id, name});
+      setIsClicked(false);
+    }, 300);
+  };
+
   return (
     <Card 
       className={`relative flex flex-col ${
@@ -85,10 +99,12 @@ export const PricingTierCard = ({
         <Button 
           className="w-full" 
           variant={highlighted ? "default" : "outline"}
-          onClick={() => onSubscribe({id, name})}
-          disabled={isLoading || loadingPlan !== null}
+          onClick={handleSubscribeClick}
+          disabled={isLoading || loadingPlan !== null || isClicked}
         >
-          {loadingPlan === id ? (
+          {isClicked ? (
+            "Processing..."
+          ) : loadingPlan === id ? (
             "Processing..."
           ) : (
             ctaText

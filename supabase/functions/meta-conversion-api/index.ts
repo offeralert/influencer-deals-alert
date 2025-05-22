@@ -45,7 +45,6 @@ serve(async (req) => {
     
     if (authHeader) {
       // Process auth header to get user data if needed
-      // This is a placeholder - implement according to your auth system
       logStep("Authorization header present");
     }
 
