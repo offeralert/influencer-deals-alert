@@ -69,8 +69,7 @@ const WhyJoin = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
             <p className="italic text-gray-600 dark:text-gray-400 mb-4">
-              "My affiliate revenue increased by 35% after joining Offer Alert. The platform makes sure 
-              my codes get used at the perfect moment."
+              "My affiliate revenue increased by 35% after joining Offer Alert."
             </p>
             <p className="font-medium">— Sarah J., Fashion Influencer</p>
           </div>
