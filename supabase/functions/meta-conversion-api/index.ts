@@ -48,13 +48,28 @@ serve(async (req) => {
       logStep("Authorization header present");
     }
 
-    // Enhanced InitiateCheckout event logging
-    if (eventName === 'InitiateCheckout') {
-      logStep("Processing InitiateCheckout event", { 
-        plan: eventData.customData?.content_name,
-        value: eventData.customData?.value,
-        currency: eventData.customData?.currency || 'USD'
-      });
+    // Enhanced event logging based on event type
+    switch (eventName) {
+      case 'InitiateCheckout':
+        logStep("Processing InitiateCheckout event", { 
+          plan: eventData.customData?.content_name,
+          value: eventData.customData?.value,
+          currency: eventData.customData?.currency || 'USD'
+        });
+        break;
+      case 'SubscriptionComplete':
+        logStep("Processing SubscriptionComplete event", {
+          plan: eventData.customData?.content_name,
+          value: eventData.customData?.value
+        });
+        break;
+      case 'InfluencerSignup':
+        logStep("Processing InfluencerSignup event", {
+          leadSource: eventData.customData?.lead_source
+        });
+        break;
+      default:
+        logStep(`Processing ${eventName} event`);
     }
 
     // Prepare data for Meta Conversion API

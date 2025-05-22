@@ -7,6 +7,7 @@ import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiers
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
 import { AlertCircle } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { createSubscriptionPayload, getPlanValue } from "@/utils/metaTrackingHelpers";
 
 const PricingPage = () => {
   const navigate = useNavigate();
@@ -112,12 +113,14 @@ const PricingPage = () => {
     if (subscriptionStatus === 'success' && plan) {
       toast.success(`Successfully subscribed to ${plan} plan!`);
       
-      // Track successful subscription completion
-      track('SubscriptionComplete', {
+      // Track successful subscription completion with our helper
+      const subscriptionPayload = createSubscriptionPayload({
         content_name: plan,
-        currency: 'USD',
-        value: getPlanValue(plan)
+        value: getPlanValue(plan),
+        currency: 'USD'
       });
+      
+      track('SubscriptionComplete', subscriptionPayload);
       
       // Remove the query params
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -152,14 +155,16 @@ const PricingPage = () => {
       return;
     }
 
-    // Track subscription initiated event - use our more robust tracking hook
-    track('SubscriptionInitiated', {
+    // Track subscription initiated event using our helper
+    const subscriptionPayload = createSubscriptionPayload({
       content_name: tier.name,
       content_category: 'subscription_plan',
       content_ids: [tier.id],
       value: getPlanValue(tier.name),
       currency: 'USD'
     });
+    
+    track('SubscriptionInitiated', subscriptionPayload);
 
     // If user is already on this plan, navigate to dashboard
     if (subscriptionTier === tier.name) {

@@ -1,10 +1,10 @@
-
 import { Check } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { createCheckoutPayload, extractNumericPrice } from "@/utils/metaTrackingHelpers";
 
 export interface PricingTierProps {
   id: string;
@@ -42,25 +42,17 @@ export const PricingTierCard = ({
   const [isClicked, setIsClicked] = useState(false);
   const { track } = useMetaTracking();
   
-  // Get numeric price for tracking
-  const getNumericPrice = () => {
-    if (price === "Free" || price === "Custom") return 0;
-    return parseInt(price.replace(/[^0-9]/g, '')) || 0;
-  };
-  
   // Handle the click with a slight delay to ensure tracking completes
   const handleSubscribeClick = () => {
     setIsClicked(true);
     
-    // Track InitiateCheckout event with enhanced details
-    const eventData = {
+    // Track InitiateCheckout event with enhanced details using our helper
+    const eventData = createCheckoutPayload({
       content_name: name,
-      content_category: 'subscription_plan',
       content_ids: [id],
-      value: getNumericPrice(),
+      value: extractNumericPrice(price),
       currency: 'USD',
-      num_items: 1
-    };
+    });
     
     // Use our enhanced tracking method that does both client & server-side tracking
     track('InitiateCheckout', eventData);
@@ -125,9 +117,9 @@ export const PricingTierCard = ({
           variant={highlighted ? "default" : "outline"}
           onClick={handleSubscribeClick}
           disabled={isLoading || loadingPlan !== null || isClicked}
-          id={`checkout-button-${id}`} // Add ID for easier tracking
+          id={`checkout-button-${id}`}
           data-plan-name={name}
-          data-plan-price={getNumericPrice()}
+          data-plan-price={extractNumericPrice(price)}
         >
           {isClicked ? (
             "Processing..."

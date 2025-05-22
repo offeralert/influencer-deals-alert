@@ -1,9 +1,10 @@
 
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { enrichEventData } from '@/utils/metaTrackingHelpers';
 
 // Type definitions for Meta events
-type MetaEventName = 
+export type MetaEventName = 
   | 'PageView'
   | 'InfluencerSignup' 
   | 'SubscriptionInitiated'
@@ -14,7 +15,7 @@ type MetaEventName =
   | string; // Allow for custom events
 
 // Type for event parameters
-interface MetaEventParams {
+export interface MetaEventParams {
   [key: string]: any;
 }
 
@@ -31,8 +32,11 @@ export const useMetaTracking = () => {
   const trackEvent = (eventName: MetaEventName, params?: MetaEventParams) => {
     if (window.fbq) {
       try {
-        window.fbq('track', eventName, params);
-        console.log(`[Meta Pixel] Event tracked: ${eventName}`, params);
+        // Enrich the event data with common metadata 
+        const enrichedParams = params ? enrichEventData(params) : undefined;
+        
+        window.fbq('track', eventName, enrichedParams);
+        console.log(`[Meta Pixel] Event tracked: ${eventName}`, enrichedParams);
       } catch (error) {
         console.error(`[Meta Pixel] Error tracking ${eventName}:`, error);
       }
@@ -47,13 +51,16 @@ export const useMetaTracking = () => {
       // Get the current page URL for source tracking
       const sourceUrl = window.location.href;
       
+      // Enrich the event data with common metadata
+      const enrichedParams = params ? enrichEventData(params) : {};
+      
       // Call the Supabase edge function for server-side tracking
       const { data, error } = await supabase.functions.invoke('meta-conversion-api', {
         body: {
           eventName,
           eventData: {
             sourceUrl,
-            customData: params,
+            customData: enrichedParams,
             userData: {
               // You can add hashed identifiers here if available
               // Meta will handle proper anonymization
