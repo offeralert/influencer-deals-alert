@@ -99,29 +99,45 @@ serve(async (req) => {
     // Determine price ID based on selected plan
     let priceData;
     
-    // Check if we have a specific product ID (for the Boost plan)
-    if (productId === "prod_SH4j01JgfxJSfl") {
-      // For Boost plan with specific product ID
+    // Check if we have a specific product ID (update with the correct product IDs)
+    if (productId === "prod_SH4j01JgfxJSfl") { // Boost plan
       priceData = {
         currency: "usd",
-        product: productId,
-        unit_amount: 1200, // $12/month
+        product: "prod_SH4j01JgfxJSfl", // Boost plan
+        unit_amount: 500, // $5/month
         recurring: {
           interval: "month",
         },
       };
       logStep("Using specified product ID for Boost plan", { productId });
+    } else if (productId === "prod_SGnRrAW83TfaUf") { // Growth plan
+      priceData = {
+        currency: "usd",
+        product: "prod_SGnRrAW83TfaUf", // Growth plan
+        unit_amount: 1200, // $12/month
+        recurring: {
+          interval: "month",
+        },
+      };
+      logStep("Using specified product ID for Growth plan", { productId });
+    } else if (productId === "prod_SGnSw59Chig0Yc") { // Pro plan
+      priceData = {
+        currency: "usd",
+        product: "prod_SGnSw59Chig0Yc", // Pro plan
+        unit_amount: 2000, // $20/month
+        recurring: {
+          interval: "month",
+        },
+      };
+      logStep("Using specified product ID for Pro plan", { productId });
     } else {
       // For other plans, use amount based on plan type
       switch (planType) {
         case "Boost":
           priceData = {
             currency: "usd",
-            product_data: { 
-              name: "Boost Plan",
-              description: "Up to 3 offers"
-            },
-            unit_amount: 1200, // $12/month
+            product: "prod_SH4j01JgfxJSfl", // Updated Boost product ID
+            unit_amount: 500, // $5/month
             recurring: {
               interval: "month",
             },
@@ -130,11 +146,8 @@ serve(async (req) => {
         case "Growth":
           priceData = {
             currency: "usd",
-            product_data: { 
-              name: "Growth Plan",
-              description: "Up to 10 offers" 
-            },
-            unit_amount: 2900, // $29/month
+            product: "prod_SGnRrAW83TfaUf", // Updated Growth product ID
+            unit_amount: 1200, // $12/month
             recurring: {
               interval: "month",
             },
@@ -143,11 +156,8 @@ serve(async (req) => {
         case "Pro":
           priceData = {
             currency: "usd",
-            product_data: { 
-              name: "Pro Plan",
-              description: "Up to 20 offers" 
-            },
-            unit_amount: 4900, // $49/month
+            product: "prod_SGnSw59Chig0Yc", // Updated Pro product ID
+            unit_amount: 2000, // $20/month
             recurring: {
               interval: "month",
             },
@@ -160,7 +170,7 @@ serve(async (req) => {
               name: "Elite Plan",
               description: "Unlimited offers" 
             },
-            unit_amount: 49900, // $499/month
+            unit_amount: 49900, // $499/month (though we expect Elite users to use the contact form instead)
             recurring: {
               interval: "month",
             },

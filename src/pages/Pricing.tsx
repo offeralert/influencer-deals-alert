@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,7 +34,7 @@ const PricingPage = () => {
     {
       id: "boost",
       name: "Boost",
-      price: "$12",
+      price: "$5",
       description: "For new influencers growing their audience",
       features: [
         BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 3 offers",
@@ -43,7 +42,7 @@ const PricingPage = () => {
         "Enhanced search exposure",
         "Cancel anytime"
       ],
-      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$4.00/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.67/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
       badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
@@ -52,7 +51,7 @@ const PricingPage = () => {
     {
       id: "growth",
       name: "Growth",
-      price: "$29",
+      price: "$12",
       description: "Ideal for influencers scaling their business",
       features: [
         BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 10 offers",
@@ -60,7 +59,7 @@ const PricingPage = () => {
         "Priority in search results",
         "Cancel anytime"
       ],
-      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$2.90/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.20/offer",
       ctaText: "Upgrade Now",
       highlighted: true,
       badge: BYPASS_OFFER_LIMITS ? "Promo" : "Popular",
@@ -69,7 +68,7 @@ const PricingPage = () => {
     {
       id: "pro",
       name: "Pro",
-      price: "$49",
+      price: "$20",
       description: "Best for full-time influencers",
       features: [
         BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 20 offers",
@@ -77,7 +76,7 @@ const PricingPage = () => {
         "Expand reach outside of your network",
         "Cancel anytime"
       ],
-      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$2.45/offer",
+      costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.00/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
       badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
@@ -86,18 +85,19 @@ const PricingPage = () => {
     {
       id: "elite",
       name: "Elite",
-      price: "$499",
+      price: "Custom",
       description: "For agencies and high-volume partners",
       features: [
         "Upload unlimited offers",
         "Custom user journey development",
         "Direct support from the Offer Alert team",
-        "Cancel anytime"
+        "Tailored solutions for your needs"
       ],
-      ctaText: "Upgrade Now",
+      ctaText: "Contact Us",
       highlighted: false,
       badge: null,
-      maxOffers: Infinity
+      maxOffers: Infinity,
+      isEnquiry: true
     }
   ];
 
@@ -145,13 +145,23 @@ const PricingPage = () => {
       return;
     }
     
+    // For Elite tier, redirect to contact page
+    if (tier.id === "elite") {
+      navigate('/contact?subject=Elite Plan Enquiry');
+      return;
+    }
+    
     try {
       setLoadingPlan(tier.id);
       
-      // Pass special product ID for Boost plan
+      // Pass specific product ID for each plan
       let productId = null;
       if (tier.id === "boost") {
-        productId = "prod_SH4j01JgfxJSfl";
+        productId = "prod_SH4j01JgfxJSfl"; // Boost plan
+      } else if (tier.id === "growth") {
+        productId = "prod_SGnRrAW83TfaUf"; // Growth plan
+      } else if (tier.id === "pro") {
+        productId = "prod_SGnSw59Chig0Yc"; // Pro plan
       }
       
       const checkoutUrl = await createCheckoutSession(tier.name as any, productId);
