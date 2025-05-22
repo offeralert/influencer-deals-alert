@@ -7,7 +7,7 @@ const WhyJoin = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       <h1 className="text-4xl md:text-5xl font-bold text-center mb-6">
-        Why Join <span className="gradient-text">Offer Alert</span>
+        Why Join <span>Offer Alert</span>
       </h1>
       
       <p className="text-xl text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto">
@@ -88,7 +88,7 @@ const WhyJoin = () => {
       {/* CTA Section */}
       <div className="mt-16 text-center">
         <h3 className="text-2xl font-semibold mb-4">Ready to maximize your affiliate earnings?</h3>
-        <Link to="/influencer-apply">
+        <Link to="/signup?tab=influencer">
           <Button size="lg" className="mt-2">
             Apply as an Influencer <ArrowRight className="ml-2 h-4 w-4" />
           </Button>

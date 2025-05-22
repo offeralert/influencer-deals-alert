@@ -7,7 +7,7 @@ const HowItWorks = () => {
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       <h1 className="text-4xl md:text-5xl font-bold text-center mb-12">
-        How <span className="gradient-text">Offer Alert</span> Works
+        How <span>Offer Alert</span> Works
       </h1>
 
       <div className="space-y-16">
