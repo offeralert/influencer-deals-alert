@@ -19,7 +19,7 @@ const HowItWorks = () => {
           <div className="flex-1">
             <h2 className="text-2xl font-semibold mb-4">Create an account</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-              It's free and takes just seconds. Sign up with your email or use your social accounts.
+              It's free and takes seconds.
             </p>
             <Link to="/signup">
               <Button className="mt-2">
