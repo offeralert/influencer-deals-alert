@@ -6,22 +6,14 @@ import { useEffect, useState } from "react";
 import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiersGrid";
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
 import { AlertCircle } from "lucide-react";
-
-// Helper function to track Meta Pixel events
-const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
-  if (window.fbq) {
-    window.fbq('track', eventName, params);
-    console.log(`Meta Pixel event tracked: ${eventName}`, params);
-  } else {
-    console.warn('Meta Pixel not loaded. Event not tracked:', eventName);
-  }
-};
+import { useMetaTracking } from "@/hooks/useMetaTracking";
 
 const PricingPage = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const { track } = useMetaTracking();
   
   // Update the pricing tiers based on the bypass flag
   const pricingTiers: PricingTier[] = [
@@ -121,7 +113,7 @@ const PricingPage = () => {
       toast.success(`Successfully subscribed to ${plan} plan!`);
       
       // Track successful subscription completion
-      trackMetaEvent('SubscriptionComplete', {
+      track('SubscriptionComplete', {
         content_name: plan,
         currency: 'USD',
         value: getPlanValue(plan)
@@ -134,7 +126,7 @@ const PricingPage = () => {
       // Remove the query params
       window.history.replaceState({}, document.title, window.location.pathname);
     }
-  }, [user]);
+  }, [user, track]);
 
   // Helper function to get plan monetary value for tracking
   const getPlanValue = (planName: string): number => {
@@ -160,8 +152,8 @@ const PricingPage = () => {
       return;
     }
 
-    // Track subscription initiated event
-    trackMetaEvent('SubscriptionInitiated', {
+    // Track subscription initiated event - use our more robust tracking hook
+    track('SubscriptionInitiated', {
       content_name: tier.name,
       content_category: 'subscription_plan',
       content_ids: [tier.id],
