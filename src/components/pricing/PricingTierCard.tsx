@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
 
 export interface PricingTierProps {
   id: string;
@@ -39,10 +40,26 @@ export const PricingTierCard = ({
   onSubscribe
 }: PricingTierProps) => {
   const [isClicked, setIsClicked] = useState(false);
+  const { trackEvent } = useMetaTracking();
+  
+  // Get numeric price for tracking
+  const getNumericPrice = () => {
+    if (price === "Free" || price === "Custom") return 0;
+    return parseInt(price.replace(/[^0-9]/g, '')) || 0;
+  };
   
   // Handle the click with a slight delay to ensure tracking completes
   const handleSubscribeClick = () => {
     setIsClicked(true);
+    
+    // Track InitiateCheckout event
+    trackEvent('InitiateCheckout', {
+      content_name: name,
+      content_category: 'subscription_plan',
+      content_ids: [id],
+      value: getNumericPrice(),
+      currency: 'USD'
+    });
     
     // Ensure pixel has time to fire before navigation
     setTimeout(() => {
