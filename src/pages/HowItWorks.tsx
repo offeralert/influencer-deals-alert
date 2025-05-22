@@ -57,9 +57,15 @@ const HowItWorks = () => {
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
               This enables in-browser notifications when offers are available. Never miss a deal again while shopping online.
             </p>
-            <Button className="mt-2">
-              <Download className="mr-2 h-4 w-4" /> Get the extension
-            </Button>
+            <a 
+              href="https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button className="mt-2">
+                <Download className="mr-2 h-4 w-4" /> Get the extension
+              </Button>
+            </a>
           </div>
         </div>
 
