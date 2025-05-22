@@ -48,11 +48,12 @@ serve(async (req) => {
       logStep("Authorization header present");
     }
 
-    // For InitiateCheckout events, add extra logging
+    // Enhanced InitiateCheckout event logging
     if (eventName === 'InitiateCheckout') {
       logStep("Processing InitiateCheckout event", { 
         plan: eventData.customData?.content_name,
-        value: eventData.customData?.value 
+        value: eventData.customData?.value,
+        currency: eventData.customData?.currency || 'USD'
       });
     }
 
@@ -67,6 +68,7 @@ serve(async (req) => {
           event_time: eventTime,
           event_id: eventId,
           event_source_url: eventData.sourceUrl || req.headers.get("Referer"),
+          action_source: "website",
           user_data: {
             client_ip_address: req.headers.get("x-forwarded-for") || undefined,
             client_user_agent: req.headers.get("user-agent") || undefined,
@@ -81,6 +83,7 @@ serve(async (req) => {
       eventName, 
       eventId,
       eventTime,
+      sourceUrl: payload.data[0].event_source_url,
       hasUserData: !!payload.data[0].user_data,
       hasCustomData: !!payload.data[0].custom_data
     }});

@@ -8,6 +8,7 @@ type MetaEventName =
   | 'InfluencerSignup' 
   | 'SubscriptionInitiated'
   | 'SubscriptionComplete'
+  | 'InitiateCheckout'
   | 'ViewContent'
   | 'Lead'
   | string; // Allow for custom events
@@ -22,14 +23,19 @@ export const useMetaTracking = () => {
   useEffect(() => {
     if (window.fbq) {
       window.fbq('track', 'PageView');
+      console.log('[Meta Pixel] PageView tracked on component mount');
     }
   }, []);
 
   // Client-side tracking function
   const trackEvent = (eventName: MetaEventName, params?: MetaEventParams) => {
     if (window.fbq) {
-      window.fbq('track', eventName, params);
-      console.log(`[Meta Pixel] Event tracked: ${eventName}`, params);
+      try {
+        window.fbq('track', eventName, params);
+        console.log(`[Meta Pixel] Event tracked: ${eventName}`, params);
+      } catch (error) {
+        console.error(`[Meta Pixel] Error tracking ${eventName}:`, error);
+      }
     } else {
       console.warn('[Meta Pixel] fbq not available. Event not tracked:', eventName);
     }
