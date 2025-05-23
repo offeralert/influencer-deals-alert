@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,17 @@ import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, AlertTriangle } from "lucide-react";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface PromoCode {
   id: string;
@@ -32,6 +43,8 @@ const InfluencerDashboard = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [editingPromoCodeId, setEditingPromoCodeId] = useState<string | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
   const { 
     subscribed, 
     subscriptionTier, 
@@ -154,6 +167,35 @@ const InfluencerDashboard = () => {
     } catch (error) {
       console.error("Error in handleDeletePromoCode:", error);
       toast.error("An error occurred while deleting the promo code");
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    
+    setIsCanceling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription');
+      
+      if (error) {
+        console.error("Error canceling subscription:", error);
+        toast.error("Failed to cancel subscription");
+        return;
+      }
+      
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+      
+      toast.success("Your subscription has been canceled successfully");
+      refreshSubscription();
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error("Error in handleCancelSubscription:", error);
+      toast.error("An error occurred while canceling your subscription");
+    } finally {
+      setIsCanceling(false);
     }
   };
 
@@ -289,13 +331,23 @@ const InfluencerDashboard = () => {
                 </div>
                 
                 {subscribed ? (
-                  <Button 
-                    variant="outline" 
-                    className="whitespace-nowrap"
-                    onClick={handleManageSubscription}
-                  >
-                    Manage Subscription
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      className="whitespace-nowrap"
+                      onClick={handleManageSubscription}
+                    >
+                      Manage Subscription
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      className="whitespace-nowrap"
+                      onClick={() => setShowCancelDialog(true)}
+                      disabled={isCanceling}
+                    >
+                      Cancel Subscription
+                    </Button>
+                  </div>
                 ) : (
                   <Button
                     className="whitespace-nowrap"
@@ -459,6 +511,39 @@ const InfluencerDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Subscription Cancellation Confirmation Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Cancel Subscription
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your subscription? Your plan benefits will continue until the end of the current billing period.
+              {promoCodes.length > 1 && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300">
+                  You currently have {promoCodes.length} promo codes. You can only cancel your subscription if you have 1 or fewer promo codes active. Please remove your additional promo codes first.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelSubscription();
+              }}
+              disabled={isCanceling || promoCodes.length > 1}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCanceling ? "Canceling..." : "Yes, Cancel"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

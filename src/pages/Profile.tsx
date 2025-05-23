@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -10,6 +11,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import PromoCodeForm from "@/components/PromoCodeForm";
 import EditProfileForm from "@/components/EditProfileForm";
 import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
+import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface PromoCode {
   id: string;
@@ -27,9 +41,10 @@ const Profile = () => {
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
-  // Remove unused state
-  // const [editingProfile, setEditingProfile] = useState(false);
+  const { subscribed, subscriptionTier, subscriptionEnd, refresh: refreshSubscription } = useSubscription();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -71,13 +86,34 @@ const Profile = () => {
     fetchPromoCodes();
   };
 
-  // Remove unused function
-  // const toggleEditProfile = () => {
-  //   setEditingProfile(!editingProfile);
-  //   if (editingProfile) {
-  //     setActiveTab("profile");
-  //   }
-  // };
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    
+    setIsCanceling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription');
+      
+      if (error) {
+        console.error("Error canceling subscription:", error);
+        toast.error("Failed to cancel subscription");
+        return;
+      }
+      
+      if (data.error) {
+        toast.error(data.error);
+        return;
+      }
+      
+      toast.success("Your subscription has been canceled successfully");
+      refreshSubscription();
+      setShowCancelDialog(false);
+    } catch (error) {
+      console.error("Error in handleCancelSubscription:", error);
+      toast.error("An error occurred while canceling your subscription");
+    } finally {
+      setIsCanceling(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -138,6 +174,12 @@ const Profile = () => {
                           <span className="font-medium">Account type:</span>{" "}
                           {profile?.is_influencer ? "Influencer" : "User"}
                         </div>
+                        {subscribed && (
+                          <div>
+                            <span className="font-medium">Plan:</span>{" "}
+                            {subscriptionTier}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -146,6 +188,15 @@ const Profile = () => {
                     <Button variant="outline" onClick={() => setActiveTab("edit")}>
                       Edit Profile
                     </Button>
+                    {subscribed && (
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => setShowCancelDialog(true)}
+                        disabled={isCanceling}
+                      >
+                        Cancel Subscription
+                      </Button>
+                    )}
                     <Button variant="destructive" onClick={signOut}>
                       Sign Out
                     </Button>
@@ -259,6 +310,39 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Subscription Cancellation Confirmation Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              Cancel Subscription
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel your subscription? Your plan benefits will continue until the end of the current billing period.
+              {promoCodes.length > 1 && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300">
+                  You currently have {promoCodes.length} promo codes. You can only cancel your subscription if you have 1 or fewer promo codes active. Please remove your additional promo codes first.
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleCancelSubscription();
+              }}
+              disabled={isCanceling || promoCodes.length > 1}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCanceling ? "Canceling..." : "Yes, Cancel"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
