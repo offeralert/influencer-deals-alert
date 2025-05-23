@@ -293,13 +293,7 @@ const InfluencerDashboard = () => {
                   Cancel Subscription
                 </Button>
               </>
-            ) : (
-              <Button
-                onClick={() => navigate("/pricing")}
-              >
-                Upgrade Plan
-              </Button>
-            )}
+            ) : null}
           </div>
         </div>
         
