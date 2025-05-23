@@ -11,7 +11,6 @@ import NotFound from "./pages/NotFound";
 import MainLayout from "./components/layout/MainLayout";
 import Explore from "./pages/Explore";
 import MyAlerts from "./pages/MyAlerts";
-import InfluencerApply from "./pages/InfluencerApply";
 import CsvUpload from "./pages/CsvUpload";
 import InfluencerDashboard from "./pages/InfluencerDashboard";
 import Brands from "./pages/Brands";
@@ -45,7 +44,7 @@ const App = () => (
               <Route path="/profile" element={<Profile />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/my-deals" element={<MyAlerts />} />
-              <Route path="/influencer-apply" element={<InfluencerApply />} />
+              <Route path="/influencer-apply" element={<Navigate to="/signup?tab=influencer" />} />
               <Route path="/csv-upload" element={<CsvUpload />} />
               <Route path="/influencer-dashboard" element={<InfluencerDashboard />} />
               <Route path="/brands" element={<Brands />} />
