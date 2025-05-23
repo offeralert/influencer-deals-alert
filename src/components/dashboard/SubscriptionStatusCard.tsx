@@ -102,6 +102,14 @@ const SubscriptionStatusCard = ({
                 >
                   Upgrade Plan
                 </Button>
+                <Button
+                  variant="destructive"
+                  className="whitespace-nowrap"
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={isCanceling}
+                >
+                  Cancel Subscription
+                </Button>
               </div>
             )}
           </div>
