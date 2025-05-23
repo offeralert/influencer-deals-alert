@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { AlertCircle, AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle, RefreshCcw } from "lucide-react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,8 @@ const InfluencerDashboard = () => {
   const [editingPromoCodeId, setEditingPromoCodeId] = useState<string | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [refreshingSubscription, setRefreshingSubscription] = useState(false);
+  
   const { 
     subscribed, 
     subscriptionTier, 
@@ -166,6 +169,18 @@ const InfluencerDashboard = () => {
     } catch (error) {
       console.error("Error in handleDeletePromoCode:", error);
       toast.error("An error occurred while deleting the promo code");
+    }
+  };
+
+  const handleManualRefresh = async () => {
+    setRefreshingSubscription(true);
+    try {
+      await refreshSubscription();
+      toast.success("Subscription status refreshed");
+    } catch (error) {
+      toast.error("Failed to refresh subscription status");
+    } finally {
+      setRefreshingSubscription(false);
     }
   };
 
@@ -315,7 +330,19 @@ const InfluencerDashboard = () => {
           <CardContent className="py-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h2 className="text-xl font-semibold mb-1">Subscription Status</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-semibold mb-1">Subscription Status</h2>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6"
+                    onClick={handleManualRefresh}
+                    disabled={refreshingSubscription}
+                  >
+                    <RefreshCcw className={`h-4 w-4 ${refreshingSubscription ? 'animate-spin' : ''}`} />
+                    <span className="sr-only">Refresh subscription status</span>
+                  </Button>
+                </div>
                 <p className="text-muted-foreground">
                   {subscribed 
                     ? `${subscriptionTier} plan • Renews: ${formatSubscriptionEndDate(subscriptionEnd)}`
@@ -339,14 +366,6 @@ const InfluencerDashboard = () => {
                       onClick={() => navigate("/pricing")}
                     >
                       Upgrade Plan
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      onClick={() => setShowCancelDialog(true)}
-                      disabled={isCanceling}
-                      className="whitespace-nowrap"
-                    >
-                      Cancel Subscription
                     </Button>
                   </div>
                 )}

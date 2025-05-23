@@ -27,6 +27,7 @@ export const useSubscription = (): SubscriptionData => {
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Calculate max offers based on subscription tier
   const maxOffers = useCallback(() => {
@@ -52,11 +53,13 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     setIsLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      const { data, error: funcError } = await supabase.functions.invoke('check-subscription');
       
-      if (error) {
-        console.error("Error checking subscription:", error);
+      if (funcError) {
+        console.error("Error checking subscription:", funcError);
+        setError(funcError.message || "Failed to check subscription status");
         toast.error("Failed to check subscription status");
         return;
       }
@@ -66,8 +69,10 @@ export const useSubscription = (): SubscriptionData => {
         setSubscriptionTier(data.subscription_tier || "Starter");
         setSubscriptionEnd(data.subscription_end);
       }
-    } catch (error) {
-      console.error("Error in subscription check:", error);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error("Error in subscription check:", errorMessage);
+      setError(errorMessage);
       toast.error("Failed to check subscription status");
     } finally {
       setIsLoading(false);
