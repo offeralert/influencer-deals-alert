@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { UserPlus, Instagram, Mail } from "lucide-react";
 
@@ -30,7 +31,7 @@ const MobileFooter = () => {
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <h4 className="font-semibold mb-2 text-sm">Quick Links</h4>
+            <h4 className="font-semibold mb-2 text-sm">For Users</h4>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-sm text-gray-600 dark:text-gray-400">
@@ -43,8 +44,8 @@ const MobileFooter = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-gray-600 dark:text-gray-400">
-                  Contact
+                <Link to="/how-it-works" className="text-sm text-gray-600 dark:text-gray-400">
+                  How It Works
                 </Link>
               </li>
               <li>
@@ -74,6 +75,11 @@ const MobileFooter = () => {
               <li>
                 <Link to="/pricing" className="text-sm text-gray-600 dark:text-gray-400">
                   Pricing
+                </Link>
+              </li>
+              <li>
+                <Link to="/why-join" className="text-sm text-gray-600 dark:text-gray-400">
+                  Why Join
                 </Link>
               </li>
               <li>
