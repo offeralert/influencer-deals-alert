@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useAuthGate } from "@/hooks/useAuthGate";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import PromoCodeForm from "@/components/PromoCodeForm";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import SubscriptionStatusCard from "@/components/dashboard/SubscriptionStatusCard";
@@ -29,12 +28,17 @@ interface PromoCode {
 const InfluencerDashboard = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
   const [editingPromoCodeId, setEditingPromoCodeId] = useState<string | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [refreshingSubscription, setRefreshingSubscription] = useState(false);
+  
+  // Extract action from URL parameters
+  const queryParams = new URLSearchParams(location.search);
+  const action = queryParams.get('action');
   
   const { 
     subscribed, 
@@ -46,6 +50,15 @@ const InfluencerDashboard = () => {
     createCheckoutSession,
     openCustomerPortal
   } = useSubscription();
+
+  // Show cancel dialog if action=cancel in URL
+  useEffect(() => {
+    if (action === 'cancel' && subscribed) {
+      setShowCancelDialog(true);
+      // Clean up URL parameter after showing dialog
+      navigate('/influencer-dashboard', { replace: true });
+    }
+  }, [action, subscribed, navigate]);
 
   // Use our auth gate hook to check if user is authorized to view this page
   const { isLoading: authLoading, isAuthorized } = useAuthGate({

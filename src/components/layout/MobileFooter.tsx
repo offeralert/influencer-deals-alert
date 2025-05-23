@@ -1,11 +1,59 @@
 
-import { Link } from "react-router-dom";
-import { UserPlus, Instagram, Mail } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { UserPlus, Instagram, Mail, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const MobileFooter = () => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const isInfluencer = profile?.is_influencer === true;
+  
+  const { 
+    subscribed, 
+    openCustomerPortal 
+  } = useSubscription();
+
+  const handleManageSubscription = async () => {
+    try {
+      const url = await openCustomerPortal();
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error("Error opening customer portal:", error);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 px-4 py-8 mt-8 border-t">
       <div className="space-y-6">
+        {/* Subscription Management Section for Influencers */}
+        {isInfluencer && subscribed && (
+          <div className="border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
+            <h4 className="font-semibold mb-3 text-sm">Subscription</h4>
+            <div className="flex flex-col gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="justify-start"
+                onClick={handleManageSubscription}
+              >
+                Manage Subscription
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm"
+                className="justify-start"
+                onClick={() => navigate("/influencer-dashboard?action=cancel")}
+              >
+                Cancel Subscription
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div>
           <h3 className="text-lg font-bold gradient-text mb-3">Offer Alert</h3>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
