@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -279,12 +278,21 @@ const InfluencerDashboard = () => {
           
           <div className="flex items-center gap-2">
             {subscribed ? (
-              <Button 
-                variant="outline" 
-                onClick={handleManageSubscription}
-              >
-                Manage Subscription
-              </Button>
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleManageSubscription}
+                >
+                  Manage Subscription
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={isCanceling}
+                >
+                  Cancel Subscription
+                </Button>
+              </>
             ) : (
               <Button
                 onClick={() => navigate("/pricing")}
@@ -331,23 +339,13 @@ const InfluencerDashboard = () => {
                 </div>
                 
                 {subscribed ? (
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      className="whitespace-nowrap"
-                      onClick={handleManageSubscription}
-                    >
-                      Manage Subscription
-                    </Button>
-                    <Button 
-                      variant="destructive" 
-                      className="whitespace-nowrap"
-                      onClick={() => setShowCancelDialog(true)}
-                      disabled={isCanceling}
-                    >
-                      Cancel Subscription
-                    </Button>
-                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="whitespace-nowrap"
+                    onClick={handleManageSubscription}
+                  >
+                    Manage Subscription
+                  </Button>
                 ) : (
                   <Button
                     className="whitespace-nowrap"
