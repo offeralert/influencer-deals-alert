@@ -1,30 +1,19 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import PromoCodeForm from "@/components/PromoCodeForm";
-import PromoCodeEditor from "@/components/PromoCodeEditor";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { AlertCircle, AlertTriangle, RefreshCcw } from "lucide-react";
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import PromoCodeForm from "@/components/PromoCodeForm";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import SubscriptionStatusCard from "@/components/dashboard/SubscriptionStatusCard";
+import BypassNotificationBanner from "@/components/dashboard/BypassNotificationBanner";
+import PromoCodeList from "@/components/dashboard/PromoCodeList";
+import CancellationDialog from "@/components/dashboard/CancellationDialog";
 
 interface PromoCode {
   id: string;
@@ -213,36 +202,6 @@ const InfluencerDashboard = () => {
     }
   };
 
-  const isExpired = (expiryDate: string | null): boolean => {
-    if (!expiryDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expiryDate);
-    return expiry < today;
-  };
-  
-  const isExpiringSoon = (expiryDate: string | null): boolean => {
-    if (!expiryDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expiry = new Date(expiryDate);
-    
-    // Consider "soon" as within 7 days
-    const sevenDaysFromNow = new Date(today);
-    sevenDaysFromNow.setDate(today.getDate() + 7);
-    
-    return expiry >= today && expiry <= sevenDaysFromNow;
-  };
-
-  const formatSubscriptionEndDate = (dateString: string | null) => {
-    if (!dateString) return "No active subscription";
-    return new Date(dateString).toLocaleDateString(undefined, { 
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const handleUpgradeClick = async (planType: "Growth" | "Pro" | "Elite") => {
     const url = await createCheckoutSession(planType);
     if (url) {
@@ -281,98 +240,33 @@ const InfluencerDashboard = () => {
     return null;
   }
 
-  // Check if there are any expired or expiring soon promo codes
-  const hasExpiredCodes = promoCodes.some(code => isExpired(code.expiration_date));
-  const hasExpiringSoonCodes = promoCodes.some(code => isExpiringSoon(code.expiration_date) && !isExpired(code.expiration_date));
-
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Influencer Dashboard</h1>
-          
-          <div className="flex items-center gap-2">
-            {subscribed ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  onClick={handleManageSubscription}
-                >
-                  Manage Subscription
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => setShowCancelDialog(true)}
-                  disabled={isCanceling}
-                >
-                  Cancel Subscription
-                </Button>
-              </>
-            ) : null}
-          </div>
-        </div>
+        <DashboardHeader 
+          handleManageSubscription={handleManageSubscription}
+          setShowCancelDialog={setShowCancelDialog}
+          isCanceling={isCanceling}
+          subscribed={subscribed}
+        />
         
         {/* Bypass Notification Banner */}
-        {BYPASS_OFFER_LIMITS && (
-          <div className="mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-            <div>
-              <h3 className="font-semibold text-green-800 dark:text-green-300">Limited Time Promotion</h3>
-              <p className="text-green-700 dark:text-green-400 text-sm">
-                We're temporarily allowing unlimited promo code submissions for all influencers. Keep adding offers with no limits!
-              </p>
-            </div>
-          </div>
-        )}
+        <BypassNotificationBanner show={BYPASS_OFFER_LIMITS} />
         
         {/* Subscription Status Card */}
-        <Card className="mb-8">
-          <CardContent className="py-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-semibold mb-1">Subscription Status</h2>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6"
-                    onClick={handleManualRefresh}
-                    disabled={refreshingSubscription}
-                  >
-                    <RefreshCcw className={`h-4 w-4 ${refreshingSubscription ? 'animate-spin' : ''}`} />
-                    <span className="sr-only">Refresh subscription status</span>
-                  </Button>
-                </div>
-                <p className="text-muted-foreground">
-                  {subscribed 
-                    ? `${subscriptionTier} plan • Renews: ${formatSubscriptionEndDate(subscriptionEnd)}`
-                    : "Starter plan (Free)"
-                  }
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground mb-1">Offers</div>
-                  <div className="font-semibold">
-                    {promoCodes.length} / {BYPASS_OFFER_LIMITS ? "Unlimited" : maxOffers}
-                  </div>
-                </div>
-                
-                {!subscribed && (
-                  <div className="flex space-x-2">
-                    <Button
-                      className="whitespace-nowrap"
-                      onClick={() => navigate("/pricing")}
-                    >
-                      Upgrade Plan
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <SubscriptionStatusCard 
+          subscribed={subscribed}
+          subscriptionTier={subscriptionTier}
+          subscriptionEnd={subscriptionEnd}
+          promoCodes={promoCodes}
+          maxOffers={maxOffers}
+          bypassOfferLimits={BYPASS_OFFER_LIMITS}
+          refreshingSubscription={refreshingSubscription}
+          handleManualRefresh={handleManualRefresh}
+          handleManageSubscription={handleManageSubscription}
+          setShowCancelDialog={setShowCancelDialog}
+          isCanceling={isCanceling}
+        />
         
         <Tabs defaultValue="promocodes" className="space-y-6">
           <TabsList>
@@ -381,135 +275,15 @@ const InfluencerDashboard = () => {
           </TabsList>
           
           <TabsContent value="promocodes">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Current Promo Codes</span>
-                  {/* Only show badge legend if there are expired or expiring soon codes */}
-                  {(hasExpiredCodes || hasExpiringSoonCodes) && (
-                    <div className="flex gap-2 text-sm font-normal">
-                      {hasExpiredCodes && (
-                        <Badge variant="outline" className="bg-red-50 text-red-800 dark:bg-red-950/30 dark:text-red-400">
-                          Expired
-                        </Badge>
-                      )}
-                      {hasExpiringSoonCodes && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400">
-                          Expiring Soon
-                        </Badge>
-                      )}
-                    </div>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loadingPromoCodes ? (
-                  <div className="text-center py-4">Loading promo codes...</div>
-                ) : promoCodes.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Brand</TableHead>
-                          <TableHead>Code</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>Description</TableHead>
-                          <TableHead>Expires</TableHead>
-                          <TableHead>Affiliate Link</TableHead>
-                          <TableHead>Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {promoCodes.map((code) => (
-                          <TableRow key={code.id} className={
-                            isExpired(code.expiration_date) 
-                              ? "bg-red-50 dark:bg-red-950/10" 
-                              : isExpiringSoon(code.expiration_date)
-                              ? "bg-yellow-50 dark:bg-yellow-950/10"
-                              : ""
-                          }>
-                            {editingPromoCodeId === code.id ? (
-                              <TableCell colSpan={7}>
-                                <PromoCodeEditor 
-                                  promoCode={code} 
-                                  onSave={handlePromoCodeUpdated} 
-                                  onCancel={() => setEditingPromoCodeId(null)} 
-                                />
-                              </TableCell>
-                            ) : (
-                              <>
-                                <TableCell className="font-medium">{code.brand_name}</TableCell>
-                                <TableCell className="font-mono">{code.promo_code}</TableCell>
-                                <TableCell>
-                                  <span className="px-2 py-1 bg-brand-light dark:bg-brand-dark rounded-full text-xs">
-                                    {code.category}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="max-w-[200px] truncate">{code.description}</TableCell>
-                                <TableCell>
-                                  {code.expiration_date 
-                                    ? (
-                                      <div className="flex items-center gap-2">
-                                        <span>{new Date(code.expiration_date).toLocaleDateString()}</span>
-                                        {isExpired(code.expiration_date) && (
-                                          <Badge variant="destructive" className="text-xs">Expired</Badge>
-                                        )}
-                                        {isExpiringSoon(code.expiration_date) && !isExpired(code.expiration_date) && (
-                                          <Badge variant="outline" className="bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-400 text-xs">
-                                            Soon
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    )
-                                    : "No expiration"
-                                  }
-                                </TableCell>
-                                <TableCell>
-                                  {code.affiliate_link ? (
-                                    <a 
-                                      href={code.affiliate_link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-brand-green hover:underline truncate max-w-[150px] inline-block"
-                                    >
-                                      {code.affiliate_link}
-                                    </a>
-                                  ) : (
-                                    "—"
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex space-x-2">
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      onClick={() => setEditingPromoCodeId(code.id)}
-                                    >
-                                      Edit
-                                    </Button>
-                                    <Button 
-                                      variant="destructive" 
-                                      size="sm" 
-                                      onClick={() => handleDeletePromoCode(code.id)}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </>
-                            )}
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-4 border rounded-md bg-muted/20">
-                    You haven't added any promo codes yet.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PromoCodeList 
+              promoCodes={promoCodes}
+              loadingPromoCodes={loadingPromoCodes}
+              onEditPromoCode={setEditingPromoCodeId}
+              onDeletePromoCode={handleDeletePromoCode}
+              onPromoCodeUpdated={handlePromoCodeUpdated}
+              editingPromoCodeId={editingPromoCodeId}
+              onCancelEdit={() => setEditingPromoCodeId(null)}
+            />
           </TabsContent>
           
           <TabsContent value="add">
@@ -526,37 +300,13 @@ const InfluencerDashboard = () => {
       </div>
 
       {/* Subscription Cancellation Confirmation Dialog */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-500" />
-              Cancel Subscription
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel your subscription? Your plan benefits will continue until the end of the current billing period.
-              {promoCodes.length > 1 && (
-                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-700 dark:text-red-300">
-                  You currently have {promoCodes.length} promo codes. You can only cancel your subscription if you have 1 or fewer promo codes active. Please remove your additional promo codes first.
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep Subscription</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                handleCancelSubscription();
-              }}
-              disabled={isCanceling || promoCodes.length > 1}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isCanceling ? "Canceling..." : "Yes, Cancel"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CancellationDialog 
+        showDialog={showCancelDialog}
+        setShowDialog={setShowCancelDialog}
+        handleCancelSubscription={handleCancelSubscription}
+        isCanceling={isCanceling}
+        promoCodes={promoCodes}
+      />
     </div>
   );
 };
