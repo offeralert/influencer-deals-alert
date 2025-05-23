@@ -332,21 +332,23 @@ const InfluencerDashboard = () => {
                   </div>
                 </div>
                 
-                {subscribed ? (
-                  <Button 
-                    variant="outline" 
-                    className="whitespace-nowrap"
-                    onClick={handleManageSubscription}
-                  >
-                    Manage Subscription
-                  </Button>
-                ) : (
-                  <Button
-                    className="whitespace-nowrap"
-                    onClick={() => navigate("/pricing")}
-                  >
-                    Upgrade Plan
-                  </Button>
+                {!subscribed && (
+                  <div className="flex space-x-2">
+                    <Button
+                      className="whitespace-nowrap"
+                      onClick={() => navigate("/pricing")}
+                    >
+                      Upgrade Plan
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => setShowCancelDialog(true)}
+                      disabled={isCanceling}
+                      className="whitespace-nowrap"
+                    >
+                      Cancel Subscription
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
