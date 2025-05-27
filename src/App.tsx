@@ -26,6 +26,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import HowItWorks from "./pages/HowItWorks";
 import WhyJoin from "./pages/WhyJoin";
+import Origin from "./pages/Origin";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/why-join" element={<WhyJoin />} />
+              <Route path="/origin" element={<Origin />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
