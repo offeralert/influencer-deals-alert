@@ -55,7 +55,7 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        avatar_url: profile.avatar_url, // Remove fallback - let avatar utils handle this
         is_creditcard: profile.is_creditcard
       })) || [];
       
@@ -93,7 +93,7 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Credit Card',
         username: profile.username || 'creditcard',
-        avatar_url: profile.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        avatar_url: profile.avatar_url, // Remove fallback - let avatar utils handle this
         is_creditcard: profile.is_creditcard
       })) || [];
       
