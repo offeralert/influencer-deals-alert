@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,6 +35,15 @@ const InfluencerSignupForm = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSocialHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value;
+    // Remove @ symbol if user types it
+    if (value.startsWith('@')) {
+      value = value.substring(1);
+    }
+    setFormData((prev) => ({ ...prev, socialHandle: value }));
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -133,15 +141,19 @@ const InfluencerSignupForm = () => {
       
       <div className="space-y-2">
         <Label htmlFor="socialHandle">Social Media Handle</Label>
-        <Input
-          id="socialHandle"
-          name="socialHandle"
-          placeholder="@yourusername"
-          required
-          value={formData.socialHandle}
-          onChange={handleChange}
-          disabled={isLoading}
-        />
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">@</span>
+          <Input
+            id="socialHandle"
+            name="socialHandle"
+            placeholder="yourusername"
+            required
+            value={formData.socialHandle}
+            onChange={handleSocialHandleChange}
+            disabled={isLoading}
+            className="pl-8"
+          />
+        </div>
       </div>
       
       <div className="space-y-2">

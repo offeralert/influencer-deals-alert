@@ -9,24 +9,33 @@ export const DEFAULT_AVATAR_URL = "/lovable-uploads/bb8661cd-9515-4e04-b2db-e6ca
 /**
  * Gets the appropriate avatar URL to display
  * @param avatarUrl The user's avatar URL (if any)
- * @returns The URL to use for the avatar image
+ * @returns The URL to use for the avatar image, or null if no valid avatar
  */
-export const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
-  return avatarUrl || DEFAULT_AVATAR_URL;
+export const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
+  // Return the avatar URL if it exists and is not the default placeholder
+  if (avatarUrl && avatarUrl !== DEFAULT_AVATAR_URL && avatarUrl.trim() !== '') {
+    return avatarUrl;
+  }
+  // Return null to trigger fallback behavior in Avatar component
+  return null;
 };
 
 /**
  * Generates initials from a username or email
- * @param username The username to generate initials from
- * @param email Fallback email if username is not provided
- * @returns Two-character initials string
+ * @param name The full name to generate initials from
+ * @param username Fallback username if name is not provided
+ * @param email Fallback email if neither name nor username is provided
+ * @returns Single character initial string
  */
-export const getInitials = (username?: string | null, email?: string | null): string => {
-  if (username) {
-    return username.substring(0, 2).toUpperCase();
+export const getInitials = (name?: string | null, username?: string | null, email?: string | null): string => {
+  if (name && name.trim()) {
+    return name.trim().charAt(0).toUpperCase();
   }
-  if (email) {
-    return email.substring(0, 2).toUpperCase();
+  if (username && username.trim()) {
+    return username.trim().charAt(0).toUpperCase();
   }
-  return "UN"; // Unknown - fallback
+  if (email && email.trim()) {
+    return email.trim().charAt(0).toUpperCase();
+  }
+  return "U"; // Unknown - fallback
 };

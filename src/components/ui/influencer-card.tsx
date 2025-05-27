@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useInfluencerFollow } from '@/hooks/useInfluencerFollow';
+import { getAvatarUrl, getInitials } from '@/utils/avatarUtils';
 
 interface InfluencerCardProps {
   id: string;
@@ -16,14 +17,18 @@ interface InfluencerCardProps {
 
 const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard = false }: InfluencerCardProps) => {
   const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
+  const avatarUrl = getAvatarUrl(imageUrl);
+  const initials = getInitials(name);
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-3">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={imageUrl} alt={name} />
-            <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={avatarUrl} alt={name} />
+            <AvatarFallback className="bg-gray-500 text-white font-bold text-sm">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <Link to={`/influencer/${id}`} className="hover:underline">
