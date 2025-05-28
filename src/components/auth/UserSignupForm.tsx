@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +7,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
 
 const UserSignupForm = () => {
   const navigate = useNavigate();
+  const { track } = useMetaTracking();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -73,6 +74,14 @@ const UserSignupForm = () => {
         console.error("Signup error:", error);
         return;
       }
+
+      // Track user signup event
+      await track('Lead', {
+        content_name: 'user_registration',
+        content_category: 'signup',
+        lead_type: 'user_account',
+        value: 0
+      });
 
       // Automatically sign in the user
       const { error: signInError } = await supabase.auth.signInWithPassword({

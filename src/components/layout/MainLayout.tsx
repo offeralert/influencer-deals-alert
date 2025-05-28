@@ -8,10 +8,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
 
 const MainLayout = () => {
   const isMobile = useIsMobile();
-  useScrollToTop(); // Add this line to enable scroll to top behavior
+  useScrollToTop();
+  useMetaTracking(); // Initialize Meta tracking for page views
 
   return (
     <div className="flex min-h-screen flex-col bg-white">

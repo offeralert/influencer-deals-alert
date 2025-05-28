@@ -12,12 +12,25 @@ import CategoryDealsSection from "@/components/home/CategoryDealsSection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { useEffect } from "react";
+import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
 
 const Index = () => {
   const { user, profile } = useAuth();
+  const { track } = useMetaTracking();
   
   // Check if the user is an influencer
   const isInfluencer = profile?.is_influencer === true;
+
+  // Track homepage view
+  useEffect(() => {
+    track('ViewContent', createViewContentPayload({
+      content_name: 'homepage',
+      content_category: 'main_page',
+      value: 0
+    }));
+  }, [track]);
 
   // Special view for influencers
   if (user && isInfluencer) {

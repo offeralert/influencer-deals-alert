@@ -2,8 +2,22 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Heart, Shield, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { useEffect } from "react";
+import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
 
 const Origin = () => {
+  const { track } = useMetaTracking();
+
+  // Track origin page view
+  useEffect(() => {
+    track('ViewContent', createViewContentPayload({
+      content_name: 'origin_story',
+      content_category: 'about_page',
+      value: 0
+    }));
+  }, [track]);
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       {/* Hero Section */}

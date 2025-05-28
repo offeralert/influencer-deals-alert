@@ -95,5 +95,10 @@ export const enrichEventData = (eventData: BaseEventParams): BaseEventParams => 
     enriched.source_url = window.location.href;
   }
   
+  // Add timestamp
+  if (!enriched.event_time) {
+    enriched.event_time = Math.floor(Date.now() / 1000);
+  }
+  
   return enriched;
 };

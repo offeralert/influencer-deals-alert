@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
+import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { createLeadPayload } from "@/utils/metaTrackingHelpers";
 
 // Helper function to track Meta Pixel events
 const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
@@ -20,6 +22,7 @@ const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
 
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
+  const { track } = useMetaTracking();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -92,7 +95,7 @@ const InfluencerSignupForm = () => {
       }
 
       if (data.user) {
-        // Update the profile to set is_influencer to true, without trying to set application_date
+        // Update the profile to set is_influencer to true
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ is_influencer: true })
@@ -104,14 +107,13 @@ const InfluencerSignupForm = () => {
           return;
         }
         
-        // Track successful influencer signup with Meta Pixel
-        trackMetaEvent('InfluencerSignup', {
+        // Track successful influencer signup with Meta
+        await track('InfluencerSignup', createLeadPayload({
           content_name: 'influencer_registration',
-          status: 'complete',
-          user_data: {
-            email_hashed: true // Meta will automatically hash the email if present in the page
-          }
-        });
+          content_category: 'influencer_signup',
+          lead_type: 'influencer_application',
+          value: 0
+        }));
       }
 
       toast.success("Signup successful! You can now log in as an influencer.");
