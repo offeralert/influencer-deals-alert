@@ -51,7 +51,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "Offer Alert <onboarding@resend.dev>",
+      from: "Offer Alert <hello@yourdomain.com>",
       to: [email],
       subject,
       html,
