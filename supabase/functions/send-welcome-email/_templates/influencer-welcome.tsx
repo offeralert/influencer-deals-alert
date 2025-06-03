@@ -1,4 +1,3 @@
-
 import {
   Body,
   Button,
@@ -74,7 +73,7 @@ export const InfluencerWelcomeEmail = ({ fullName, username }: InfluencerWelcome
 
         <Section style={proTipSection}>
           <Heading style={h3}>💡 Pro Tips for Success:</Heading>
-          <Text style={listItem}>✅ Add 3-5 promo codes to start - variety drives engagement</Text>
+          <Text style={listItem}>✅ Add 1-3 promo codes to start - quality over quantity drives engagement</Text>
           <Text style={listItem}>✅ Share your profile link in your bio and stories</Text>
           <Text style={listItem}>✅ Update your codes regularly to keep followers engaged</Text>
           <Text style={listItem}>✅ Use the browser extension to discover trending deals in your niche</Text>
