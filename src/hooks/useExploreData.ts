@@ -37,11 +37,10 @@ export const useExploreData = (
 
   const fetchInfluencers = async () => {
     try {
-      // First get all influencer IDs that have promo codes
-      const { data: promoCodeInfluencers, error: promoError } = await supabase
+      // First get all unique influencer IDs from promo codes
+      const { data: promoCodeData, error: promoError } = await supabase
         .from('promo_codes')
-        .select('influencer_id')
-        .eq('is_creditcard', false);
+        .select('influencer_id');
 
       if (promoError) {
         console.error("Error fetching promo code influencers:", promoError);
@@ -50,7 +49,7 @@ export const useExploreData = (
       }
 
       // Extract unique influencer IDs
-      const influencerIds = [...new Set(promoCodeInfluencers?.map(p => p.influencer_id) || [])];
+      const influencerIds = [...new Set(promoCodeData?.map(p => p.influencer_id) || [])];
 
       if (influencerIds.length === 0) {
         setInfluencers([]);
@@ -98,11 +97,10 @@ export const useExploreData = (
 
   const fetchCreditCards = async () => {
     try {
-      // First get all influencer IDs that have promo codes and are credit cards
-      const { data: promoCodeCreditCards, error: promoError } = await supabase
+      // First get all unique influencer IDs from promo codes
+      const { data: promoCodeData, error: promoError } = await supabase
         .from('promo_codes')
-        .select('influencer_id')
-        .eq('is_creditcard', true);
+        .select('influencer_id');
 
       if (promoError) {
         console.error("Error fetching promo code credit cards:", promoError);
@@ -111,7 +109,7 @@ export const useExploreData = (
       }
 
       // Extract unique influencer IDs
-      const creditCardIds = [...new Set(promoCodeCreditCards?.map(p => p.influencer_id) || [])];
+      const creditCardIds = [...new Set(promoCodeData?.map(p => p.influencer_id) || [])];
 
       if (creditCardIds.length === 0) {
         setCreditCards([]);
