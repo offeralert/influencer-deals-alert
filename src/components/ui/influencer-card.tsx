@@ -31,7 +31,7 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <Link to={`/influencer/${id}`} className="hover:underline">
+            <Link to={`/influencer/${username}`} className="hover:underline">
               <h3 className="font-semibold text-sm truncate mb-0.5">{name}</h3>
               {!isCreditCard && (
                 <p className="text-xs text-gray-500 truncate">@{username}</p>

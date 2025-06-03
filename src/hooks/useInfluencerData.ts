@@ -12,19 +12,19 @@ interface InfluencerProfile {
   is_creditcard?: boolean;
 }
 
-export const useInfluencerData = (id: string | undefined) => {
+export const useInfluencerData = (username: string | undefined) => {
   const navigate = useNavigate();
   const [influencer, setInfluencer] = useState<InfluencerProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) {
+    if (!username) {
       navigate("/");
       return;
     }
 
     fetchInfluencerData();
-  }, [id]);
+  }, [username]);
 
   const fetchInfluencerData = async () => {
     try {
@@ -33,7 +33,7 @@ export const useInfluencerData = (id: string | undefined) => {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', id)
+        .eq('username', username)
         .eq('is_influencer', true)
         .single();
       

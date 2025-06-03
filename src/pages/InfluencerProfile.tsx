@@ -8,24 +8,26 @@ import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeade
 import InfluencerPromoCodes from "@/components/profile/InfluencerPromoCodes";
 
 const InfluencerProfile = () => {
-  const { id } = useParams<{ id: string }>();
+  const { username } = useParams<{ username: string }>();
   const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
-  const { influencer, loading } = useInfluencerData(id);
+  const { influencer, loading } = useInfluencerData(username);
   const { isFollowing, handleFollowToggle } = useInfluencerFollow(
-    id,
+    influencer?.id,
     influencer?.full_name || ""
   );
 
   useEffect(() => {
-    if (id) {
+    if (influencer?.id) {
       fetchPromoCodes();
     }
-  }, [id]);
+  }, [influencer?.id]);
 
   const fetchPromoCodes = async () => {
+    if (!influencer?.id) return;
+    
     try {
       const { data, error } = await getPromoCodes()
-        .eq('influencer_id', id)
+        .eq('influencer_id', influencer.id)
         .order('created_at', { ascending: false });
       
       if (error) {
