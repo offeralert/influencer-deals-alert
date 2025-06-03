@@ -37,11 +37,33 @@ export const useExploreData = (
 
   const fetchInfluencers = async () => {
     try {
+      // First get all influencer IDs that have promo codes
+      const { data: promoCodeInfluencers, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('influencer_id')
+        .eq('is_creditcard', false);
+
+      if (promoError) {
+        console.error("Error fetching promo code influencers:", promoError);
+        setInfluencers([]);
+        return;
+      }
+
+      // Extract unique influencer IDs
+      const influencerIds = [...new Set(promoCodeInfluencers?.map(p => p.influencer_id) || [])];
+
+      if (influencerIds.length === 0) {
+        setInfluencers([]);
+        return;
+      }
+
+      // Now fetch only those influencers who have promo codes
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_influencer', true)
         .eq('is_creditcard', false)
+        .in('id', influencerIds)
         .order(sortOption === 'alphabetical' ? 'full_name' : 'created_at', 
                { ascending: sortOption === 'alphabetical' });
       
@@ -55,7 +77,7 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Influencer',
         username: profile.username || 'unknown',
-        avatar_url: profile.avatar_url, // Remove fallback - let avatar utils handle this
+        avatar_url: profile.avatar_url,
         is_creditcard: profile.is_creditcard
       })) || [];
       
@@ -76,10 +98,32 @@ export const useExploreData = (
 
   const fetchCreditCards = async () => {
     try {
+      // First get all influencer IDs that have promo codes and are credit cards
+      const { data: promoCodeCreditCards, error: promoError } = await supabase
+        .from('promo_codes')
+        .select('influencer_id')
+        .eq('is_creditcard', true);
+
+      if (promoError) {
+        console.error("Error fetching promo code credit cards:", promoError);
+        setCreditCards([]);
+        return;
+      }
+
+      // Extract unique influencer IDs
+      const creditCardIds = [...new Set(promoCodeCreditCards?.map(p => p.influencer_id) || [])];
+
+      if (creditCardIds.length === 0) {
+        setCreditCards([]);
+        return;
+      }
+
+      // Now fetch only those credit cards who have promo codes
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('is_creditcard', true)
+        .in('id', creditCardIds)
         .order(sortOption === 'alphabetical' ? 'full_name' : 'created_at', 
                { ascending: sortOption === 'alphabetical' });
       
@@ -93,7 +137,7 @@ export const useExploreData = (
         id: profile.id,
         full_name: profile.full_name || 'Unnamed Credit Card',
         username: profile.username || 'creditcard',
-        avatar_url: profile.avatar_url, // Remove fallback - let avatar utils handle this
+        avatar_url: profile.avatar_url,
         is_creditcard: profile.is_creditcard
       })) || [];
       
