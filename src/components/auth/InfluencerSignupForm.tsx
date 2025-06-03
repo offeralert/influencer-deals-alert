@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,8 @@ const InfluencerSignupForm = () => {
     setIsLoading(true);
     
     try {
+      console.log("🚀 Starting influencer signup process for:", formData.email);
+      
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -90,12 +93,14 @@ const InfluencerSignupForm = () => {
       });
 
       if (error) {
+        console.error("❌ Signup error:", error);
         toast.error(error.message);
-        console.error("Signup error:", error);
         return;
       }
 
       if (data.user) {
+        console.log("✅ User created successfully:", data.user.id);
+        
         // Update the profile to set is_influencer to true
         const { error: profileError } = await supabase
           .from('profiles')
@@ -103,38 +108,49 @@ const InfluencerSignupForm = () => {
           .eq('id', data.user.id);
 
         if (profileError) {
-          console.error("Error updating profile:", profileError);
+          console.error("❌ Error updating profile:", profileError);
           toast.error("Account created but influencer status couldn't be updated");
           return;
         }
         
+        console.log("✅ Profile updated to influencer successfully");
+        
         // Track successful influencer signup with Meta
-        await track('InfluencerSignup', createLeadPayload({
-          content_name: 'influencer_registration',
-          content_category: 'influencer_signup',
-          lead_type: 'influencer_application',
-          value: 0
-        }));
+        try {
+          await track('InfluencerSignup', createLeadPayload({
+            content_name: 'influencer_registration',
+            content_category: 'influencer_signup',
+            lead_type: 'influencer_application',
+            value: 0
+          }));
+          console.log("✅ Meta tracking event sent");
+        } catch (trackingError) {
+          console.error("❌ Meta tracking failed:", trackingError);
+          // Don't block signup for tracking failure
+        }
 
         // Send welcome email for influencers
         try {
-          await sendWelcomeEmail({
+          console.log("📧 Attempting to send welcome email to:", formData.email);
+          const emailResult = await sendWelcomeEmail({
             email: formData.email,
             fullName: formData.fullName,
             isInfluencer: true,
             username: formData.socialHandle,
           });
-          console.log('Influencer welcome email sent successfully');
+          console.log("✅ Welcome email sent successfully:", emailResult);
+          toast.success("Account created! Check your email for next steps and welcome information.");
         } catch (emailError) {
-          console.error('Failed to send influencer welcome email:', emailError);
-          // Don't block signup for email failure
+          console.error("❌ Failed to send welcome email:", emailError);
+          // Don't block signup for email failure, but show a warning
+          toast.success("Account created successfully! Welcome email may be delayed.");
         }
+        
+        console.log("🏠 Redirecting to home page");
+        navigate("/");
       }
-
-      toast.success("Signup successful! Check your email for next steps and then you can log in as an influencer.");
-      navigate("/login");
     } catch (error) {
-      console.error("Unexpected error during application:", error);
+      console.error("❌ Unexpected error during signup:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
