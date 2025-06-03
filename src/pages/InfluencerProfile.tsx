@@ -68,6 +68,7 @@ const InfluencerProfile = () => {
         isFollowing={isFollowing}
         onFollowToggle={handleFollowToggle}
         isCreditCard={influencer.is_creditcard}
+        influencerId={influencer.id}
       />
       
       <InfluencerPromoCodes

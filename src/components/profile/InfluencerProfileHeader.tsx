@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Check } from "lucide-react";
 import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
+import ShareProfileButton from "@/components/ui/share-profile-button";
 
 interface InfluencerProfileHeaderProps {
   fullName: string;
@@ -12,6 +13,7 @@ interface InfluencerProfileHeaderProps {
   isFollowing: boolean;
   onFollowToggle: () => void;
   isCreditCard?: boolean;
+  influencerId?: string;
 }
 
 const InfluencerProfileHeader = ({
@@ -20,7 +22,8 @@ const InfluencerProfileHeader = ({
   avatarUrl,
   isFollowing,
   onFollowToggle,
-  isCreditCard = false
+  isCreditCard = false,
+  influencerId
 }: InfluencerProfileHeaderProps) => {
   const initials = getInitials(username, null);
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
@@ -43,20 +46,30 @@ const InfluencerProfileHeader = ({
                 )}
               </div>
               
-              <Button 
-                variant={isFollowing ? "outline" : "default"}
-                className="min-w-[120px] md:ml-auto"
-                onClick={onFollowToggle}
-              >
-                {isFollowing ? (
-                  <>
-                    <Check className="h-4 w-4 mr-2" />
-                    Following
-                  </>
-                ) : (
-                  "Follow"
+              <div className="flex items-center gap-2 md:ml-auto">
+                <Button 
+                  variant={isFollowing ? "outline" : "default"}
+                  className="min-w-[120px]"
+                  onClick={onFollowToggle}
+                >
+                  {isFollowing ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Following
+                    </>
+                  ) : (
+                    "Follow"
+                  )}
+                </Button>
+                
+                {influencerId && (
+                  <ShareProfileButton
+                    influencerId={influencerId}
+                    influencerName={fullName}
+                    username={username}
+                  />
                 )}
-              </Button>
+              </div>
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { createLeadPayload } from "@/utils/metaTrackingHelpers";
+import { sendWelcomeEmail } from "@/utils/emailUtils";
 
 // Helper function to track Meta Pixel events
 const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
@@ -114,9 +115,23 @@ const InfluencerSignupForm = () => {
           lead_type: 'influencer_application',
           value: 0
         }));
+
+        // Send welcome email for influencers
+        try {
+          await sendWelcomeEmail({
+            email: formData.email,
+            fullName: formData.fullName,
+            isInfluencer: true,
+            username: formData.socialHandle,
+          });
+          console.log('Influencer welcome email sent successfully');
+        } catch (emailError) {
+          console.error('Failed to send influencer welcome email:', emailError);
+          // Don't block signup for email failure
+        }
       }
 
-      toast.success("Signup successful! You can now log in as an influencer.");
+      toast.success("Signup successful! Check your email for next steps and then you can log in as an influencer.");
       navigate("/login");
     } catch (error) {
       console.error("Unexpected error during application:", error);

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, EyeOff } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { sendWelcomeEmail } from "@/utils/emailUtils";
 
 const UserSignupForm = () => {
   const navigate = useNavigate();
@@ -83,6 +84,19 @@ const UserSignupForm = () => {
         value: 0
       });
 
+      // Send welcome email
+      try {
+        await sendWelcomeEmail({
+          email: formData.email,
+          fullName: formData.name,
+          isInfluencer: false,
+        });
+        console.log('Welcome email sent successfully');
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't block signup for email failure
+      }
+
       // Automatically sign in the user
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
@@ -96,7 +110,7 @@ const UserSignupForm = () => {
         return;
       }
 
-      toast.success("Account created successfully! You've been signed in.");
+      toast.success("Account created successfully! Check your email for next steps.");
       navigate("/");
     } catch (error) {
       console.error("Unexpected error during signup:", error);
