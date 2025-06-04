@@ -1,4 +1,3 @@
-
 import {
   Body,
   Button,
@@ -15,9 +14,10 @@ import * as React from "npm:react@18.3.1";
 interface InfluencerWelcomeEmailProps {
   fullName: string;
   username: string;
+  influencerId: string;
 }
 
-export const InfluencerWelcomeEmail = ({ fullName, username }: InfluencerWelcomeEmailProps) => (
+export const InfluencerWelcomeEmail = ({ fullName, username, influencerId }: InfluencerWelcomeEmailProps) => (
   <Html>
     <Head />
     <Preview>Welcome to Offer Alert - Start earning with your influence!</Preview>
@@ -65,7 +65,7 @@ export const InfluencerWelcomeEmail = ({ fullName, username }: InfluencerWelcome
             </Text>
             <Button
               style={button}
-              href={`https://offeralert.io/influencer/${username}?utm_source=welcome-email`}
+              href={`https://offeralert.io/influencer/${influencerId}?utm_source=welcome-email`}
             >
               🔗 View Your Profile
             </Button>
