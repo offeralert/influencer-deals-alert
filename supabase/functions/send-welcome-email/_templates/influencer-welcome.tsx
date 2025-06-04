@@ -1,3 +1,4 @@
+
 import {
   Body,
   Button,
@@ -50,7 +51,7 @@ export const InfluencerWelcomeEmail = ({ fullName, username }: InfluencerWelcome
               Get the extension to see how your followers will discover your deals.
             </Text>
             <Button
-              style={buttonSecondary}
+              style={button}
               href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=welcome-email"
             >
               📥 Download Extension
@@ -63,7 +64,7 @@ export const InfluencerWelcomeEmail = ({ fullName, username }: InfluencerWelcome
               Share your unique profile link with followers so they can follow you and get your exclusive deals.
             </Text>
             <Button
-              style={buttonSecondary}
+              style={button}
               href={`https://offeralert.io/influencer/${username}?utm_source=welcome-email`}
             >
               🔗 View Your Profile
@@ -151,19 +152,6 @@ const button = {
   display: "block",
   padding: "16px 32px",
   margin: "16px 0",
-};
-
-const buttonSecondary = {
-  backgroundColor: "#6b7280",
-  borderRadius: "8px",
-  color: "#fff",
-  fontSize: "16px",
-  fontWeight: "bold",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "block",
-  padding: "12px 24px",
-  margin: "12px 0",
 };
 
 const section = {
