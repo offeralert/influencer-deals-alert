@@ -8,13 +8,15 @@ interface InfluencerPromoCodesProps {
   influencerId: string;
   influencerName: string;
   influencerImage: string;
+  influencerUsername: string;
 }
 
 const InfluencerPromoCodes = ({
   promoCodes,
   influencerId,
   influencerName,
-  influencerImage
+  influencerImage,
+  influencerUsername
 }: InfluencerPromoCodesProps) => {
   if (promoCodes.length === 0) {
     return (
@@ -43,7 +45,7 @@ const InfluencerPromoCodes = ({
             affiliateLink={code.affiliate_link || "#"}
             influencerName={influencerName}
             influencerImage={influencerImage}
-            influencerId={influencerId}
+            influencerUsername={influencerUsername}
             category={code.category || ""}
           />
         ))}

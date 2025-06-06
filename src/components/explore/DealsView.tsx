@@ -42,7 +42,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
                     <DealCard 
                       key={deal.id} 
                       {...deal} 
-                      influencerId={deal.influencerId}
+                      influencerUsername={deal.influencerUsername}
                     />
                   ))}
               </div>
@@ -55,7 +55,7 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
             <DealCard 
               key={deal.id} 
               {...deal} 
-              influencerId={deal.influencerId}
+              influencerUsername={deal.influencerUsername}
             />
           ))}
         </div>

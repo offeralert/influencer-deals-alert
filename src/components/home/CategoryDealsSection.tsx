@@ -81,6 +81,7 @@ const CategoryDealsSection = () => {
             influencerName: deal.profiles?.full_name || 'Unknown Influencer',
             influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
             influencerId: deal.influencer_id || "", 
+            influencerUsername: deal.profiles?.username || 'unknown',
             category: deal.category || ""
           }));
           

@@ -19,7 +19,7 @@ interface SavedDeal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string;
+  influencerUsername: string;
   category: string;
 }
 
@@ -148,7 +148,7 @@ const MyAlerts = () => {
         affiliateLink: promo.affiliate_link || "#",
         influencerName: promo.profiles?.full_name || 'Unknown Influencer',
         influencerImage: promo.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-        influencerId: promo.influencer_id || "",
+        influencerUsername: promo.profiles?.username || 'unknown',
         category: promo.category || ""
       }));
       
@@ -231,7 +231,7 @@ const MyAlerts = () => {
               affiliateLink={deal.affiliateLink}
               influencerName={deal.influencerName}
               influencerImage={deal.influencerImage}
-              influencerId={deal.influencerId}
+              influencerUsername={deal.influencerUsername}
               category={deal.category}
             />
           ))}

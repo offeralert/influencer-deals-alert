@@ -35,7 +35,7 @@ const BrandPromoCodes = ({ promoCodes }: BrandPromoCodesProps) => {
             affiliateLink={code.affiliate_link || "#"}
             influencerName={code.profiles?.full_name || "Unknown Influencer"}
             influencerImage={code.profiles?.avatar_url || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"}
-            influencerId={code.influencer_id || ""} 
+            influencerUsername={code.profiles?.username || "unknown"}
             category={code.category || ""}
           />
         ))}

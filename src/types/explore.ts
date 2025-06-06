@@ -21,7 +21,7 @@ export interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string;
+  influencerUsername: string;
   category: string;
 }
 
