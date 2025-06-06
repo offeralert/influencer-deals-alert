@@ -18,7 +18,7 @@ interface DealCardProps {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string;
+  influencerUsername: string;
   category: string;
 }
 
@@ -32,7 +32,7 @@ export function DealCard({
   affiliateLink,
   influencerName,
   influencerImage,
-  influencerId,
+  influencerUsername,
   category
 }: DealCardProps) {
   const handleCopyCode = () => {
@@ -83,7 +83,7 @@ export function DealCard({
       
       <CardFooter className="border-t p-3 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
         <Link 
-          to={`/influencer/${influencerId}`} 
+          to={`/influencer/${influencerUsername}`} 
           className="flex items-center gap-2 hover:underline"
         >
           <Avatar className="h-6 w-6">

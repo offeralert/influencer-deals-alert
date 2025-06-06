@@ -15,7 +15,7 @@ interface Deal {
   affiliateLink: string;
   influencerName: string;
   influencerImage: string;
-  influencerId: string; 
+  influencerUsername: string;
   category: string;
 }
 
@@ -75,7 +75,7 @@ const TrendingDealsSection = () => {
     // Transform to our Deal interface
     const formattedDeals = data.map(deal => ({
       id: deal.id || "",
-      title: deal.description || "", // Using description for the offer detail
+      title: deal.description || "",
       brandName: deal.brand_name || "",
       discount: deal.promo_code || "",
       promoCode: deal.promo_code || "",
@@ -83,7 +83,7 @@ const TrendingDealsSection = () => {
       affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.profiles?.full_name || 'Unknown Influencer',
       influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
-      influencerId: deal.influencer_id || "", 
+      influencerUsername: deal.profiles?.username || 'unknown',
       category: deal.category || 'Fashion'
     }));
     
@@ -94,7 +94,7 @@ const TrendingDealsSection = () => {
     setTrendingDeals([
       {
         id: "1",
-        title: "30% OFF", // This is now the title/description displayed in the top right
+        title: "30% OFF",
         brandName: "FashionNova",
         discount: "SUMMER30",
         promoCode: "SUMMER30",
@@ -102,7 +102,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Sophia Chen",
         influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-        influencerId: "sample-influencer-1",
+        influencerUsername: "sophiachen",
         category: "Fashion"
       },
       {
@@ -115,7 +115,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Marcus Johnson",
         influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
-        influencerId: "sample-influencer-2",
+        influencerUsername: "marcusjohnson",
         category: "Fitness"
       },
       {
@@ -128,7 +128,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Emma Wilson",
         influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
-        influencerId: "sample-influencer-3",
+        influencerUsername: "emmawilson",
         category: "Food"
       },
       {
@@ -141,7 +141,7 @@ const TrendingDealsSection = () => {
         affiliateLink: "https://example.com",
         influencerName: "Alex Rivera",
         influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-        influencerId: "sample-influencer-4",
+        influencerUsername: "alexrivera",
         category: "Tech"
       },
     ]);
