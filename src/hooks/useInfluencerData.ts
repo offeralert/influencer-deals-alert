@@ -39,7 +39,7 @@ export const useInfluencerData = (username: string | undefined) => {
       
       if (profileError) {
         console.error("Error fetching influencer profile:", profileError);
-        navigate("/not-found");
+        setInfluencer(null);
         return;
       }
       
@@ -53,7 +53,7 @@ export const useInfluencerData = (username: string | undefined) => {
       
     } catch (error) {
       console.error("Error in fetchInfluencerData:", error);
-      navigate("/not-found");
+      setInfluencer(null);
     } finally {
       setLoading(false);
     }

@@ -6,6 +6,7 @@ import { useInfluencerData } from "@/hooks/useInfluencerData";
 import { useInfluencerFollow } from "@/hooks/useInfluencerFollow";
 import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeader";
 import InfluencerPromoCodes from "@/components/profile/InfluencerPromoCodes";
+import NotFound from "./NotFound";
 
 const InfluencerProfile = () => {
   const { username } = useParams<{ username: string }>();
@@ -52,13 +53,7 @@ const InfluencerProfile = () => {
   }
 
   if (!influencer) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <p>Influencer not found</p>
-        </div>
-      </div>
-    );
+    return <NotFound />;
   }
 
   return (
