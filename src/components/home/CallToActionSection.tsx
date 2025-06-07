@@ -23,10 +23,14 @@ const CallToActionSection = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
             <Button size="lg" className="h-10 md:h-12" asChild>
               {user ? (
-                <Link to="/extension-download">
+                <a 
+                  href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
                   <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
                   Download Extension
-                </Link>
+                </a>
               ) : (
                 <Link to="/signup">Sign Up Now</Link>
               )}
