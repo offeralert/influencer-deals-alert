@@ -73,6 +73,7 @@ const InfluencerProfile = () => {
         influencerId={influencer.id}
         influencerName={influencer.full_name}
         influencerImage={influencer.avatar_url}
+        influencerUsername={influencer.username}
       />
     </div>
   );
