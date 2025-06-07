@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Check } from "lucide-react";
-import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 import ShareProfileButton from "@/components/ui/share-profile-button";
 
 interface InfluencerProfileHeaderProps {
@@ -25,7 +25,6 @@ const InfluencerProfileHeader = ({
   isCreditCard = false,
   influencerId
 }: InfluencerProfileHeaderProps) => {
-  const initials = getInitials(username, null);
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
 
   return (
@@ -34,7 +33,6 @@ const InfluencerProfileHeader = ({
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
           <Avatar className="h-24 w-24">
             <AvatarImage src={displayAvatarUrl} alt={fullName} />
-            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           
           <div className="flex-1 text-center md:text-left">

@@ -21,7 +21,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getAvatarUrl, getInitials } from "@/utils/avatarUtils";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -37,8 +37,7 @@ const Header = () => {
   // Helper to determine if the user is an influencer
   const isInfluencer = profile?.is_influencer === true;
   
-  // Get avatar and initials
-  const initials = user ? getInitials(profile?.username, user.email) : "G";
+  // Get avatar URL
   const avatarUrl = user ? getAvatarUrl(profile?.avatar_url) : null;
 
   return (
@@ -160,7 +159,6 @@ const Header = () => {
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={avatarUrl || undefined} alt="User" />
-                      <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                     <span className="sr-only">User menu</span>
                   </Button>
