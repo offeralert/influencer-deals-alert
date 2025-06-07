@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
@@ -13,6 +12,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 
 interface Deal {
   id: string;
@@ -102,7 +102,7 @@ const FeaturedOffersSection = () => {
       expiryDate: offer.expiration_date,
       affiliateLink: offer.affiliate_link || "#",
       influencerName: offer.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: offer.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerImage: getAvatarUrl(offer.profiles?.avatar_url) || "",
       influencerUsername: offer.profiles?.username || 'unknown',
       category: offer.category || 'Fashion'
     }));

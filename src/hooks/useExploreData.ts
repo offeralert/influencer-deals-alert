@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { Influencer, Deal, Brand, ExploreTab, SortOption } from "@/types/explore";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 
 export const useExploreData = (
   activeTab: ExploreTab,
@@ -196,7 +196,7 @@ export const useExploreData = (
         expiryDate: deal.expiration_date,
         affiliateLink: deal.affiliate_link || "#",
         influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-        influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+        influencerImage: getAvatarUrl(deal.profiles?.avatar_url) || "",
         influencerUsername: deal.profiles?.username || 'unknown',
         category: deal.category || 'Fashion'
       }));

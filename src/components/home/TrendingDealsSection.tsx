@@ -4,6 +4,7 @@ import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 
 interface Deal {
   id: string;
@@ -82,7 +83,7 @@ const TrendingDealsSection = () => {
       expiryDate: deal.expiration_date,
       affiliateLink: deal.affiliate_link || "#",
       influencerName: deal.profiles?.full_name || 'Unknown Influencer',
-      influencerImage: deal.profiles?.avatar_url || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+      influencerImage: getAvatarUrl(deal.profiles?.avatar_url) || "",
       influencerUsername: deal.profiles?.username || 'unknown',
       category: deal.category || 'Fashion'
     }));
@@ -101,7 +102,7 @@ const TrendingDealsSection = () => {
         expiryDate: "2025-08-31",
         affiliateLink: "https://example.com",
         influencerName: "Sophia Chen",
-        influencerImage: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
+        influencerImage: getAvatarUrl(null) || "",
         influencerUsername: "sophiachen",
         category: "Fashion"
       },
@@ -114,7 +115,7 @@ const TrendingDealsSection = () => {
         expiryDate: "2025-07-15",
         affiliateLink: "https://example.com",
         influencerName: "Marcus Johnson",
-        influencerImage: "https://images.unsplash.com/photo-1581092795360-fd1ca04f0952",
+        influencerImage: getAvatarUrl(null) || "",
         influencerUsername: "marcusjohnson",
         category: "Fitness"
       },
@@ -127,7 +128,7 @@ const TrendingDealsSection = () => {
         expiryDate: "2025-09-10",
         affiliateLink: "https://example.com",
         influencerName: "Emma Wilson",
-        influencerImage: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+        influencerImage: getAvatarUrl(null) || "",
         influencerUsername: "emmawilson",
         category: "Food"
       },
@@ -140,7 +141,7 @@ const TrendingDealsSection = () => {
         expiryDate: "2025-07-30",
         affiliateLink: "https://example.com",
         influencerName: "Alex Rivera",
-        influencerImage: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
+        influencerImage: getAvatarUrl(null) || "",
         influencerUsername: "alexrivera",
         category: "Tech"
       },

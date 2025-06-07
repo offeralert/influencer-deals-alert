@@ -2,6 +2,7 @@
 import { DealCard } from "@/components/ui/deal-card";
 import { PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { isExpired, isExpiringSoon } from "@/utils/dateUtils";
+import { getAvatarUrl } from "@/utils/avatarUtils";
 
 interface BrandPromoCodesProps {
   promoCodes: PromoCodeWithInfluencer[];
@@ -34,7 +35,7 @@ const BrandPromoCodes = ({ promoCodes }: BrandPromoCodesProps) => {
             expiryDate={code.expiration_date}
             affiliateLink={code.affiliate_link || "#"}
             influencerName={code.profiles?.full_name || "Unknown Influencer"}
-            influencerImage={code.profiles?.avatar_url || "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"}
+            influencerImage={getAvatarUrl(code.profiles?.avatar_url) || ""}
             influencerUsername={code.profiles?.username || "unknown"}
             category={code.category || ""}
           />
