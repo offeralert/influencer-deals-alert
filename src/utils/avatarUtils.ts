@@ -1,10 +1,9 @@
-
 /**
  * Utility functions for handling user avatars
  */
 
 // Default avatar image to use when a user doesn't have their own profile picture
-export const DEFAULT_AVATAR_URL = "/lovable-uploads/bb8661cd-9515-4e04-b2db-e6ca442d0b03.png";
+export const DEFAULT_AVATAR_URL = "/lovable-uploads/356ff562-0791-4751-b148-479880cae4ee.png";
 
 /**
  * Gets the appropriate avatar URL to display
