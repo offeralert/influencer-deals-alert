@@ -21,7 +21,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { getAvatarUrl } from "@/utils/avatarUtils";
+import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 const Header = () => {
   const isMobile = useIsMobile();
@@ -159,6 +159,9 @@ const Header = () => {
                   <Button variant="ghost" size="icon" className="rounded-full">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={avatarUrl || undefined} alt="User" />
+                      <AvatarFallback>
+                        <AvatarImage src={DEFAULT_AVATAR_URL} alt="User" />
+                      </AvatarFallback>
                     </Avatar>
                     <span className="sr-only">User menu</span>
                   </Button>

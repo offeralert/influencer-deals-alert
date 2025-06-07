@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Upload } from "lucide-react";
-import { getAvatarUrl } from "@/utils/avatarUtils";
+import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 interface ProfileAvatarUploaderProps {
   initialAvatarUrl: string | null;
@@ -46,6 +46,9 @@ const ProfileAvatarUploader = ({
     <div className="flex flex-col items-center gap-4 mb-6">
       <Avatar className="h-24 w-24">
         <AvatarImage src={avatarUrl} alt="Profile" />
+        <AvatarFallback>
+          <AvatarImage src={DEFAULT_AVATAR_URL} alt="Profile" />
+        </AvatarFallback>
       </Avatar>
       
       <div className="flex flex-col items-center">

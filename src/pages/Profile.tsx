@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import PromoCodeForm from "@/components/PromoCodeForm";
 import EditProfileForm from "@/components/EditProfileForm";
-import { getAvatarUrl } from "@/utils/avatarUtils";
+import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -135,6 +136,9 @@ const Profile = () => {
           <CardHeader className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
             <Avatar className="h-24 w-24">
               <AvatarImage src={avatarUrl} alt={profile?.username || user.email} />
+              <AvatarFallback>
+                <AvatarImage src={DEFAULT_AVATAR_URL} alt={profile?.username || user.email} />
+              </AvatarFallback>
             </Avatar>
             <div className="space-y-1 text-center sm:text-left">
               <CardTitle className="text-2xl">{profile?.full_name || 'User'}</CardTitle>

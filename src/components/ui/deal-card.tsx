@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { formatExpiryDate } from "@/utils/dateUtils";
-import { getAvatarUrl } from "@/utils/avatarUtils";
+import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 interface DealCardProps {
   id: string;
@@ -91,6 +91,9 @@ export function DealCard({
         >
           <Avatar className="h-6 w-6">
             <AvatarImage src={avatarUrl} alt={influencerName} />
+            <AvatarFallback>
+              <AvatarImage src={DEFAULT_AVATAR_URL} alt={influencerName} />
+            </AvatarFallback>
           </Avatar>
           <span className="text-xs text-muted-foreground truncate max-w-[120px]">{influencerName}</span>
         </Link>
