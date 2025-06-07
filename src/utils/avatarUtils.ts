@@ -1,22 +1,23 @@
+
 /**
  * Utility functions for handling user avatars
  */
 
 // Default avatar image to use when a user doesn't have their own profile picture
-export const DEFAULT_AVATAR_URL = "/lovable-uploads/356ff562-0791-4751-b148-479880cae4ee.png";
+export const DEFAULT_AVATAR_URL = "/lovable-uploads/11413d34-cd0f-4495-88a8-d62239cabfe5.png";
 
 /**
  * Gets the appropriate avatar URL to display
  * @param avatarUrl The user's avatar URL (if any)
- * @returns The URL to use for the avatar image, or null if no valid avatar
+ * @returns The URL to use for the avatar image, or the default avatar if no custom avatar
  */
-export const getAvatarUrl = (avatarUrl: string | null | undefined): string | null => {
-  // Return the avatar URL if it exists and is not the default placeholder
-  if (avatarUrl && avatarUrl !== DEFAULT_AVATAR_URL && avatarUrl.trim() !== '') {
+export const getAvatarUrl = (avatarUrl: string | null | undefined): string => {
+  // Return the avatar URL if it exists and is not empty
+  if (avatarUrl && avatarUrl.trim() !== '') {
     return avatarUrl;
   }
-  // Return null to trigger fallback behavior in Avatar component
-  return null;
+  // Return the default avatar instead of null to prevent initials fallback
+  return DEFAULT_AVATAR_URL;
 };
 
 /**
