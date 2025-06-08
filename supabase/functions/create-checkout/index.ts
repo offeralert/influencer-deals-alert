@@ -197,6 +197,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${origin}/pricing?subscription=success&plan=${planType}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?subscription=canceled`,
+      allow_promotion_codes: true,
       subscription_data: {
         metadata: {
           user_id: user.id,
@@ -213,7 +214,7 @@ serve(async (req) => {
     
     const session = await stripe.checkout.sessions.create(sessionOptions);
     
-    logStep("Created checkout session", { sessionId: session.id });
+    logStep("Created checkout session with promo code support", { sessionId: session.id });
 
     // Save subscription information in the database
     await supabaseAdmin.from("subscribers").upsert({
