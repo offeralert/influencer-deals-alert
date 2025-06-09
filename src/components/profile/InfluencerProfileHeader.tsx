@@ -14,6 +14,8 @@ interface InfluencerProfileHeaderProps {
   onFollowToggle: () => void;
   isCreditCard?: boolean;
   influencerId?: string;
+  followerCount?: number;
+  isLoadingFollowerCount?: boolean;
 }
 
 const InfluencerProfileHeader = ({
@@ -23,9 +25,15 @@ const InfluencerProfileHeader = ({
   isFollowing,
   onFollowToggle,
   isCreditCard = false,
-  influencerId
+  influencerId,
+  followerCount = 0,
+  isLoadingFollowerCount = false
 }: InfluencerProfileHeaderProps) => {
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
+
+  const formatFollowerCount = (count: number) => {
+    return count === 1 ? '1 follower' : `${count} followers`;
+  };
 
   return (
     <Card className="mb-8">
@@ -43,7 +51,16 @@ const InfluencerProfileHeader = ({
               <div>
                 <h1 className="text-2xl font-bold mb-1">{fullName}</h1>
                 {!isCreditCard && (
-                  <p className="text-muted-foreground">@{username}</p>
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">@{username}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {isLoadingFollowerCount ? (
+                        "Loading followers..."
+                      ) : (
+                        formatFollowerCount(followerCount)
+                      )}
+                    </p>
+                  </div>
                 )}
               </div>
               
