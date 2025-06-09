@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,7 +11,7 @@ import PromoCodeForm from "@/components/PromoCodeForm";
 import EditProfileForm from "@/components/EditProfileForm";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 import { toast } from "sonner";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Mail } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,6 +112,26 @@ const Profile = () => {
     } finally {
       setIsCanceling(false);
     }
+  };
+
+  const handleRequestInfluencerAccount = () => {
+    const subject = "Request to Convert User Account to Influencer Account";
+    const body = `Hello OfferAlert Team,
+
+I would like to request that my user account be converted to an influencer account. 
+
+Account Email: ${user?.email}
+Name: ${profile?.full_name || 'Not provided'}
+Username: ${profile?.username || 'Not provided'}
+
+I have promo codes that I would like to upload and manage through the influencer dashboard. Please let me know if you need any additional information to process this request.
+
+Thank you for your assistance.
+
+Best regards`;
+
+    const mailtoLink = `mailto:hello@offeralert.io?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoLink;
   };
 
   if (isLoading) {
@@ -296,6 +315,14 @@ const Profile = () => {
                   <div className="flex flex-col gap-2 sm:flex-row mt-6">
                     <Button variant="outline" onClick={() => setActiveTab("edit")}>
                       Edit Profile
+                    </Button>
+                    <Button 
+                      variant="secondary" 
+                      onClick={handleRequestInfluencerAccount}
+                      className="bg-brand-green/10 text-brand-green hover:bg-brand-green/20"
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Request Influencer Account
                     </Button>
                     <Button variant="destructive" onClick={signOut}>
                       Sign Out
