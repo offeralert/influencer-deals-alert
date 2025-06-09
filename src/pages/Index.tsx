@@ -79,7 +79,7 @@ const Index = () => {
     );
   }
 
-  // Regular user view (existing code)
+  // Regular user view (reordered to highlight featured offers)
   return (
     <div className={`min-h-screen ${user ? 'pb-0' : ''}`}>
       <div className="section-container">
@@ -89,13 +89,13 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <FeaturedAccountsSection />
+        <FeaturedOffersSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <FeaturedOffersSection />
+        <FeaturedAccountsSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
