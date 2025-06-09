@@ -4,7 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useInfluencerFollow } from '@/hooks/useInfluencerFollow';
+import { useFollowerCount } from '@/hooks/useFollowerCount';
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from '@/utils/avatarUtils';
+import { formatFollowerCountCompact } from '@/utils/followerUtils';
 
 interface InfluencerCardProps {
   id: string;
@@ -17,6 +19,7 @@ interface InfluencerCardProps {
 
 const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard = false }: InfluencerCardProps) => {
   const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
+  const { followerCount, isLoading: isLoadingFollowerCount } = useFollowerCount(id);
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
@@ -35,6 +38,13 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
               {!isCreditCard && (
                 <p className="text-xs text-gray-500 truncate">@{username}</p>
               )}
+              <p className="text-xs text-gray-400 truncate">
+                {isLoadingFollowerCount ? (
+                  "Loading..."
+                ) : (
+                  `${formatFollowerCountCompact(followerCount)} followers`
+                )}
+              </p>
             </Link>
           </div>
           <Button 

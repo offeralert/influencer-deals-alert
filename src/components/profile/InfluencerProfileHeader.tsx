@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Check } from "lucide-react";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
+import { formatFollowerCount } from "@/utils/followerUtils";
 import ShareProfileButton from "@/components/ui/share-profile-button";
 
 interface InfluencerProfileHeaderProps {
@@ -31,10 +32,6 @@ const InfluencerProfileHeader = ({
 }: InfluencerProfileHeaderProps) => {
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
 
-  const formatFollowerCount = (count: number) => {
-    return count === 1 ? '1 follower' : `${count} followers`;
-  };
-
   return (
     <Card className="mb-8">
       <CardContent className="pt-6">
@@ -50,18 +47,18 @@ const InfluencerProfileHeader = ({
             <div className="flex flex-col md:flex-row md:items-center gap-3 mb-3">
               <div>
                 <h1 className="text-2xl font-bold mb-1">{fullName}</h1>
-                {!isCreditCard && (
-                  <div className="space-y-1">
+                <div className="space-y-1">
+                  {!isCreditCard && (
                     <p className="text-muted-foreground">@{username}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {isLoadingFollowerCount ? (
-                        "Loading followers..."
-                      ) : (
-                        formatFollowerCount(followerCount)
-                      )}
-                    </p>
-                  </div>
-                )}
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    {isLoadingFollowerCount ? (
+                      "Loading followers..."
+                    ) : (
+                      formatFollowerCount(followerCount)
+                    )}
+                  </p>
+                </div>
               </div>
               
               <div className="flex items-center gap-2 md:ml-auto">
