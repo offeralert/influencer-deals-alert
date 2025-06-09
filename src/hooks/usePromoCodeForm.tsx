@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,21 +20,73 @@ interface UsePromoCodeFormProps {
   onPromoCodeAdded: () => void;
 }
 
+const STORAGE_KEY = "promo_code_form_draft";
+
+// Helper function to safely access localStorage
+const getStoredFormData = (): Partial<PromoCodeFormData> | null => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  } catch (error) {
+    console.warn("Failed to parse stored form data:", error);
+    return null;
+  }
+};
+
+// Helper function to safely save to localStorage
+const saveFormData = (data: PromoCodeFormData) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Failed to save form data:", error);
+  }
+};
+
+// Helper function to clear stored form data
+const clearStoredFormData = () => {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn("Failed to clear stored form data:", error);
+  }
+};
+
 export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) => {
   const { user } = useAuth();
   const { subscriptionTier, maxOffers, bypassOfferLimits } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState<PromoCodeFormData>({
-    brandName: "",
-    brandUrl: "",
-    promoCode: "",
-    expirationDate: "",
-    affiliateLink: "",
-    description: "",
-    category: "Fashion", // Default category
+  
+  // Initialize form data with stored values if available
+  const [formData, setFormData] = useState<PromoCodeFormData>(() => {
+    const storedData = getStoredFormData();
+    const defaultData = {
+      brandName: "",
+      brandUrl: "",
+      promoCode: "",
+      expirationDate: "",
+      affiliateLink: "",
+      description: "",
+      category: "Fashion", // Default category
+    };
+    
+    // Merge stored data with defaults
+    return storedData ? { ...defaultData, ...storedData } : defaultData;
   });
+  
   const [currentOfferCount, setCurrentOfferCount] = useState(0);
   const [isLoadingCount, setIsLoadingCount] = useState(true);
+
+  // Save form data to localStorage whenever it changes
+  useEffect(() => {
+    // Only save if form has any meaningful data
+    const hasData = Object.values(formData).some(value => value.trim() !== "" && value !== "Fashion");
+    
+    if (hasData) {
+      saveFormData(formData);
+    } else {
+      clearStoredFormData();
+    }
+  }, [formData]);
 
   // Get the next tier for upgrade suggestions
   const getNextTier = () => {
@@ -82,6 +133,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Update domain mappings for all followers with brand_url as the ONLY source
   const updateFollowerDomains = async (influencerId: string, brandUrl: string | null) => {
     if (!influencerId || !brandUrl) return;
     
@@ -189,6 +241,9 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       await updateFollowerDomains(user.id, formData.brandUrl);
 
       toast.success("Promo code added successfully!");
+      
+      // Clear stored form data on successful submission
+      clearStoredFormData();
       
       // Reset form
       setFormData({
