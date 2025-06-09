@@ -35,7 +35,45 @@ export const useFollowerCount = (influencerId: string) => {
       }
     };
 
+    // Initial fetch
     fetchFollowerCount();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('follower-count-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'follows',
+          filter: `influencer_id=eq.${influencerId}`
+        },
+        () => {
+          console.log('New follower detected, updating count');
+          setFollowerCount(prev => prev + 1);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'follows',
+          filter: `influencer_id=eq.${influencerId}`
+        },
+        () => {
+          console.log('Follower removed, updating count');
+          setFollowerCount(prev => Math.max(0, prev - 1));
+        }
+      )
+      .subscribe();
+
+    // Cleanup function
+    return () => {
+      console.log('Cleaning up follower count subscription');
+      supabase.removeChannel(channel);
+    };
   }, [influencerId]);
 
   return { followerCount, isLoading };
