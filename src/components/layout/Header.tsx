@@ -86,7 +86,11 @@ const Header = () => {
           )}
           
           <Link to="/" className="flex items-center">
-            <span className="text-xl font-bold text-brand-green">Offer Alert</span>
+            <img 
+              src="/lovable-uploads/9472e1c9-d423-4c3d-98d6-a2bd7c6a7377.png" 
+              alt="Offer Alert" 
+              className="h-8 w-auto md:h-10"
+            />
           </Link>
 
           {!isMobile && (
