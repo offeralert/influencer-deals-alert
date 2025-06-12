@@ -40,7 +40,7 @@ const HowItWorks = () => {
               Doing so unlocks access to their promo codes and affiliate offers. The more influencers you follow, the more deals you'll discover.
             </p>
             <Link to="/explore?tab=influencers">
-              <Button variant="outline" className="mt-2">
+              <Button className="mt-2">
                 <Users className="mr-2 h-4 w-4" /> Explore influencers
               </Button>
             </Link>
