@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agency_influencers: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          influencer_id: string
+          managed_by_agency: boolean | null
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          influencer_id: string
+          managed_by_agency?: boolean | null
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          influencer_id?: string
+          managed_by_agency?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_influencers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_influencers_influencer_id_fkey"
+            columns: ["influencer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -36,6 +75,7 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          is_agency: boolean | null
           is_creditcard: boolean | null
           is_featured: boolean | null
           is_influencer: boolean | null
@@ -47,6 +87,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id: string
+          is_agency?: boolean | null
           is_creditcard?: boolean | null
           is_featured?: boolean | null
           is_influencer?: boolean | null
@@ -58,6 +99,7 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          is_agency?: boolean | null
           is_creditcard?: boolean | null
           is_featured?: boolean | null
           is_influencer?: boolean | null
@@ -191,6 +233,14 @@ export type Database = {
       extract_domain: {
         Args: { url: string }
         Returns: string
+      }
+      is_agency: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
+      manages_influencer: {
+        Args: { agency_id: string; influencer_id: string }
+        Returns: boolean
       }
     }
     Enums: {

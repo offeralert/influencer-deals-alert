@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import CategoryDealsSection from "@/components/home/CategoryDealsSection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Users, Plus, BarChart3 } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { useEffect } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
@@ -20,8 +20,9 @@ const Index = () => {
   const { user, profile } = useAuth();
   const { track } = useMetaTracking();
   
-  // Check if the user is an influencer
+  // Check if the user is an influencer or agency
   const isInfluencer = profile?.is_influencer === true;
+  const isAgency = profile?.is_agency === true;
 
   // Track homepage view
   useEffect(() => {
@@ -31,6 +32,101 @@ const Index = () => {
       value: 0
     }));
   }, [track]);
+
+  // Special view for agencies
+  if (user && isAgency) {
+    return (
+      <div className="min-h-screen">
+        <div className="section-container bg-gradient-to-br from-purple-50 to-white py-8 md:py-12">
+          <div className="max-w-5xl mx-auto px-4">
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome to Your Agency Dashboard</h1>
+            <p className="text-lg text-muted-foreground mb-6">
+              Manage your influencers and promo codes all in one place.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="flex items-center gap-3 mb-3">
+                  <Users className="h-6 w-6 text-purple-600" />
+                  <h3 className="font-semibold">Manage Influencers</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add, edit, and manage your roster of influencers.
+                </p>
+                <Button size="sm" className="bg-purple-600 hover:bg-purple-600/90" asChild>
+                  <Link to="/agency-dashboard">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Influencers
+                  </Link>
+                </Button>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="flex items-center gap-3 mb-3">
+                  <BarChart3 className="h-6 w-6 text-purple-600" />
+                  <h3 className="font-semibold">Analytics</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Track performance across all your managed influencers.
+                </p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/agency-dashboard">
+                    View Analytics
+                  </Link>
+                </Button>
+              </div>
+              
+              <div className="bg-white p-6 rounded-lg shadow-sm border">
+                <div className="flex items-center gap-3 mb-3">
+                  <ChevronRight className="h-6 w-6 text-purple-600" />
+                  <h3 className="font-semibold">Quick Actions</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Bulk manage promo codes and campaigns.
+                </p>
+                <Button size="sm" variant="outline" asChild>
+                  <Link to="/agency-dashboard">
+                    Go to Dashboard
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-600/90" asChild>
+                <Link to="/agency-dashboard">
+                  Go to Agency Dashboard
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link to="/my-deals">
+                  View My Alerts
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container bg-white shadow-sm">
+          <FeaturedOffersSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container bg-white shadow-sm">
+          <PopularCategoriesSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container">
+          <BrowserExtensionPromo />
+        </div>
+      </div>
+    );
+  }
 
   // Special view for influencers
   if (user && isInfluencer) {

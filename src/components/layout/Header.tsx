@@ -37,6 +37,9 @@ const Header = () => {
   // Helper to determine if the user is an influencer
   const isInfluencer = profile?.is_influencer === true;
   
+  // Helper to determine if the user is an agency
+  const isAgency = profile?.is_agency === true;
+  
   // Get avatar URL
   const avatarUrl = user ? getAvatarUrl(profile?.avatar_url) : null;
 
@@ -80,6 +83,14 @@ const Header = () => {
                       Influencer Dashboard
                     </button>
                   )}
+                  {isAgency && (
+                    <button 
+                      onClick={() => handleNavigation("/agency-dashboard")} 
+                      className="text-left text-lg font-medium text-purple-600"
+                    >
+                      Agency Dashboard
+                    </button>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -115,6 +126,16 @@ const Header = () => {
                       onClick={() => navigate("/influencer-dashboard")}
                     >
                       Influencer Dashboard
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                )}
+                {isAgency && (
+                  <NavigationMenuItem>
+                    <NavigationMenuLink
+                      className="cursor-pointer px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-600/90"
+                      onClick={() => navigate("/agency-dashboard")}
+                    >
+                      Agency Dashboard
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 )}
@@ -176,6 +197,11 @@ const Header = () => {
                   {isInfluencer && (
                     <DropdownMenuItem asChild>
                       <Link to="/influencer-dashboard">Influencer Dashboard</Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAgency && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/agency-dashboard">Agency Dashboard</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem className="text-red-500" onClick={signOut}>

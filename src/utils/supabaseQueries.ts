@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 
@@ -31,6 +32,21 @@ export interface DomainMapping {
   id: string;
 }
 
+export interface AgencyInfluencer {
+  id: string;
+  agency_id: string;
+  influencer_id: string;
+  created_at: string;
+  managed_by_agency: boolean;
+  profiles?: {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+    is_influencer: boolean | null;
+  };
+}
+
 // Helper function to access the promo_codes table with join to profiles
 export const getPromoCodes = () => {
   return supabase
@@ -43,6 +59,73 @@ export const getPromoCodes = () => {
         avatar_url
       )
     `) as unknown as PostgrestFilterBuilder<any, any, PromoCodeWithInfluencer[]>;
+};
+
+// Helper function to get agency's managed influencers
+export const getAgencyInfluencers = (agencyId: string) => {
+  return supabase
+    .from('agency_influencers')
+    .select(`
+      *,
+      profiles:influencer_id (
+        id,
+        full_name,
+        username,
+        avatar_url,
+        is_influencer
+      )
+    `)
+    .eq('agency_id', agencyId)
+    .eq('managed_by_agency', true) as unknown as PostgrestFilterBuilder<any, any, AgencyInfluencer[]>;
+};
+
+// Helper function to check if user is an agency
+export const checkIsAgency = async (userId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('is_agency')
+    .eq('id', userId)
+    .single();
+  
+  if (error) return false;
+  return data?.is_agency === true;
+};
+
+// Helper function to create influencer under agency management
+export const createManagedInfluencer = async (
+  agencyId: string,
+  influencerData: {
+    full_name: string;
+    username: string;
+    email?: string;
+  }
+) => {
+  // Create the influencer profile
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .insert({
+      id: crypto.randomUUID(),
+      full_name: influencerData.full_name,
+      username: influencerData.username,
+      is_influencer: true,
+    })
+    .select()
+    .single();
+
+  if (profileError) throw profileError;
+
+  // Create the agency-influencer relationship
+  const { error: relationshipError } = await supabase
+    .from('agency_influencers')
+    .insert({
+      agency_id: agencyId,
+      influencer_id: profile.id,
+      managed_by_agency: true,
+    });
+
+  if (relationshipError) throw relationshipError;
+
+  return profile;
 };
 
 // Helper function to extract and clean domain from URL with improved robustness
