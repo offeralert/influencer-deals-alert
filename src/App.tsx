@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -32,6 +31,7 @@ import CsvUpload from "./pages/CsvUpload";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +54,7 @@ const App = () => (
               <Route path="brand/:brandName" element={<BrandProfile />} />
               <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
               <Route path="agency-dashboard" element={<AgencyDashboard />} />
+              <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
               <Route path="categories" element={<Categories />} />
               <Route path="brands" element={<Brands />} />
               <Route path="about" element={<About />} />

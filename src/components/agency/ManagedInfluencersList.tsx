@@ -174,7 +174,7 @@ const ManagedInfluencersList = () => {
                       
                       <div className="flex gap-2 mt-3">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to="/influencer-dashboard">
+                          <Link to={`/manage-influencer-codes/${influencer?.id}`}>
                             <Plus className="h-3 w-3 mr-1" />
                             Manage Codes
                           </Link>
