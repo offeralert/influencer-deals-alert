@@ -42,36 +42,36 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <MainLayout>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/my-deals" element={<MyAlerts />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/influencer/:identifier" element={<InfluencerProfile />} />
-              <Route path="/brand/:brandName" element={<BrandProfile />} />
-              <Route path="/influencer-dashboard" element={<InfluencerDashboard />} />
-              <Route path="/agency-dashboard" element={<AgencyDashboard />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/brands" element={<Brands />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy" element={<Privacy />} />
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/why-join" element={<WhyJoin />} />
-              <Route path="/influencer-apply" element={<InfluencerApply />} />
-              <Route path="/affiliate-program" element={<AffiliateProgram />} />
-              <Route path="/origin" element={<Origin />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="/csv-upload" element={<CsvUpload />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+          <Routes>
+            <Route path="/" element={<MainLayout />}>
+              <Route index element={<Index />} />
+              <Route path="login" element={<Login />} />
+              <Route path="signup" element={<Signup />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="my-deals" element={<MyAlerts />} />
+              <Route path="explore" element={<Explore />} />
+              <Route path="influencer/:identifier" element={<InfluencerProfile />} />
+              <Route path="brand/:brandName" element={<BrandProfile />} />
+              <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
+              <Route path="agency-dashboard" element={<AgencyDashboard />} />
+              <Route path="categories" element={<Categories />} />
+              <Route path="brands" element={<Brands />} />
+              <Route path="about" element={<About />} />
+              <Route path="contact" element={<Contact />} />
+              <Route path="terms" element={<Terms />} />
+              <Route path="privacy" element={<Privacy />} />
+              <Route path="how-it-works" element={<HowItWorks />} />
+              <Route path="why-join" element={<WhyJoin />} />
+              <Route path="influencer-apply" element={<InfluencerApply />} />
+              <Route path="affiliate-program" element={<AffiliateProgram />} />
+              <Route path="origin" element={<Origin />} />
+              <Route path="pricing" element={<Pricing />} />
+              <Route path="csv-upload" element={<CsvUpload />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MainLayout>
+            </Route>
+          </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
