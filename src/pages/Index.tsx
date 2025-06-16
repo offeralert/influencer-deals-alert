@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import CategoryDealsSection from "@/components/home/CategoryDealsSection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ChevronRight, Users, Plus, BarChart3 } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { useEffect } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
@@ -42,22 +42,7 @@ const Index = () => {
             <p className="text-lg text-muted-foreground mb-6">
               Manage your influencers and promo codes all in one place.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-3 mb-3">
-                  <BarChart3 className="h-6 w-6 text-purple-600" />
-                  <h3 className="font-semibold">Analytics</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Track performance across all your managed influencers.
-                </p>
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/agency-dashboard">
-                    View Analytics
-                  </Link>
-                </Button>
-              </div>
-              
+            <div className="grid grid-cols-1 gap-6 mb-8">
               <div className="bg-white p-6 rounded-lg shadow-sm border">
                 <div className="flex items-center gap-3 mb-3">
                   <ChevronRight className="h-6 w-6 text-purple-600" />
