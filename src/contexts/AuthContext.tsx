@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ type ProfileType = {
   is_influencer?: boolean;
   is_featured?: boolean;
   is_agency?: boolean;
+  is_creditcard?: boolean;
   category?: string;
 };
 
@@ -20,6 +22,7 @@ type AuthContextType = {
   user: User | null;
   profile: ProfileType | null;
   loading: boolean;
+  isLoading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -139,7 +142,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ 
+      session, 
+      user, 
+      profile, 
+      loading,
+      isLoading: loading,
+      signOut, 
+      refreshProfile 
+    }}>
       {children}
     </AuthContext.Provider>
   );
