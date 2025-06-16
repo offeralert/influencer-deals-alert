@@ -42,22 +42,6 @@ const Index = () => {
             <p className="text-lg text-muted-foreground mb-6">
               Manage your influencers and promo codes all in one place.
             </p>
-            <div className="grid grid-cols-1 gap-6 mb-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-3 mb-3">
-                  <ChevronRight className="h-6 w-6 text-purple-600" />
-                  <h3 className="font-semibold">Quick Actions</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Bulk manage promo codes and campaigns.
-                </p>
-                <Button size="sm" variant="outline" asChild>
-                  <Link to="/agency-dashboard">
-                    Go to Dashboard
-                  </Link>
-                </Button>
-              </div>
-            </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
               <Button size="lg" className="bg-purple-600 hover:bg-purple-600/90" asChild>
