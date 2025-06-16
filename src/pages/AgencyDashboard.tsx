@@ -4,12 +4,11 @@ import { useAuthGate } from "@/hooks/useAuthGate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plus, BarChart3, Settings } from "lucide-react";
+import { Users, Plus, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import ManagedInfluencersList from "@/components/agency/ManagedInfluencersList";
 import AddInfluencerForm from "@/components/agency/AddInfluencerForm";
-import AgencyAnalytics from "@/components/agency/AgencyAnalytics";
 
 const AgencyDashboard = () => {
   const { user, profile } = useAuth();
@@ -47,7 +46,7 @@ const AgencyDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -60,14 +59,10 @@ const AgencyDashboard = () => {
             <Plus className="h-4 w-4" />
             Add Influencer
           </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -94,21 +89,6 @@ const AgencyDashboard = () => {
                 <div className="text-2xl font-bold">0</div>
                 <p className="text-xs text-muted-foreground">
                   Across all influencers
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Clicks
-                </CardTitle>
-                <Settings className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground">
-                  This month
                 </p>
               </CardContent>
             </Card>
@@ -146,10 +126,6 @@ const AgencyDashboard = () => {
 
         <TabsContent value="add-influencer">
           <AddInfluencerForm onSuccess={() => setActiveTab("influencers")} />
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <AgencyAnalytics />
         </TabsContent>
       </Tabs>
     </div>

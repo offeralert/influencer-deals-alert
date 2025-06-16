@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, ExternalLink, Edit } from "lucide-react";
+import { Users, Plus, Edit } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
@@ -174,9 +174,9 @@ const ManagedInfluencersList = () => {
                       
                       <div className="flex gap-2 mt-3">
                         <Button size="sm" variant="outline" asChild>
-                          <Link to={`/influencer/${influencer?.username || influencer?.id}`}>
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View
+                          <Link to="/influencer-dashboard">
+                            <Plus className="h-3 w-3 mr-1" />
+                            Manage Codes
                           </Link>
                         </Button>
                         <Button size="sm" variant="outline">
