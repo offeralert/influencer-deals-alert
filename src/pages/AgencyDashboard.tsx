@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Plus, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import ManagedInfluencersList from "@/components/agency/ManagedInfluencersList";
 import AddInfluencerForm from "@/components/agency/AddInfluencerForm";
 
@@ -19,6 +21,55 @@ const AgencyDashboard = () => {
     requireAuth: true,
     requireAgency: true,
     redirectTo: "/login"
+  });
+
+  // Query to count managed influencers
+  const { data: influencerCount = 0 } = useQuery({
+    queryKey: ['agency-influencer-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      const { data, error } = await supabase
+        .from('agency_influencers')
+        .select('id', { count: 'exact' })
+        .eq('agency_id', user.id)
+        .eq('managed_by_agency', true);
+
+      if (error) throw error;
+      return data?.length || 0;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Query to count active promo codes across all managed influencers
+  const { data: promoCodeCount = 0 } = useQuery({
+    queryKey: ['agency-promo-code-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+
+      // First get all managed influencer IDs
+      const { data: managedInfluencers, error: influencersError } = await supabase
+        .from('agency_influencers')
+        .select('influencer_id')
+        .eq('agency_id', user.id)
+        .eq('managed_by_agency', true);
+
+      if (influencersError) throw influencersError;
+      
+      const influencerIds = managedInfluencers?.map(inf => inf.influencer_id) || [];
+      
+      if (influencerIds.length === 0) return 0;
+
+      // Count promo codes for all managed influencers
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('id', { count: 'exact' })
+        .in('influencer_id', influencerIds);
+
+      if (error) throw error;
+      return data?.length || 0;
+    },
+    enabled: !!user?.id,
   });
 
   // Don't render if not an agency
@@ -71,7 +122,7 @@ const AgencyDashboard = () => {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">{influencerCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Managed influencers
                 </p>
@@ -86,7 +137,7 @@ const AgencyDashboard = () => {
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">{promoCodeCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Across all influencers
                 </p>
