@@ -46,7 +46,9 @@ export const useAuthGate = ({
     user,
     profile,
     loading,
+    isLoading: loading,
     isAuthenticated: !!user,
+    isAuthorized: true, // Add this property that InfluencerDashboard expects
     isInfluencer: !!profile?.is_influencer,
     isAgency: !!profile?.is_agency,
   };

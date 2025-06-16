@@ -24,7 +24,7 @@ const ManagedInfluencersList = () => {
           id,
           created_at,
           managed_by_agency,
-          profiles:influencer_id (
+          influencer_profile:profiles!influencer_id (
             id,
             full_name,
             username,
@@ -42,12 +42,12 @@ const ManagedInfluencersList = () => {
   });
 
   const { data: promoCodeCounts } = useQuery({
-    queryKey: ['influencer-promo-counts', managedInfluencers?.map(inf => inf.profiles?.id)],
+    queryKey: ['influencer-promo-counts', managedInfluencers?.map(inf => inf.influencer_profile?.id)],
     queryFn: async () => {
       if (!managedInfluencers?.length) return {};
 
       const influencerIds = managedInfluencers
-        .map(inf => inf.profiles?.id)
+        .map(inf => inf.influencer_profile?.id)
         .filter(Boolean);
 
       if (influencerIds.length === 0) return {};
@@ -136,7 +136,7 @@ const ManagedInfluencersList = () => {
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {managedInfluencers.map((relationship) => {
-            const influencer = relationship.profiles;
+            const influencer = relationship.influencer_profile;
             const promoCount = promoCodeCounts?.[influencer?.id || ''] || 0;
             const avatarUrl = getAvatarUrl(influencer?.avatar_url);
 

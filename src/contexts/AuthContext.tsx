@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +11,7 @@ type ProfileType = {
   avatar_url?: string;
   is_influencer?: boolean;
   is_featured?: boolean;
+  is_agency?: boolean;
   category?: string;
 };
 
@@ -19,7 +19,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   profile: ProfileType | null;
-  isLoading: boolean;
+  loading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log("AuthProvider: Initializing auth state");
@@ -65,10 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(currentSession.user.id);
       }
       
-      setIsLoading(false);
+      setLoading(false);
     }).catch(error => {
       console.error("Error getting session:", error);
-      setIsLoading(false);
+      setLoading(false);
     });
 
     return () => {
@@ -139,7 +139,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, isLoading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
