@@ -16,6 +16,7 @@ export type Database = {
           id: string
           influencer_id: string
           managed_by_agency: boolean | null
+          temporary_password: string | null
         }
         Insert: {
           agency_id: string
@@ -23,6 +24,7 @@ export type Database = {
           id?: string
           influencer_id: string
           managed_by_agency?: boolean | null
+          temporary_password?: string | null
         }
         Update: {
           agency_id?: string
@@ -30,6 +32,7 @@ export type Database = {
           id?: string
           influencer_id?: string
           managed_by_agency?: boolean | null
+          temporary_password?: string | null
         }
         Relationships: [
           {

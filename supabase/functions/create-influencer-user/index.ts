@@ -153,13 +153,14 @@ const handler = async (req: Request): Promise<Response> => {
       // Don't throw here as the user was created successfully
     }
 
-    // Create agency-influencer relationship
+    // Create agency-influencer relationship with temporary password
     const { error: relationshipError } = await supabaseAdmin
       .from("agency_influencers")
       .insert({
         agency_id: user.id,
         influencer_id: newUser.user.id,
         managed_by_agency: true,
+        temporary_password: temporaryPassword,
       });
 
     if (relationshipError) {

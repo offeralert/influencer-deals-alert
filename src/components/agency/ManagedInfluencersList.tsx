@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -6,12 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Users, Plus, Edit } from "lucide-react";
+import { Users, Plus, Edit, Copy, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const ManagedInfluencersList = () => {
   const { user } = useAuth();
+  const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
 
   const { data: managedInfluencers, isLoading, error } = useQuery({
     queryKey: ['managed-influencers', user?.id],
@@ -24,6 +26,7 @@ const ManagedInfluencersList = () => {
           id,
           created_at,
           managed_by_agency,
+          temporary_password,
           influencer_profile:profiles!influencer_id (
             id,
             full_name,
@@ -69,6 +72,27 @@ const ManagedInfluencersList = () => {
     },
     enabled: !!managedInfluencers?.length,
   });
+
+  const togglePasswordVisibility = (relationshipId: string) => {
+    setVisiblePasswords(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(relationshipId)) {
+        newSet.delete(relationshipId);
+      } else {
+        newSet.add(relationshipId);
+      }
+      return newSet;
+    });
+  };
+
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`${label} copied to clipboard`);
+    } catch (error) {
+      toast.error("Failed to copy to clipboard");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -139,6 +163,7 @@ const ManagedInfluencersList = () => {
             const influencer = relationship.influencer_profile;
             const promoCount = promoCodeCounts?.[influencer?.id || ''] || 0;
             const avatarUrl = getAvatarUrl(influencer?.avatar_url);
+            const isPasswordVisible = visiblePasswords.has(relationship.id);
 
             return (
               <Card key={relationship.id} className="border">
@@ -159,6 +184,39 @@ const ManagedInfluencersList = () => {
                         <p className="text-sm text-muted-foreground">
                           @{influencer.username}
                         </p>
+                      )}
+                      
+                      {relationship.temporary_password && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded-md border">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-gray-600">Temp Password:</span>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => togglePasswordVisibility(relationship.id)}
+                              >
+                                {isPasswordVisible ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => copyToClipboard(relationship.temporary_password, 'Password')}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          <code className="text-xs font-mono">
+                            {isPasswordVisible ? relationship.temporary_password : '••••••••••'}
+                          </code>
+                        </div>
                       )}
                       
                       <div className="flex items-center gap-2 mt-2">
