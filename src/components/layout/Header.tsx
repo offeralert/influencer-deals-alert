@@ -64,11 +64,26 @@ const Header = () => {
                     Home
                   </button>
                   <button 
-                    onClick={() => handleNavigation("/explore")} 
+                    onClick={() => handleNavigation("/explore?tab=deals")} 
                     className="text-left text-lg font-medium hover:text-brand-green"
                   >
-                    Explore
+                    Deals
                   </button>
+                  <button 
+                    onClick={() => handleNavigation("/explore?tab=influencers")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
+                    Influencers
+                  </button>
+                  <button 
+                    onClick={() => handleNavigation("/explore?tab=brands")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
+                    Brands
+                  </button>
+                  <div className="text-left text-lg font-medium text-gray-400 cursor-not-allowed">
+                    Credit Cards (Coming Soon)
+                  </div>
                   <button 
                     onClick={() => handleNavigation("/my-deals")} 
                     className="text-left text-lg font-medium hover:text-brand-green"
@@ -104,12 +119,46 @@ const Header = () => {
             <NavigationMenu className="ml-6">
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuLink
-                    className="cursor-pointer px-4 py-2 text-sm font-medium hover:text-brand-green"
-                    onClick={() => navigate("/explore")}
-                  >
+                  <NavigationMenuTrigger className="text-sm font-medium hover:text-brand-green">
                     Explore
-                  </NavigationMenuLink>
+                  </NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <div className="grid gap-3 p-4 w-[200px]">
+                      <NavigationMenuLink
+                        className="cursor-pointer block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => navigate("/explore?tab=deals")}
+                      >
+                        <div className="text-sm font-medium leading-none">Deals</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Browse exclusive promo codes
+                        </p>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink
+                        className="cursor-pointer block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => navigate("/explore?tab=influencers")}
+                      >
+                        <div className="text-sm font-medium leading-none">Influencers</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Discover your favorite creators
+                        </p>
+                      </NavigationMenuLink>
+                      <NavigationMenuLink
+                        className="cursor-pointer block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => navigate("/explore?tab=brands")}
+                      >
+                        <div className="text-sm font-medium leading-none">Brands</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Shop from top brands
+                        </p>
+                      </NavigationMenuLink>
+                      <div className="block select-none space-y-1 rounded-md p-3 leading-none text-muted-foreground cursor-not-allowed opacity-50">
+                        <div className="text-sm font-medium leading-none">Credit Cards</div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Coming Soon
+                        </p>
+                      </div>
+                    </div>
+                  </NavigationMenuContent>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
                   <NavigationMenuLink
