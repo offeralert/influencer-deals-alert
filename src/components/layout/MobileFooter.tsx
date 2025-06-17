@@ -87,8 +87,8 @@ const MobileFooter = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-gray-600 dark:text-gray-400">
-                  About Us
+                <Link to="/origin" className="text-sm text-gray-600 dark:text-gray-400">
+                  Our Origin Story
                 </Link>
               </li>
               <li>

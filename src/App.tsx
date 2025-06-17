@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,7 +18,6 @@ import InfluencerDashboard from "./pages/InfluencerDashboard";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import Categories from "./pages/Categories";
 import Brands from "./pages/Brands";
-import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -57,7 +57,6 @@ const App = () => (
               <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
               <Route path="categories" element={<Categories />} />
               <Route path="brands" element={<Brands />} />
-              <Route path="about" element={<About />} />
               <Route path="contact" element={<Contact />} />
               <Route path="terms" element={<Terms />} />
               <Route path="privacy" element={<Privacy />} />
