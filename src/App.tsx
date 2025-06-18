@@ -50,7 +50,7 @@ const App = () => (
               <Route path="profile" element={<Profile />} />
               <Route path="my-deals" element={<MyAlerts />} />
               <Route path="explore" element={<Explore />} />
-              <Route path="influencer/:identifier" element={<InfluencerProfile />} />
+              <Route path="influencer/:username" element={<InfluencerProfile />} />
               <Route path="brand/:brandName" element={<BrandProfile />} />
               <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
               <Route path="agency-dashboard" element={<AgencyDashboard />} />
