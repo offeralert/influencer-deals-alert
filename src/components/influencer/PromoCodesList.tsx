@@ -2,11 +2,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPromoCodes } from "@/utils/supabaseQueries";
+import { getPromoCodes, type PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isExpired, isExpiringSoon } from "@/utils/dateUtils";
@@ -21,25 +21,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface PromoCode {
-  id: string;
-  brand_name: string;
-  promo_code: string;
-  description: string;
-  expiration_date: string | null;
-  affiliate_link: string;
-  brand_url: string;
-  category: string;
-  created_at: string;
-}
-
 interface PromoCodesListProps {
   onPromoCodeUpdated?: () => void;
 }
 
 const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
   const { user } = useAuth();
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
