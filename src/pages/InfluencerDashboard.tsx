@@ -11,15 +11,13 @@ import {
   Plus,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import UpgradeDialog from "@/components/influencer/UpgradeDialog";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
 import { getPromoCodes } from "@/utils/supabaseQueries";
 
 const InfluencerDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [promoCodesCount, setPromoCodesCount] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
 
@@ -29,15 +27,6 @@ const InfluencerDashboard = () => {
     requireInfluencer: true,
     redirectTo: "/login"
   });
-
-  // Conditionally render content based on subscription status
-  useEffect(() => {
-    if (profile?.is_creditcard === false) {
-      setShowUpgradeDialog(true);
-    } else {
-      setShowUpgradeDialog(false);
-    }
-  }, [profile?.is_creditcard]);
 
   // Fetch promo codes count
   useEffect(() => {
@@ -188,11 +177,6 @@ const InfluencerDashboard = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <UpgradeDialog
-        open={showUpgradeDialog}
-        onClose={() => setShowUpgradeDialog(false)}
-      />
     </div>
   );
 };
