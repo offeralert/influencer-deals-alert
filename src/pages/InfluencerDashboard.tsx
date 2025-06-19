@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGate } from "@/hooks/useAuthGate";
@@ -13,7 +12,7 @@ import {
 import { Link } from "react-router-dom";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
-import { getPromoCodes } from "@/utils/supabaseQueries";
+import { supabase } from "@/integrations/supabase/client";
 
 const InfluencerDashboard = () => {
   const { user } = useAuth();
@@ -35,9 +34,10 @@ const InfluencerDashboard = () => {
       
       setLoadingCount(true);
       try {
-        const { count, error } = await getPromoCodes()
-          .eq('influencer_id', user.id)
-          .select('*', { count: 'exact', head: true });
+        const { count, error } = await supabase
+          .from('promo_codes')
+          .select('*', { count: 'exact', head: true })
+          .eq('influencer_id', user.id);
         
         if (error) {
           console.error("Error fetching promo codes count:", error);
@@ -59,9 +59,10 @@ const InfluencerDashboard = () => {
     if (!user) return;
     
     try {
-      const { count, error } = await getPromoCodes()
-        .eq('influencer_id', user.id)
-        .select('*', { count: 'exact', head: true });
+      const { count, error } = await supabase
+        .from('promo_codes')
+        .select('*', { count: 'exact', head: true })
+        .eq('influencer_id', user.id);
       
       if (error) {
         console.error("Error refreshing promo codes count:", error);
