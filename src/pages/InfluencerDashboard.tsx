@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthGate } from "@/hooks/useAuthGate";
@@ -5,9 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  BarChart3,
-  TrendingUp,
-  Users,
   DollarSign,
   Settings,
   Plus,
@@ -16,11 +14,14 @@ import { Link } from "react-router-dom";
 import UpgradeDialog from "@/components/influencer/UpgradeDialog";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
+import { getPromoCodes } from "@/utils/supabaseQueries";
 
 const InfluencerDashboard = () => {
   const { user, profile } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [promoCodesCount, setPromoCodesCount] = useState(0);
+  const [loadingCount, setLoadingCount] = useState(true);
 
   // Check authentication and influencer status
   const { isLoading } = useAuthGate({
@@ -38,6 +39,52 @@ const InfluencerDashboard = () => {
     }
   }, [profile?.is_creditcard]);
 
+  // Fetch promo codes count
+  useEffect(() => {
+    const fetchPromoCodesCount = async () => {
+      if (!user) return;
+      
+      setLoadingCount(true);
+      try {
+        const { count, error } = await getPromoCodes()
+          .eq('influencer_id', user.id)
+          .select('*', { count: 'exact', head: true });
+        
+        if (error) {
+          console.error("Error fetching promo codes count:", error);
+          return;
+        }
+        
+        setPromoCodesCount(count || 0);
+      } catch (error) {
+        console.error("Error in fetchPromoCodesCount:", error);
+      } finally {
+        setLoadingCount(false);
+      }
+    };
+
+    fetchPromoCodesCount();
+  }, [user]);
+
+  const refreshPromoCodesCount = async () => {
+    if (!user) return;
+    
+    try {
+      const { count, error } = await getPromoCodes()
+        .eq('influencer_id', user.id)
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error("Error refreshing promo codes count:", error);
+        return;
+      }
+      
+      setPromoCodesCount(count || 0);
+    } catch (error) {
+      console.error("Error in refreshPromoCodesCount:", error);
+    }
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -47,14 +94,14 @@ const InfluencerDashboard = () => {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Influencer Dashboard</h1>
         <p className="text-muted-foreground">
-          Manage your profile, track performance, and add promo codes.
+          Manage your profile and add promo codes.
         </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
           <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
+            <DollarSign className="h-4 w-4" />
             Overview
           </TabsTrigger>
           <TabsTrigger value="promo-codes" className="flex items-center gap-2">
@@ -72,7 +119,7 @@ const InfluencerDashboard = () => {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -81,39 +128,11 @@ const InfluencerDashboard = () => {
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">0</div>
+                <div className="text-2xl font-bold">
+                  {loadingCount ? "..." : promoCodesCount}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Across all platforms
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Clicks
-                </CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground">
-                  This month
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Trending
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">0</div>
-                <p className="text-xs text-muted-foreground">
-                  Promo codes this week
+                  Active promo codes
                 </p>
               </CardContent>
             </Card>
@@ -123,7 +142,7 @@ const InfluencerDashboard = () => {
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
               <CardDescription>
-                Get started with managing your influencer profile
+                Get started with managing your promo codes
               </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -146,11 +165,11 @@ const InfluencerDashboard = () => {
         </TabsContent>
 
         <TabsContent value="promo-codes">
-          <PromoCodesList />
+          <PromoCodesList onPromoCodeUpdated={refreshPromoCodesCount} />
         </TabsContent>
 
         <TabsContent value="add-promo-code">
-          <AddPromoCodeForm />
+          <AddPromoCodeForm onPromoCodeAdded={refreshPromoCodesCount} />
         </TabsContent>
 
         <TabsContent value="settings">
