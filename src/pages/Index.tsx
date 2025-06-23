@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
@@ -12,12 +13,16 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
+import { usePerformanceMonitoring } from "@/hooks/usePerformanceMonitoring";
 import { useEffect } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
 
 const Index = () => {
   const { user, profile } = useAuth();
   const { track } = useMetaTracking();
+  
+  // Enable performance monitoring on homepage
+  usePerformanceMonitoring();
   
   // Check if the user is an influencer or agency
   const isInfluencer = profile?.is_influencer === true;

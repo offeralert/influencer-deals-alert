@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
+import { DealCardSkeleton } from "@/components/ui/deal-card-skeleton";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
@@ -110,6 +112,14 @@ const FeaturedOffersSection = () => {
     setFeaturedOffers(formattedOffers);
   };
 
+  const renderSkeletons = () => {
+    return Array.from({ length: 4 }, (_, index) => (
+      <CarouselItem key={`skeleton-${index}`} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
+        <DealCardSkeleton />
+      </CarouselItem>
+    ));
+  };
+
   return (
     <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
@@ -123,9 +133,25 @@ const FeaturedOffersSection = () => {
         </div>
         
         {loading ? (
-          <div className="col-span-full text-center py-4 md:py-12">
-            <p className="text-muted-foreground text-sm">Loading offers...</p>
-          </div>
+          isMobile ? (
+            <Carousel
+              opts={{
+                align: "start",
+                loop: false,
+              }}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-1 md:-ml-4">
+                {renderSkeletons()}
+              </CarouselContent>
+            </Carousel>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }, (_, index) => (
+                <DealCardSkeleton key={`skeleton-${index}`} />
+              ))}
+            </div>
+          )
         ) : featuredOffers.length > 0 ? (
           isMobile ? (
             <Carousel

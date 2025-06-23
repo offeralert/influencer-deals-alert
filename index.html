@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -16,6 +15,16 @@
     <title>Offer Alert</title>
     <meta name="description" content="Instantly discover real promo codes from verified influencers. No account required. Offer Alert brings the best deals to you — all in one place." />
     <meta name="author" content="Lovable" />
+
+    <!-- Critical Resource Preloading for LCP Optimization -->
+    <link rel="preload" href="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" as="image" fetchpriority="high">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    
+    <!-- DNS Prefetch for External Resources -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//images.unsplash.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Comprehensive Favicon Support with Cache Busting -->
     <!-- Standard favicon -->
@@ -109,6 +118,7 @@
     </noscript>
     
     <div id="root"></div>
+    
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

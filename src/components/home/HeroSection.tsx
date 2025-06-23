@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import { migrateFollowsToUserDomainMap } from "@/utils/migrateFellowsToUserDomainMap";
 import { toast } from "sonner";
+import { OptimizedImage } from "@/components/ui/optimized-image";
 
 const HeroSection = () => {
   const { user } = useAuth();
@@ -73,7 +74,15 @@ const HeroSection = () => {
             </div>
           </div>
           <div className="hidden lg:block relative">
-            <img src="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" alt="Online Shopping Experience" className="rounded-lg shadow-xl object-cover h-auto w-full" />
+            <OptimizedImage 
+              src="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" 
+              alt="Online Shopping Experience" 
+              width={600}
+              height={400}
+              priority={true}
+              className="rounded-lg shadow-xl object-cover h-auto w-full"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
             <div className="absolute -top-4 -right-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
               <div className="gradient-bg p-2 rounded-md text-white font-medium text-sm">30% OFF</div>
             </div>
