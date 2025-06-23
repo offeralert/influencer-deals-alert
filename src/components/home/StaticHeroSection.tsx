@@ -32,7 +32,7 @@ const StaticHeroSection = () => {
               height="400"
               className="rounded-lg shadow-xl object-cover h-auto w-full"
               loading="eager"
-              fetchpriority="high"
+              fetchPriority="high"
             />
             <div className="absolute -top-4 -right-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
               <div className="gradient-bg p-2 rounded-md text-white font-medium text-sm">30% OFF</div>

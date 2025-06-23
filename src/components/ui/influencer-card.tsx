@@ -23,22 +23,30 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={avatarUrl} alt={name} />
-            <AvatarFallback>
-              <AvatarImage src={DEFAULT_AVATAR_URL} alt={name} />
-            </AvatarFallback>
-          </Avatar>
+    <Card className="overflow-hidden h-[88px]">
+      <CardContent className="p-3 h-full">
+        <div className="flex items-center gap-3 h-full">
+          <div className="w-10 h-10 flex-shrink-0">
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={avatarUrl} 
+                alt={name}
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+              <AvatarFallback>
+                <AvatarImage src={DEFAULT_AVATAR_URL} alt={name} />
+              </AvatarFallback>
+            </Avatar>
+          </div>
           <div className="flex-1 min-w-0">
             <Link to={`/influencer/${username}`} className="hover:underline">
-              <h3 className="font-semibold text-sm truncate mb-0.5">{name}</h3>
+              <h3 className="font-semibold text-sm truncate mb-0.5 leading-tight">{name}</h3>
               {!isCreditCard && (
-                <p className="text-xs text-gray-500 truncate">@{username}</p>
+                <p className="text-xs text-gray-500 truncate leading-tight">@{username}</p>
               )}
-              <p className="text-xs text-gray-400 truncate">
+              <p className="text-xs text-gray-400 truncate leading-tight">
                 {isLoadingFollowerCount ? (
                   "Loading..."
                 ) : (
@@ -47,15 +55,17 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
               </p>
             </Link>
           </div>
-          <Button 
-            onClick={handleFollowToggle} 
-            variant={isFollowing ? "outline" : "default"} 
-            size="sm"
-            className="text-xs h-8 whitespace-nowrap ml-1"
-            disabled={isProcessing}
-          >
-            {isProcessing ? 'Processing...' : isFollowing ? 'Following' : 'Follow'}
-          </Button>
+          <div className="w-16 flex-shrink-0">
+            <Button 
+              onClick={handleFollowToggle} 
+              variant={isFollowing ? "outline" : "default"} 
+              size="sm"
+              className="text-xs h-8 w-full"
+              disabled={isProcessing}
+            >
+              {isProcessing ? '...' : isFollowing ? 'Following' : 'Follow'}
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
+import InfluencerCardSkeleton from "@/components/ui/influencer-card-skeleton";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,11 +77,7 @@ const FeaturedAccountsSection = () => {
     }
   };
 
-  // Don't render the section at all if no featured accounts
-  if (featuredAccounts.length === 0 && !loading) {
-    return null;
-  }
-
+  // Always render the section with consistent height to prevent layout shifts
   return (
     <section className="py-3 md:py-4 bg-white">
       <div className="container mx-auto px-2 md:px-4">
@@ -93,52 +90,81 @@ const FeaturedAccountsSection = () => {
           </Button>
         </div>
         
-        {loading ? (
-          <div className="text-center py-2">
-            <p className="text-xs text-muted-foreground">Loading featured accounts...</p>
-          </div>
-        ) : isMobile ? (
-          <Carousel
-            opts={{
-              align: "start",
-              loop: featuredAccounts.length > 1,
-            }}
-            className="w-full"
-          >
-            <CarouselContent className="-ml-1 md:-ml-2">
-              {featuredAccounts.map((account) => (
-                <CarouselItem key={account.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+        {/* Fixed height container to prevent layout shifts */}
+        <div className="min-h-[88px]">
+          {loading ? (
+            isMobile ? (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: false,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-1 md:-ml-2">
+                  {Array.from({ length: 3 }).map((_, index) => (
+                    <CarouselItem key={index} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+                      <InfluencerCardSkeleton />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
+            ) : (
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <InfluencerCardSkeleton key={index} />
+                ))}
+              </div>
+            )
+          ) : featuredAccounts.length > 0 ? (
+            isMobile ? (
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: featuredAccounts.length > 1,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-1 md:-ml-2">
+                  {featuredAccounts.map((account) => (
+                    <CarouselItem key={account.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+                      <InfluencerCard
+                        id={account.id}
+                        name={account.full_name}
+                        username={account.username}
+                        imageUrl={account.avatar_url}
+                        category={account.category}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                {featuredAccounts.length > 1 && (
+                  <>
+                    <CarouselPrevious className="hidden md:flex" />
+                    <CarouselNext className="hidden md:flex" />
+                  </>
+                )}
+              </Carousel>
+            ) : (
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
+                {featuredAccounts.map((account) => (
                   <InfluencerCard
+                    key={account.id}
                     id={account.id}
                     name={account.full_name}
                     username={account.username}
                     imageUrl={account.avatar_url}
                     category={account.category}
                   />
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            {featuredAccounts.length > 1 && (
-              <>
-                <CarouselPrevious className="hidden md:flex" />
-                <CarouselNext className="hidden md:flex" />
-              </>
-            )}
-          </Carousel>
-        ) : (
-          <div className={`grid grid-cols-${Math.min(featuredAccounts.length, 5)} md:grid-cols-${Math.min(featuredAccounts.length, 5)} lg:grid-cols-${Math.min(featuredAccounts.length, 5)} gap-2 md:gap-3`}>
-            {featuredAccounts.map((account) => (
-              <InfluencerCard
-                key={account.id}
-                id={account.id}
-                name={account.full_name}
-                username={account.username}
-                imageUrl={account.avatar_url}
-                category={account.category}
-              />
-            ))}
-          </div>
-        )}
+                ))}
+              </div>
+            )
+          ) : (
+            <div className="text-center py-4">
+              <p className="text-xs text-muted-foreground">No featured accounts available</p>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

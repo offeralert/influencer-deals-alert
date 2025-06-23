@@ -46,36 +46,40 @@ export const useDeferredMetaTracking = () => {
     });
   }, []);
 
-  const trackServerEvent = useCallback(async (eventName: MetaEventName, params?: MetaEventParams) => {
+  const trackServerEvent = useCallback((eventName: MetaEventName, params?: MetaEventParams) => {
     return new Promise<boolean>((resolve) => {
-      startTransition(async () => {
-        try {
-          const sourceUrl = window.location.href;
-          const enrichedParams = params ? enrichEventData(params) : {};
-          
-          const { data, error } = await supabase.functions.invoke('meta-conversion-api', {
-            body: {
-              eventName,
-              eventData: {
-                sourceUrl,
-                customData: enrichedParams,
-                userData: {}
+      startTransition(() => {
+        const performServerTracking = async () => {
+          try {
+            const sourceUrl = window.location.href;
+            const enrichedParams = params ? enrichEventData(params) : {};
+            
+            const { data, error } = await supabase.functions.invoke('meta-conversion-api', {
+              body: {
+                eventName,
+                eventData: {
+                  sourceUrl,
+                  customData: enrichedParams,
+                  userData: {}
+                }
               }
+            });
+
+            if (error) {
+              console.error('[Meta Server Tracking] Error:', error);
+              resolve(false);
+              return;
             }
-          });
 
-          if (error) {
-            console.error('[Meta Server Tracking] Error:', error);
+            console.log('[Meta Server Tracking] Success:', data);
+            resolve(true);
+          } catch (error) {
+            console.error('[Meta Server Tracking] Exception:', error);
             resolve(false);
-            return;
           }
+        };
 
-          console.log('[Meta Server Tracking] Success:', data);
-          resolve(true);
-        } catch (error) {
-          console.error('[Meta Server Tracking] Exception:', error);
-          resolve(false);
-        }
+        performServerTracking();
       });
     });
   }, []);
