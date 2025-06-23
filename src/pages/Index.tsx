@@ -1,6 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import HeroSection from "@/components/home/HeroSection";
+import StaticHeroSection from "@/components/home/StaticHeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
 import FeaturedAccountsSection from "@/components/home/FeaturedInfluencersSection";
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
@@ -8,33 +9,46 @@ import PopularCategoriesSection from "@/components/home/PopularCategoriesSection
 import CallToActionSection from "@/components/home/CallToActionSection";
 import BrowserExtensionPromo from "@/components/home/BrowserExtensionPromo";
 import { Separator } from "@/components/ui/separator";
-import CategoryDealsSection from "@/components/home/CategoryDealsSection";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { useMetaTracking } from "@/hooks/useMetaTracking";
-import { usePerformanceMonitoring } from "@/hooks/usePerformanceMonitoring";
-import { useEffect } from "react";
+import { useDeferredMetaTracking } from "@/hooks/useDeferredMetaTracking";
+import { useDeferredPerformanceMonitoring } from "@/hooks/useDeferredPerformanceMonitoring";
+import { useEffect, Suspense, lazy, startTransition } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
+import { useIsMobile } from "@/hooks/use-mobile";
+
+// Lazy load non-critical sections
+const LazyFeaturedAccountsSection = lazy(() => import("@/components/home/FeaturedInfluencersSection"));
+const LazyPopularCategoriesSection = lazy(() => import("@/components/home/PopularCategoriesSection"));
+const LazyBrowserExtensionPromo = lazy(() => import("@/components/home/BrowserExtensionPromo"));
+const LazyCallToActionSection = lazy(() => import("@/components/home/CallToActionSection"));
 
 const Index = () => {
   const { user, profile } = useAuth();
-  const { track } = useMetaTracking();
+  const { track } = useDeferredMetaTracking();
+  const isMobile = useIsMobile();
   
-  // Enable performance monitoring on homepage
-  usePerformanceMonitoring();
+  // Enable deferred performance monitoring
+  useDeferredPerformanceMonitoring();
   
   // Check if the user is an influencer or agency
   const isInfluencer = profile?.is_influencer === true;
   const isAgency = profile?.is_agency === true;
 
-  // Track homepage view
+  // Track homepage view with deferred execution
   useEffect(() => {
-    track('ViewContent', createViewContentPayload({
-      content_name: 'homepage',
-      content_category: 'main_page',
-      value: 0
-    }));
+    const timer = setTimeout(() => {
+      startTransition(() => {
+        track('ViewContent', createViewContentPayload({
+          content_name: 'homepage',
+          content_category: 'main_page',
+          value: 0
+        }));
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [track]);
 
   // Special view for agencies
@@ -73,13 +87,17 @@ const Index = () => {
         <Separator className="h-[1px] bg-gray-100" />
         
         <div className="section-container bg-white shadow-sm">
-          <PopularCategoriesSection />
+          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+            <LazyPopularCategoriesSection />
+          </Suspense>
         </div>
         
         <Separator className="h-[1px] bg-gray-100" />
         
         <div className="section-container">
-          <BrowserExtensionPromo />
+          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+            <LazyBrowserExtensionPromo />
+          </Suspense>
         </div>
       </div>
     );
@@ -120,23 +138,33 @@ const Index = () => {
         <Separator className="h-[1px] bg-gray-100" />
         
         <div className="section-container bg-white shadow-sm">
-          <PopularCategoriesSection />
+          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+            <LazyPopularCategoriesSection />
+          </Suspense>
         </div>
         
         <Separator className="h-[1px] bg-gray-100" />
         
         <div className="section-container">
-          <BrowserExtensionPromo />
+          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+            <LazyBrowserExtensionPromo />
+          </Suspense>
         </div>
       </div>
     );
   }
 
-  // Regular user view (reordered to highlight featured offers)
+  // Regular user view - optimized for mobile LCP
   return (
     <div className={`min-h-screen ${user ? 'pb-0' : ''}`}>
       <div className="section-container">
-        {user ? <DownloadBanner /> : <HeroSection />}
+        {user ? (
+          <DownloadBanner />
+        ) : isMobile ? (
+          <StaticHeroSection />
+        ) : (
+          <HeroSection />
+        )}
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
@@ -148,19 +176,25 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <FeaturedAccountsSection />
+        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+          <LazyFeaturedAccountsSection />
+        </Suspense>
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <PopularCategoriesSection />
+        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+          <LazyPopularCategoriesSection />
+        </Suspense>
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container">
-        {user ? <BrowserExtensionPromo /> : <CallToActionSection />}
+        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+          {user ? <LazyBrowserExtensionPromo /> : <LazyCallToActionSection />}
+        </Suspense>
       </div>
     </div>
   );
