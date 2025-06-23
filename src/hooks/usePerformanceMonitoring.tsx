@@ -1,6 +1,23 @@
 
 import { useEffect } from 'react';
 
+// Extend Window interface to include gtag
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void;
+  }
+}
+
+// Define proper types for performance entries
+interface LayoutShiftEntry extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+}
+
+interface LargestContentfulPaintEntry extends PerformanceEntry {
+  startTime: number;
+}
+
 export const usePerformanceMonitoring = () => {
   useEffect(() => {
     // Monitor Core Web Vitals
@@ -8,7 +25,7 @@ export const usePerformanceMonitoring = () => {
       // LCP monitoring
       if ('PerformanceObserver' in window) {
         const lcpObserver = new PerformanceObserver((entryList) => {
-          const entries = entryList.getEntries();
+          const entries = entryList.getEntries() as LargestContentfulPaintEntry[];
           const lastEntry = entries[entries.length - 1];
           console.log('LCP:', lastEntry.startTime);
           
@@ -27,7 +44,9 @@ export const usePerformanceMonitoring = () => {
         // CLS monitoring
         const clsObserver = new PerformanceObserver((entryList) => {
           let clsValue = 0;
-          for (const entry of entryList.getEntries()) {
+          const entries = entryList.getEntries() as LayoutShiftEntry[];
+          
+          for (const entry of entries) {
             if (!entry.hadRecentInput) {
               clsValue += entry.value;
             }
