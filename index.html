@@ -19,32 +19,87 @@
     <!-- Critical Resource Preloading for Mobile LCP Optimization -->
     <link rel="preload" href="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" as="image" fetchpriority="high" media="(min-width: 1024px)">
     
-    <!-- Critical CSS inlined for faster LCP -->
+    <!-- Critical CSS inlined for immediate LCP -->
     <style>
-      /* Critical above-the-fold styles for mobile */
-      .hero-container {
+      /* Critical above-the-fold styles for immediate LCP */
+      body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+      .section-container { width: 100%; }
+      .hero-section {
         padding: 1.5rem 1rem;
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      }
+      .hero-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        align-items: center;
+      }
+      .hero-content {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
       }
       .hero-title {
         font-size: 1.5rem;
         font-weight: 700;
         line-height: 1.2;
-        margin-bottom: 1rem;
+        margin: 0;
         color: #1a202c;
       }
       .hero-text {
         font-size: 0.875rem;
         color: #4a5568;
-        margin-bottom: 1.5rem;
+        margin: 0;
         line-height: 1.5;
       }
-      .brand-green {
-        color: #10b981;
+      .brand-green { color: #10b981; }
+      .hero-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
       }
+      .hero-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 2.5rem;
+        padding: 0 1.5rem;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+      .hero-button-primary {
+        background-color: #1f2937;
+        color: white;
+      }
+      .hero-button-secondary {
+        background-color: transparent;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+      .separator {
+        height: 1px;
+        background-color: #f3f4f6;
+      }
+      
+      @media (min-width: 640px) {
+        .hero-buttons {
+          flex-direction: row;
+        }
+      }
+      
       @media (min-width: 768px) {
-        .hero-container {
+        .hero-section {
           padding: 3rem 1rem;
+        }
+        .hero-container {
+          gap: 2rem;
+        }
+        .hero-content {
+          gap: 1.5rem;
         }
         .hero-title {
           font-size: 2.25rem;
@@ -52,17 +107,26 @@
         .hero-text {
           font-size: 1.125rem;
         }
+        .hero-button {
+          height: 3rem;
+        }
+      }
+      
+      @media (min-width: 1024px) {
+        .hero-container {
+          grid-template-columns: 1fr 1fr;
+        }
       }
     </style>
-    
-    <!-- Font preload with media queries for mobile optimization -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" media="(min-width: 768px)">
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" media="(min-width: 768px)">
     
     <!-- DNS Prefetch for External Resources -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com">
     <link rel="dns-prefetch" href="//images.unsplash.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Deferred font loading to not block LCP -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
 
     <!-- Comprehensive Favicon Support with Cache Busting -->
     <!-- Standard favicon -->
@@ -113,37 +177,45 @@
     <meta name="twitter:description" content="Instantly discover real promo codes from verified influencers. No account required. Offer Alert brings the best deals to you — all in one place." />
     <meta name="twitter:image" content="/lovable-uploads/edf0a8ab-4e46-4096-9778-1873148c2812.png" />
     
-    <!-- Rewardful Tracking Code - deferred -->
+    <!-- Rewardful Tracking Code - heavily deferred -->
     <script>
-      (function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');
+      setTimeout(() => {
+        (function(w,r){w._rwq=r;w[r]=w[r]||function(){(w[r].q=w[r].q||[]).push(arguments)}})(window,'rewardful');
+        const script = document.createElement('script');
+        script.defer = true;
+        script.src = 'https://r.wdfl.co/rw.js';
+        script.setAttribute('data-rewardful', '991f2e');
+        document.head.appendChild(script);
+      }, 3000);
     </script>
-    <script defer src='https://r.wdfl.co/rw.js' data-rewardful='991f2e'></script>
 
-    <!-- Meta Pixel Code - deferred -->
+    <!-- Meta Pixel Code - heavily deferred -->
     <script>
-      !function(f,b,e,v,n,t,s)
-      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-      n.queue=[];t=b.createElement(e);t.async=!0;t.defer=!0;
-      t.src=v;s=b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t,s)}(window, document,'script',
-      'https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', '1210607367458076');
-      // PageView tracking moved to component level
+      setTimeout(() => {
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;t.defer=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1210607367458076');
+      }, 3000);
     </script>
     <!-- End Meta Pixel Code -->
 
-    <!-- TikTok Pixel Code Start - deferred -->
-    <script defer>
-      !function (w, d, t) {
-        w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-      var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-      ;n.type="text/javascript",n.async=!0,n.defer=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+    <!-- TikTok Pixel Code Start - heavily deferred -->
+    <script>
+      setTimeout(() => {
+        !function (w, d, t) {
+          w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+        var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+        ;n.type="text/javascript",n.async=!0,n.defer=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
 
-        ttq.load('D165QUBC77UFSDE2BBFG');
-        // Page tracking moved to component level
-      }(window, document, 'ttq');
+          ttq.load('D165QUBC77UFSDE2BBFG');
+        }(window, document, 'ttq');
+      }, 3000);
     </script>
     <!-- TikTok Pixel Code End -->
   </head>
@@ -157,39 +229,37 @@
     
     <div id="root"></div>
     
-    <!-- Service worker registration deferred -->
-    <script defer>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          setTimeout(() => {
-            navigator.serviceWorker.register('/service-worker.js?v=3')
-              .then((registration) => {
-                console.log('ServiceWorker registration successful');
-                
-                registration.addEventListener('updatefound', () => {
-                  const newWorker = registration.installing;
-                  if (newWorker) {
-                    newWorker.addEventListener('statechange', () => {
-                      if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        if (confirm('A new version is available. Refresh to update?')) {
-                          newWorker.postMessage({ type: 'SKIP_WAITING' });
-                          window.location.reload();
-                        }
-                      }
-                    });
-                  }
-                });
-              })
-              .catch((err) => {
-                console.log('ServiceWorker registration failed: ', err);
-              });
+    <!-- Service worker registration heavily deferred -->
+    <script>
+      setTimeout(() => {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('/service-worker.js?v=3')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful');
               
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
-              window.location.reload();
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      if (confirm('A new version is available. Refresh to update?')) {
+                        newWorker.postMessage({ type: 'SKIP_WAITING' });
+                        window.location.reload();
+                      }
+                    }
+                  });
+                }
+              });
+            })
+            .catch((err) => {
+              console.log('ServiceWorker registration failed: ', err);
             });
-          }, 2000);
-        });
-      }
+            
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            window.location.reload();
+          });
+        }
+      }, 5000);
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

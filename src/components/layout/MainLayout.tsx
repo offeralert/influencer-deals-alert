@@ -6,24 +6,34 @@ import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
-import { useDeferredMetaTracking } from "@/hooks/useDeferredMetaTracking";
+import { useProgressiveEnhancement } from "@/hooks/useProgressiveEnhancement";
 
 const MainLayout = () => {
-  const isMobile = useIsMobile();
-  useScrollToTop();
-  useDeferredMetaTracking(); // Use deferred meta tracking to not block LCP
+  const isEnhanced = useProgressiveEnhancement();
+  
+  // Only enable scroll tracking after enhancement
+  if (isEnhanced) {
+    useScrollToTop();
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <Header />
       <main className="flex-1 pb-16 md:pb-0">
         <Outlet />
-        {isMobile && <MobileFooter />}
+        {/* Only show mobile footer after enhancement to avoid layout shifts */}
+        <div className="md:hidden">
+          {isEnhanced && <MobileFooter />}
+        </div>
       </main>
-      {!isMobile && <Footer />}
-      {isMobile && <BottomNav />}
+      <div className="hidden md:block">
+        <Footer />
+      </div>
+      {/* Only show bottom nav after enhancement to avoid layout shifts */}
+      <div className="md:hidden">
+        {isEnhanced && <BottomNav />}
+      </div>
       <SonnerToaster position="top-right" />
       <Toaster />
     </div>

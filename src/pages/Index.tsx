@@ -1,7 +1,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useDeferredAuth } from "@/contexts/DeferredAuthContext";
 import HeroSection from "@/components/home/HeroSection";
-import StaticHeroSection from "@/components/home/StaticHeroSection";
+import StaticOnlyHeroSection from "@/components/home/StaticOnlyHeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
 import FeaturedAccountsSection from "@/components/home/FeaturedInfluencersSection";
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
@@ -12,11 +13,11 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useProgressiveEnhancement } from "@/hooks/useProgressiveEnhancement";
 import { useDeferredMetaTracking } from "@/hooks/useDeferredMetaTracking";
 import { useDeferredPerformanceMonitoring } from "@/hooks/useDeferredPerformanceMonitoring";
 import { useEffect, Suspense, lazy, startTransition } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 // Lazy load non-critical sections
 const LazyFeaturedAccountsSection = lazy(() => import("@/components/home/FeaturedInfluencersSection"));
@@ -26,18 +27,22 @@ const LazyCallToActionSection = lazy(() => import("@/components/home/CallToActio
 
 const Index = () => {
   const { user, profile } = useAuth();
+  const deferredAuth = useDeferredAuth();
+  const isEnhanced = useProgressiveEnhancement();
   const { track } = useDeferredMetaTracking();
-  const isMobile = useIsMobile();
   
-  // Enable deferred performance monitoring
+  // Enable deferred performance monitoring only after enhancement
   useDeferredPerformanceMonitoring();
   
-  // Check if the user is an influencer or agency
-  const isInfluencer = profile?.is_influencer === true;
-  const isAgency = profile?.is_agency === true;
+  // Check if the user is an influencer or agency (only after auth is loaded)
+  const isInfluencer = isEnhanced && deferredAuth.initialized ? deferredAuth.profile?.is_influencer === true : false;
+  const isAgency = isEnhanced && deferredAuth.initialized ? deferredAuth.profile?.is_agency === true : false;
+  const enhancedUser = isEnhanced && deferredAuth.initialized ? deferredAuth.user : null;
 
-  // Track homepage view with deferred execution
+  // Track homepage view with deferred execution (only after enhancement)
   useEffect(() => {
+    if (!isEnhanced) return;
+    
     const timer = setTimeout(() => {
       startTransition(() => {
         track('ViewContent', createViewContentPayload({
@@ -49,10 +54,42 @@ const Index = () => {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [track]);
+  }, [track, isEnhanced]);
 
-  // Special view for agencies
-  if (user && isAgency) {
+  // Show static content first, then enhance
+  if (!isEnhanced) {
+    return (
+      <div className="min-h-screen">
+        <div className="section-container">
+          <StaticOnlyHeroSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container bg-white shadow-sm">
+          <FeaturedOffersSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container bg-white shadow-sm">
+          <div className="py-3 md:py-4">
+            <div className="container mx-auto px-2 md:px-4">
+              <div className="flex justify-between items-center mb-2 md:mb-3">
+                <h2 className="text-base md:text-lg font-semibold">Featured Accounts</h2>
+              </div>
+              <div className="min-h-[88px] flex items-center justify-center">
+                <p className="text-xs text-muted-foreground">Loading...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Special view for agencies (only after enhancement)
+  if (enhancedUser && isAgency) {
     return (
       <div className="min-h-screen">
         <div className="section-container bg-gradient-to-br from-purple-50 to-white py-8 md:py-12">
@@ -103,13 +140,13 @@ const Index = () => {
     );
   }
 
-  // Special view for influencers
-  if (user && isInfluencer) {
+  // Special view for influencers (only after enhancement)
+  if (enhancedUser && isInfluencer) {
     return (
       <div className="min-h-screen">
         <div className="section-container bg-gradient-to-br from-brand-paleGreen to-white py-8 md:py-12">
           <div className="max-w-5xl mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome, {profile?.full_name || profile?.username || 'Influencer'}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome, {deferredAuth.profile?.full_name || deferredAuth.profile?.username || 'Influencer'}</h1>
             <p className="text-lg text-muted-foreground mb-6">
               Manage your promo codes from your influencer dashboard.
             </p>
@@ -154,14 +191,12 @@ const Index = () => {
     );
   }
 
-  // Regular user view - optimized for mobile LCP
+  // Regular user view - enhanced after LCP
   return (
-    <div className={`min-h-screen ${user ? 'pb-0' : ''}`}>
+    <div className={`min-h-screen ${enhancedUser ? 'pb-0' : ''}`}>
       <div className="section-container">
-        {user ? (
+        {enhancedUser ? (
           <DownloadBanner />
-        ) : isMobile ? (
-          <StaticHeroSection />
         ) : (
           <HeroSection />
         )}
@@ -193,7 +228,7 @@ const Index = () => {
       
       <div className="section-container">
         <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-          {user ? <LazyBrowserExtensionPromo /> : <LazyCallToActionSection />}
+          {enhancedUser ? <LazyBrowserExtensionPromo /> : <LazyCallToActionSection />}
         </Suspense>
       </div>
     </div>
