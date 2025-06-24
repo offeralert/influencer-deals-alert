@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -52,6 +51,14 @@ const Explore = () => {
     selectedCategories,
     searchQuery
   );
+
+  // Listen for URL parameter changes and update activeTab
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab") as ExploreTab;
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const newParams = new URLSearchParams(searchParams);
