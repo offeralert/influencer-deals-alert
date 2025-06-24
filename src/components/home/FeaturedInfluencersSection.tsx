@@ -79,19 +79,19 @@ const FeaturedAccountsSection = () => {
 
   // Always render the section with consistent height to prevent layout shifts
   return (
-    <section className="py-3 md:py-4 bg-white">
-      <div className="container mx-auto px-2 md:px-4">
-        <div className="flex justify-between items-center mb-2 md:mb-3">
-          <h2 className="text-base md:text-lg font-semibold">Featured Accounts</h2>
+    <section className="py-4 md:py-6 bg-white">
+      <div className="container mx-auto px-3 md:px-6">
+        <div className="flex justify-between items-center mb-4 md:mb-6">
+          <h2 className="text-lg md:text-xl font-semibold">Featured Accounts</h2>
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/explore?tab=influencers" className="flex items-center text-xs">
-              View all <ArrowRight className="ml-1 h-3 w-3" />
+            <Link to="/explore?tab=influencers" className="flex items-center text-sm">
+              View all <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
         </div>
         
-        {/* Fixed height container to prevent layout shifts */}
-        <div className="min-h-[88px]">
+        {/* Improved height container to prevent layout shifts */}
+        <div className="min-h-[120px] md:min-h-[140px]">
           {loading ? (
             isMobile ? (
               <Carousel
@@ -101,17 +101,17 @@ const FeaturedAccountsSection = () => {
                 }}
                 className="w-full"
               >
-                <CarouselContent className="-ml-1 md:-ml-2">
+                <CarouselContent className="-ml-2 md:-ml-3">
                   {Array.from({ length: 3 }).map((_, index) => (
-                    <CarouselItem key={index} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+                    <CarouselItem key={index} className="pl-2 md:pl-3 basis-[90%] sm:basis-[80%]">
                       <InfluencerCardSkeleton />
                     </CarouselItem>
                   ))}
                 </CarouselContent>
               </Carousel>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
-                {Array.from({ length: 5 }).map((_, index) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 4 }).map((_, index) => (
                   <InfluencerCardSkeleton key={index} />
                 ))}
               </div>
@@ -125,9 +125,9 @@ const FeaturedAccountsSection = () => {
                 }}
                 className="w-full"
               >
-                <CarouselContent className="-ml-1 md:-ml-2">
+                <CarouselContent className="-ml-2 md:-ml-3">
                   {featuredAccounts.map((account) => (
-                    <CarouselItem key={account.id} className="pl-1 md:pl-2 basis-[85%] md:basis-1/5">
+                    <CarouselItem key={account.id} className="pl-2 md:pl-3 basis-[90%] sm:basis-[80%]">
                       <InfluencerCard
                         id={account.id}
                         name={account.full_name}
@@ -146,7 +146,7 @@ const FeaturedAccountsSection = () => {
                 )}
               </Carousel>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {featuredAccounts.map((account) => (
                   <InfluencerCard
                     key={account.id}
@@ -160,8 +160,8 @@ const FeaturedAccountsSection = () => {
               </div>
             )
           ) : (
-            <div className="text-center py-4">
-              <p className="text-xs text-muted-foreground">No featured accounts available</p>
+            <div className="text-center py-8">
+              <p className="text-sm text-muted-foreground">No featured accounts available</p>
             </div>
           )}
         </div>
