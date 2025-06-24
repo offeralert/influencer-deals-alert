@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect, useContext, createContext } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -27,16 +27,16 @@ type DeferredAuthContextType = {
   initialized: boolean;
 };
 
-const DeferredAuthContext = React.createContext<DeferredAuthContextType | undefined>(undefined);
+const DeferredAuthContext = createContext<DeferredAuthContextType | undefined>(undefined);
 
 export function DeferredAuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = React.useState<Session | null>(null);
-  const [user, setUser] = React.useState<User | null>(null);
-  const [profile, setProfile] = React.useState<ProfileType | null>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [initialized, setInitialized] = React.useState(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Defer auth initialization until after LCP
     const timer = setTimeout(() => {
       initializeAuth();
@@ -166,7 +166,7 @@ export function DeferredAuthProvider({ children }: { children: React.ReactNode }
 }
 
 export function useDeferredAuth() {
-  const context = React.useContext(DeferredAuthContext);
+  const context = useContext(DeferredAuthContext);
   if (context === undefined) {
     throw new Error("useDeferredAuth must be used within a DeferredAuthProvider");
   }
