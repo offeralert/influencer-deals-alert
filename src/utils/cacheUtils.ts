@@ -1,16 +1,27 @@
+
 // Dynamic cache version from build
 export const CACHE_VERSION = (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : Date.now().toString());
 
 /**
- * Adds cache busting parameter to a URL
+ * Adds cache busting parameter to a URL with mobile Safari optimization
  */
 export const addCacheBuster = (url: string, version: string = CACHE_VERSION): string => {
   const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}v=${version}&t=${Date.now()}`;
+  // Add timestamp for mobile Safari cache busting
+  return `${url}${separator}v=${version}&t=${Date.now()}&mobile=${isMobileSafari() ? '1' : '0'}`;
 };
 
 /**
- * Check for service worker updates without forcing refresh
+ * Detect mobile Safari for specific handling
+ */
+const isMobileSafari = (): boolean => {
+  return /Safari/.test(navigator.userAgent) && 
+         /Mobile/.test(navigator.userAgent) && 
+         !/Chrome/.test(navigator.userAgent);
+};
+
+/**
+ * Check for service worker updates with mobile optimization
  */
 export const checkForUpdates = async (): Promise<boolean> => {
   if (!('serviceWorker' in navigator)) {
@@ -28,6 +39,11 @@ export const checkForUpdates = async (): Promise<boolean> => {
       return true;
     }
 
+    // Force update check for mobile Safari
+    if (isMobileSafari()) {
+      await registration.update();
+    }
+
     // Listen for new service worker installations
     return new Promise((resolve) => {
       registration.addEventListener('updatefound', () => {
@@ -41,8 +57,8 @@ export const checkForUpdates = async (): Promise<boolean> => {
         }
       });
 
-      // Timeout after 5 seconds
-      setTimeout(() => resolve(false), 5000);
+      // Shorter timeout for mobile
+      setTimeout(() => resolve(false), isMobileSafari() ? 3000 : 5000);
     });
   } catch (error) {
     console.error('Error checking for updates:', error);
@@ -51,7 +67,7 @@ export const checkForUpdates = async (): Promise<boolean> => {
 };
 
 /**
- * Apply pending service worker update
+ * Apply pending service worker update with mobile optimization
  */
 export const applyUpdate = async (): Promise<void> => {
   if (!('serviceWorker' in navigator)) {
@@ -69,6 +85,9 @@ export const applyUpdate = async (): Promise<void> => {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           resolve();
         }, { once: true });
+        
+        // Shorter timeout for mobile
+        setTimeout(() => resolve(), isMobileSafari() ? 2000 : 5000);
       });
       
       // Reload the page to get the new version
@@ -82,7 +101,7 @@ export const applyUpdate = async (): Promise<void> => {
 };
 
 /**
- * Clear all caches manually (for troubleshooting)
+ * Clear all caches manually with mobile Safari specific handling
  */
 export const clearAllCaches = async (): Promise<void> => {
   try {
@@ -93,6 +112,14 @@ export const clearAllCaches = async (): Promise<void> => {
       );
     }
     
+    // Additional mobile Safari cache clearing
+    if (isMobileSafari()) {
+      // Force reload to clear Safari's additional caches
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+    
     console.log('All caches cleared');
   } catch (error) {
     console.error('Error clearing caches:', error);
@@ -100,12 +127,45 @@ export const clearAllCaches = async (): Promise<void> => {
 };
 
 /**
- * Get current cache status
+ * Pre-warm cache with critical resources
+ */
+export const preWarmCache = async (): Promise<void> => {
+  if (!('caches' in window)) {
+    return;
+  }
+
+  try {
+    const cache = await caches.open(`offer-alert-${CACHE_VERSION}`);
+    const criticalResources = [
+      '/',
+      '/index.html',
+      '/manifest.json'
+    ];
+
+    await Promise.all(
+      criticalResources.map(resource => 
+        fetch(resource).then(response => {
+          if (response.ok) {
+            return cache.put(resource, response);
+          }
+        }).catch(() => {
+          // Ignore pre-warming failures
+        })
+      )
+    );
+  } catch (error) {
+    console.error('Error pre-warming cache:', error);
+  }
+};
+
+/**
+ * Get current cache status with mobile info
  */
 export const getCacheStatus = async (): Promise<{
   cacheNames: string[];
   currentVersion: string;
   hasUpdate: boolean;
+  isMobileSafari: boolean;
 }> => {
   try {
     const cacheNames = 'caches' in window ? await caches.keys() : [];
@@ -114,14 +174,16 @@ export const getCacheStatus = async (): Promise<{
     return {
       cacheNames,
       currentVersion: CACHE_VERSION,
-      hasUpdate
+      hasUpdate,
+      isMobileSafari: isMobileSafari()
     };
   } catch (error) {
     console.error('Error getting cache status:', error);
     return {
       cacheNames: [],
       currentVersion: CACHE_VERSION,
-      hasUpdate: false
+      hasUpdate: false,
+      isMobileSafari: isMobileSafari()
     };
   }
 };

@@ -5,10 +5,10 @@ export const useProgressiveEnhancement = () => {
   const [isEnhanced, setIsEnhanced] = useState(false);
 
   useEffect(() => {
-    // Wait for LCP before enabling enhancements
+    // Reduce delay for faster loading - only wait for basic page load
     const timer = setTimeout(() => {
       setIsEnhanced(true);
-    }, 2500); // Delay until after LCP
+    }, 1000); // Reduced from 2500ms to 1000ms
 
     return () => clearTimeout(timer);
   }, []);

@@ -19,11 +19,9 @@ import { useDeferredPerformanceMonitoring } from "@/hooks/useDeferredPerformance
 import { useEffect, Suspense, lazy, startTransition } from "react";
 import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
 
-// Lazy load non-critical sections
-const LazyFeaturedAccountsSection = lazy(() => import("@/components/home/FeaturedInfluencersSection"));
+// Only lazy load non-critical, below-the-fold sections
 const LazyPopularCategoriesSection = lazy(() => import("@/components/home/PopularCategoriesSection"));
 const LazyBrowserExtensionPromo = lazy(() => import("@/components/home/BrowserExtensionPromo"));
-const LazyCallToActionSection = lazy(() => import("@/components/home/CallToActionSection"));
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -56,7 +54,7 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, [track, isEnhanced]);
 
-  // Show static content first, then enhance
+  // Show static content first, then enhance - simplified loading
   if (!isEnhanced) {
     return (
       <div className="min-h-screen">
@@ -73,16 +71,13 @@ const Index = () => {
         <Separator className="h-[1px] bg-gray-100" />
         
         <div className="section-container bg-white shadow-sm">
-          <div className="py-3 md:py-4">
-            <div className="container mx-auto px-2 md:px-4">
-              <div className="flex justify-between items-center mb-2 md:mb-3">
-                <h2 className="text-base md:text-lg font-semibold">Featured Accounts</h2>
-              </div>
-              <div className="min-h-[88px] flex items-center justify-center">
-                <p className="text-xs text-muted-foreground">Loading...</p>
-              </div>
-            </div>
-          </div>
+          <FeaturedAccountsSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container">
+          <CallToActionSection />
         </div>
       </div>
     );
@@ -191,7 +186,7 @@ const Index = () => {
     );
   }
 
-  // Regular user view - enhanced after LCP
+  // Regular user view - load critical sections immediately
   return (
     <div className={`min-h-screen ${enhancedUser ? 'pb-0' : ''}`}>
       <div className="section-container">
@@ -211,9 +206,7 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-          <LazyFeaturedAccountsSection />
-        </Suspense>
+        <FeaturedAccountsSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
@@ -227,9 +220,13 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container">
-        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-          {enhancedUser ? <LazyBrowserExtensionPromo /> : <LazyCallToActionSection />}
-        </Suspense>
+        {enhancedUser ? (
+          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
+            <LazyBrowserExtensionPromo />
+          </Suspense>
+        ) : (
+          <CallToActionSection />
+        )}
       </div>
     </div>
   );
