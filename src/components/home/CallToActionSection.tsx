@@ -18,7 +18,7 @@ const CallToActionSection = () => {
           <p className="text-base md:text-lg text-muted-foreground px-4 md:px-0">
             {user 
               ? "Download our browser extension to automatically apply the best promo codes when you shop online."
-              : "Create an account today to follow your favorite influencers and get access to exclusive deals and promo codes."}
+              : "Get instant access to verified promo codes with our free browser extension, or create an account to follow your favorite influencers and get exclusive deals."}
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
             <Button size="lg" className="h-10 md:h-12" asChild>
@@ -36,10 +36,21 @@ const CallToActionSection = () => {
               )}
             </Button>
             <Button size="lg" className="h-10 md:h-12" variant="outline" asChild>
-              <Link to="/signup?tab=influencer">
-                <UserPlus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                Apply as Influencer
-              </Link>
+              {user ? (
+                <Link to="/signup?tab=influencer">
+                  <UserPlus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  Apply as Influencer
+                </Link>
+              ) : (
+                <a 
+                  href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                  Download Extension
+                </a>
+              )}
             </Button>
           </div>
         </div>
