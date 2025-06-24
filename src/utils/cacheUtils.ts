@@ -1,6 +1,5 @@
-
 // Dynamic cache version from build
-export const CACHE_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1';
+export const CACHE_VERSION = (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : Date.now().toString());
 
 /**
  * Adds cache busting parameter to a URL
