@@ -34,7 +34,8 @@ export default defineConfig(({ mode }) => ({
     }
   },
   define: {
-    // Make version available to the app
-    __APP_VERSION__: JSON.stringify(version)
+    // Make version available to the app and service worker
+    __APP_VERSION__: JSON.stringify(version),
+    __SW_VERSION__: JSON.stringify(`sw-${version}`)
   }
 }));

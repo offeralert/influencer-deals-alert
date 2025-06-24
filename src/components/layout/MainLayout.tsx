@@ -8,12 +8,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 import { useProgressiveEnhancement } from "@/hooks/useProgressiveEnhancement";
+import { useUpdateManager } from "@/hooks/useUpdateManager";
 
 const MainLayout = () => {
   const isEnhanced = useProgressiveEnhancement();
   
-  // Only enable scroll tracking after enhancement
+  // Only enable update manager after enhancement
   if (isEnhanced) {
+    useUpdateManager();
     useScrollToTop();
   }
 
