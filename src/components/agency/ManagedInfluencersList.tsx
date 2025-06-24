@@ -10,13 +10,10 @@ import { Link } from "react-router-dom";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 import { useState } from "react";
 import { toast } from "sonner";
-import EditInfluencerModal from "./EditInfluencerModal";
 
 const ManagedInfluencersList = () => {
   const { user } = useAuth();
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
-  const [editingInfluencer, setEditingInfluencer] = useState<any>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const { data: managedInfluencers, isLoading, error } = useQuery({
     queryKey: ['managed-influencers', user?.id],
@@ -35,8 +32,7 @@ const ManagedInfluencersList = () => {
             full_name,
             username,
             avatar_url,
-            is_influencer,
-            is_featured
+            is_influencer
           )
         `)
         .eq('agency_id', user.id)
@@ -98,16 +94,6 @@ const ManagedInfluencersList = () => {
     }
   };
 
-  const handleEditInfluencer = (relationship: any) => {
-    setEditingInfluencer(relationship);
-    setIsEditModalOpen(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingInfluencer(null);
-  };
-
   if (isLoading) {
     return (
       <Card>
@@ -164,124 +150,107 @@ const ManagedInfluencersList = () => {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Managed Influencers</CardTitle>
-          <CardDescription>
-            {managedInfluencers.length} influencer{managedInfluencers.length !== 1 ? 's' : ''} in your network
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {managedInfluencers.map((relationship) => {
-              const influencer = relationship.influencer_profile;
-              const promoCount = promoCodeCounts?.[influencer?.id || ''] || 0;
-              const avatarUrl = getAvatarUrl(influencer?.avatar_url);
-              const isPasswordVisible = visiblePasswords.has(relationship.id);
+    <Card>
+      <CardHeader>
+        <CardTitle>Managed Influencers</CardTitle>
+        <CardDescription>
+          {managedInfluencers.length} influencer{managedInfluencers.length !== 1 ? 's' : ''} in your network
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {managedInfluencers.map((relationship) => {
+            const influencer = relationship.influencer_profile;
+            const promoCount = promoCodeCounts?.[influencer?.id || ''] || 0;
+            const avatarUrl = getAvatarUrl(influencer?.avatar_url);
+            const isPasswordVisible = visiblePasswords.has(relationship.id);
 
-              return (
-                <Card key={relationship.id} className="border">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarImage src={avatarUrl || undefined} alt={influencer?.full_name || ''} />
-                        <AvatarFallback>
-                          <AvatarImage src={DEFAULT_AVATAR_URL} alt="User" />
-                        </AvatarFallback>
-                      </Avatar>
+            return (
+              <Card key={relationship.id} className="border">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={avatarUrl || undefined} alt={influencer?.full_name || ''} />
+                      <AvatarFallback>
+                        <AvatarImage src={DEFAULT_AVATAR_URL} alt="User" />
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium truncate">
+                        {influencer?.full_name || influencer?.username || 'Unknown'}
+                      </h3>
+                      {influencer?.username && (
+                        <p className="text-sm text-muted-foreground">
+                          @{influencer.username}
+                        </p>
+                      )}
                       
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">
-                          {influencer?.full_name || influencer?.username || 'Unknown'}
-                        </h3>
-                        {influencer?.username && (
-                          <p className="text-sm text-muted-foreground">
-                            @{influencer.username}
-                          </p>
-                        )}
-                        
-                        {relationship.temporary_password && (
-                          <div className="mt-2 p-2 bg-gray-50 rounded-md border">
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs font-medium text-gray-600">Temp Password:</span>
-                              <div className="flex items-center gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => togglePasswordVisibility(relationship.id)}
-                                >
-                                  {isPasswordVisible ? (
-                                    <EyeOff className="h-3 w-3" />
-                                  ) : (
-                                    <Eye className="h-3 w-3" />
-                                  )}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => copyToClipboard(relationship.temporary_password, 'Password')}
-                                >
-                                  <Copy className="h-3 w-3" />
-                                </Button>
-                              </div>
+                      {relationship.temporary_password && (
+                        <div className="mt-2 p-2 bg-gray-50 rounded-md border">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-medium text-gray-600">Temp Password:</span>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => togglePasswordVisibility(relationship.id)}
+                              >
+                                {isPasswordVisible ? (
+                                  <EyeOff className="h-3 w-3" />
+                                ) : (
+                                  <Eye className="h-3 w-3" />
+                                )}
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => copyToClipboard(relationship.temporary_password, 'Password')}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
                             </div>
-                            <code className="text-xs font-mono">
-                              {isPasswordVisible ? relationship.temporary_password : '••••••••••'}
-                            </code>
                           </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary" className="text-xs">
-                            {promoCount} promo code{promoCount !== 1 ? 's' : ''}
+                          <code className="text-xs font-mono">
+                            {isPasswordVisible ? relationship.temporary_password : '••••••••••'}
+                          </code>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {promoCount} promo code{promoCount !== 1 ? 's' : ''}
+                        </Badge>
+                        {influencer?.is_influencer && (
+                          <Badge variant="outline" className="text-xs">
+                            Verified
                           </Badge>
-                          {influencer?.is_influencer && (
-                            <Badge variant="outline" className="text-xs">
-                              Verified
-                            </Badge>
-                          )}
-                          {influencer?.is_featured && (
-                            <Badge variant="default" className="text-xs bg-purple-600">
-                              Featured
-                            </Badge>
-                          )}
-                        </div>
-                        
-                        <div className="flex gap-2 mt-3">
-                          <Button size="sm" variant="outline" asChild>
-                            <Link to={`/manage-influencer-codes/${influencer?.id}`}>
-                              <Plus className="h-3 w-3 mr-1" />
-                              Manage Codes
-                            </Link>
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEditInfluencer(relationship)}
-                          >
-                            <Edit className="h-3 w-3 mr-1" />
-                            Edit
-                          </Button>
-                        </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2 mt-3">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`/manage-influencer-codes/${influencer?.id}`}>
+                            <Plus className="h-3 w-3 mr-1" />
+                            Manage Codes
+                          </Link>
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      <EditInfluencerModal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        influencerRelationship={editingInfluencer}
-      />
-    </>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useContext, createContext } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
@@ -29,7 +29,7 @@ type DeferredAuthContextType = {
 
 const DeferredAuthContext = createContext<DeferredAuthContextType | undefined>(undefined);
 
-export function DeferredAuthProvider({ children }: { children: React.ReactNode }) {
+export function DeferredAuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
