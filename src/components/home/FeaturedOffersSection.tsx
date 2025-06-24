@@ -13,7 +13,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { getAvatarUrl } from "@/utils/avatarUtils";
 
 interface Deal {
@@ -33,7 +32,6 @@ interface Deal {
 const FeaturedOffersSection = () => {
   const [featuredOffers, setFeaturedOffers] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchFeaturedOffers();
@@ -114,7 +112,7 @@ const FeaturedOffersSection = () => {
 
   const renderSkeletons = () => {
     return Array.from({ length: 4 }, (_, index) => (
-      <CarouselItem key={`skeleton-${index}`} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
+      <CarouselItem key={`skeleton-${index}`} className="pl-1 md:pl-4 basis-[85%] md:basis-1/2 lg:basis-1/4">
         <DealCardSkeleton />
       </CarouselItem>
     ));
@@ -133,51 +131,35 @@ const FeaturedOffersSection = () => {
         </div>
         
         {loading ? (
-          isMobile ? (
-            <Carousel
-              opts={{
-                align: "start",
-                loop: false,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-1 md:-ml-4">
-                {renderSkeletons()}
-              </CarouselContent>
-            </Carousel>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 4 }, (_, index) => (
-                <DealCardSkeleton key={`skeleton-${index}`} />
-              ))}
-            </div>
-          )
+          <Carousel
+            opts={{
+              align: "start",
+              loop: false,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-1 md:-ml-4">
+              {renderSkeletons()}
+            </CarouselContent>
+          </Carousel>
         ) : featuredOffers.length > 0 ? (
-          isMobile ? (
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-1 md:-ml-4">
-                {featuredOffers.map((offer) => (
-                  <CarouselItem key={offer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/3">
-                    <DealCard {...offer} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
-            </Carousel>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-1 md:-ml-4">
               {featuredOffers.map((offer) => (
-                <DealCard key={offer.id} {...offer} />
+                <CarouselItem key={offer.id} className="pl-1 md:pl-4 basis-[85%] md:basis-1/2 lg:basis-1/4">
+                  <DealCard {...offer} />
+                </CarouselItem>
               ))}
-            </div>
-          )
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </Carousel>
         ) : (
           <div className="col-span-full text-center py-4 md:py-12">
             <p className="text-muted-foreground text-sm">No featured offers available right now.</p>

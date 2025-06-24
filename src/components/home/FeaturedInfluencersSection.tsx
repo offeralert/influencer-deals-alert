@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import InfluencerCard from "@/components/ui/influencer-card";
@@ -12,7 +13,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { useDevice } from "@/hooks/use-device";
 
 interface Influencer {
   id: string;
@@ -25,7 +25,6 @@ interface Influencer {
 const FeaturedAccountsSection = () => {
   const [featuredAccounts, setFeaturedAccounts] = useState<Influencer[]>([]);
   const [loading, setLoading] = useState(true);
-  const device = useDevice();
 
   useEffect(() => {
     fetchFeaturedAccounts();
@@ -77,34 +76,23 @@ const FeaturedAccountsSection = () => {
   };
 
   const renderSkeleton = () => {
-    if (device === 'desktop') {
-      return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+    return (
+      <Carousel
+        opts={{
+          align: "start",
+          loop: false,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-1 md:-ml-2">
           {Array.from({ length: 4 }).map((_, index) => (
-            <InfluencerCardSkeleton key={index} />
+            <CarouselItem key={index} className="pl-1 md:pl-2 basis-[85%] md:basis-1/2 lg:basis-1/4">
+              <InfluencerCardSkeleton />
+            </CarouselItem>
           ))}
-        </div>
-      );
-    } else {
-      // Mobile and tablet use carousel
-      return (
-        <Carousel
-          opts={{
-            align: "start",
-            loop: false,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-1 md:-ml-2">
-            {Array.from({ length: 3 }).map((_, index) => (
-              <CarouselItem key={index} className="pl-1 md:pl-2 basis-[85%] md:basis-1/2">
-                <InfluencerCardSkeleton />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-      );
-    }
+        </CarouselContent>
+      </Carousel>
+    );
   };
 
   const renderContent = () => {
@@ -116,57 +104,38 @@ const FeaturedAccountsSection = () => {
       );
     }
 
-    if (device === 'desktop') {
-      // Desktop: 4-column grid
-      return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+    return (
+      <Carousel
+        opts={{
+          align: "start",
+          loop: featuredAccounts.length > 1,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-1 md:-ml-2">
           {featuredAccounts.map((account) => (
-            <InfluencerCard
-              key={account.id}
-              id={account.id}
-              name={account.full_name}
-              username={account.username}
-              imageUrl={account.avatar_url}
-              category={account.category}
-            />
+            <CarouselItem 
+              key={account.id} 
+              className="pl-1 md:pl-2 basis-[85%] md:basis-1/2 lg:basis-1/4"
+            >
+              <InfluencerCard
+                id={account.id}
+                name={account.full_name}
+                username={account.username}
+                imageUrl={account.avatar_url}
+                category={account.category}
+              />
+            </CarouselItem>
           ))}
-        </div>
-      );
-    } else {
-      // Mobile and tablet: carousel
-      return (
-        <Carousel
-          opts={{
-            align: "start",
-            loop: featuredAccounts.length > 1,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-1 md:-ml-2">
-            {featuredAccounts.map((account) => (
-              <CarouselItem 
-                key={account.id} 
-                className={`pl-1 md:pl-2 ${device === 'mobile' ? 'basis-[85%]' : 'basis-1/2'}`}
-              >
-                <InfluencerCard
-                  id={account.id}
-                  name={account.full_name}
-                  username={account.username}
-                  imageUrl={account.avatar_url}
-                  category={account.category}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          {featuredAccounts.length > 1 && device === 'tablet' && (
-            <>
-              <CarouselPrevious />
-              <CarouselNext />
-            </>
-          )}
-        </Carousel>
-      );
-    }
+        </CarouselContent>
+        {featuredAccounts.length > 1 && (
+          <>
+            <CarouselPrevious className="hidden md:flex" />
+            <CarouselNext className="hidden md:flex" />
+          </>
+        )}
+      </Carousel>
+    );
   };
 
   // Always render the section with consistent height to prevent layout shifts
