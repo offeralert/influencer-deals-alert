@@ -23,44 +23,44 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
-    <Card className="overflow-hidden h-[120px] md:h-[140px] hover:shadow-md transition-shadow">
-      <CardContent className="p-4 h-full">
-        <div className="flex flex-col h-full">
-          <div className="flex items-start gap-3 flex-1">
-            <div className="w-12 h-12 md:w-14 md:h-14 flex-shrink-0">
-              <Avatar className="h-12 w-12 md:h-14 md:w-14">
-                <AvatarImage 
-                  src={avatarUrl} 
-                  alt={name}
-                  className="object-cover"
-                />
-                <AvatarFallback>
-                  <AvatarImage src={DEFAULT_AVATAR_URL} alt={name} />
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            <div className="flex-1 min-w-0">
-              <Link to={`/influencer/${username}`} className="hover:underline">
-                <h3 className="font-semibold text-sm md:text-base truncate mb-1 leading-tight">{name}</h3>
-                {!isCreditCard && (
-                  <p className="text-xs md:text-sm text-gray-500 truncate leading-tight mb-1">@{username}</p>
-                )}
-                <p className="text-xs text-gray-400 truncate leading-tight">
-                  {isLoadingFollowerCount ? (
-                    "Loading..."
-                  ) : (
-                    `${formatFollowerCountCompact(followerCount)} followers`
-                  )}
-                </p>
-              </Link>
-            </div>
+    <Card className="overflow-hidden h-[88px]">
+      <CardContent className="p-3 h-full">
+        <div className="flex items-center gap-3 h-full">
+          <div className="w-10 h-10 flex-shrink-0">
+            <Avatar className="h-10 w-10">
+              <AvatarImage 
+                src={avatarUrl} 
+                alt={name}
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+              <AvatarFallback>
+                <AvatarImage src={DEFAULT_AVATAR_URL} alt={name} />
+              </AvatarFallback>
+            </Avatar>
           </div>
-          <div className="mt-3">
+          <div className="flex-1 min-w-0">
+            <Link to={`/influencer/${username}`} className="hover:underline">
+              <h3 className="font-semibold text-sm truncate mb-0.5 leading-tight">{name}</h3>
+              {!isCreditCard && (
+                <p className="text-xs text-gray-500 truncate leading-tight">@{username}</p>
+              )}
+              <p className="text-xs text-gray-400 truncate leading-tight">
+                {isLoadingFollowerCount ? (
+                  "Loading..."
+                ) : (
+                  `${formatFollowerCountCompact(followerCount)} followers`
+                )}
+              </p>
+            </Link>
+          </div>
+          <div className="w-16 flex-shrink-0">
             <Button 
               onClick={handleFollowToggle} 
               variant={isFollowing ? "outline" : "default"} 
               size="sm"
-              className="text-xs md:text-sm h-8 md:h-9 w-full"
+              className="text-xs h-8 w-full"
               disabled={isProcessing}
             >
               {isProcessing ? '...' : isFollowing ? 'Following' : 'Follow'}
