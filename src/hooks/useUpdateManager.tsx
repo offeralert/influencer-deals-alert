@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
-export const useUpdateManager = () => {
+export const useUpdateManager = (enabled: boolean = true) => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
 
   useEffect(() => {
+    if (!enabled) return;
+
     let interval: NodeJS.Timeout;
 
     const checkUpdates = async () => {
@@ -32,7 +34,7 @@ export const useUpdateManager = () => {
       clearInterval(interval);
       clearTimeout(initialTimeout);
     };
-  }, [updateAvailable]);
+  }, [updateAvailable, enabled]);
 
   const showUpdateNotification = () => {
     toast({

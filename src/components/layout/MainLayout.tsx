@@ -13,11 +13,9 @@ import { useUpdateManager } from "@/hooks/useUpdateManager";
 const MainLayout = () => {
   const isEnhanced = useProgressiveEnhancement();
   
-  // Only enable update manager after enhancement
-  if (isEnhanced) {
-    useUpdateManager();
-    useScrollToTop();
-  }
+  // Always call hooks, but pass the enhancement state to control their behavior
+  useUpdateManager(isEnhanced);
+  useScrollToTop(isEnhanced);
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
