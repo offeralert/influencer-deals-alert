@@ -142,13 +142,14 @@ export const clearAllCaches = async (): Promise<void> => {
     
     // Additional mobile Safari cache clearing
     if (isMobileSafari()) {
-      // Clear application cache if available
-      if ('applicationCache' in window && window.applicationCache.status !== window.applicationCache.UNCACHED) {
-        try {
-          window.applicationCache.update();
-        } catch (e) {
-          // Ignore errors
+      // Clear application cache if available (deprecated but still used in some cases)
+      try {
+        const appCache = (window as any).applicationCache;
+        if (appCache && appCache.status !== appCache.UNCACHED) {
+          appCache.update();
         }
+      } catch (e) {
+        // Ignore errors for deprecated applicationCache
       }
     }
     
