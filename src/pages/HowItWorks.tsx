@@ -16,7 +16,7 @@ const HowItWorks = () => {
           <div className="bg-brand-light dark:bg-brand-dark rounded-full p-6 flex items-center justify-center">
             <span className="text-4xl font-bold gradient-text">1</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 text-left">
             <h2 className="text-2xl font-semibold mb-4">Create an account</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
               It's free and takes seconds.
@@ -34,7 +34,7 @@ const HowItWorks = () => {
           <div className="bg-brand-light dark:bg-brand-dark rounded-full p-6 flex items-center justify-center md:order-first">
             <span className="text-4xl font-bold gradient-text">2</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 text-left">
             <h2 className="text-2xl font-semibold mb-4">Follow your favorite influencers</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
               Doing so unlocks access to their promo codes and affiliate offers. The more influencers you follow, the more deals you'll discover.
@@ -52,7 +52,7 @@ const HowItWorks = () => {
           <div className="bg-brand-light dark:bg-brand-dark rounded-full p-6 flex items-center justify-center">
             <span className="text-4xl font-bold gradient-text">3</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 text-left">
             <h2 className="text-2xl font-semibold mb-4">Download and sign in to the browser extension</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
               This enables in-browser notifications when offers are available. Never miss a deal again while shopping online.
@@ -74,7 +74,7 @@ const HowItWorks = () => {
           <div className="bg-brand-light dark:bg-brand-dark rounded-full p-6 flex items-center justify-center md:order-first">
             <span className="text-4xl font-bold gradient-text">4</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 text-left">
             <h2 className="text-2xl font-semibold mb-4">Shop as usual</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
               When you're on a supported site, the extension pops up with any relevant codes tied to influencers you follow. Simply click to apply the best offers.
