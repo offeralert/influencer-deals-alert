@@ -50,7 +50,7 @@ const HeroSection = () => {
                     rel="noopener noreferrer"
                   >
                     <Download className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                    Add to Chrome - It's Free
+                    Download Extension
                   </a> 
                   : 
                   <Link to="/signup">Create Account</Link>
