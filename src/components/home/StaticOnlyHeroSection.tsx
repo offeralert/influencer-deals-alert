@@ -44,12 +44,6 @@ const StaticOnlyHeroSection = () => {
               loading="eager"
               fetchPriority="high"
             />
-            <div className="absolute -top-4 -right-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
-              <div className="gradient-bg p-2 rounded-md text-white font-medium text-sm">30% OFF</div>
-            </div>
-            <div className="absolute -bottom-4 -left-4 bg-white dark:bg-brand-dark p-3 rounded-lg shadow-lg">
-              <div className="gradient-bg p-2 rounded-md text-white font-medium text-sm">SUMMER30</div>
-            </div>
           </div>
         </div>
       </div>
