@@ -2,20 +2,19 @@
 const CACHE_VERSION = self.__SW_VERSION__ || `sw-${Date.now()}`;
 const CACHE_NAME = `offer-alert-${CACHE_VERSION}`;
 
-// Network-first URLs (always fetch fresh)
-const NETWORK_FIRST_URLS = [
+// Mobile-optimized caching strategy
+const CACHE_FIRST_URLS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/api/'
-];
-
-// Cache-first URLs (for static assets)
-const CACHE_FIRST_URLS = [
-  '/assets/',
   '/lovable-uploads/',
+  '/assets/',
   '/favicon.ico',
   '/placeholder.svg'
+];
+
+const NETWORK_FIRST_URLS = [
+  '/api/'
 ];
 
 self.addEventListener('install', (event) => {
@@ -37,7 +36,7 @@ self.addEventListener('install', (event) => {
       })
       .then(() => {
         console.log('Service Worker: Installation complete');
-        // Force immediate activation
+        // Skip waiting for faster updates on mobile
         return self.skipWaiting();
       })
   );
@@ -51,66 +50,19 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Network first strategy for HTML and critical resources
-  if (NETWORK_FIRST_URLS.some(pattern => url.pathname.includes(pattern) || url.pathname === pattern)) {
-    event.respondWith(networkFirstStrategy(event.request));
-  }
-  // Cache first strategy for static assets
-  else if (CACHE_FIRST_URLS.some(pattern => url.pathname.includes(pattern))) {
+  // Cache first strategy for most content (better for mobile)
+  if (CACHE_FIRST_URLS.some(pattern => url.pathname.includes(pattern))) {
     event.respondWith(cacheFirstStrategy(event.request));
   }
-  // Default to network first for everything else to ensure freshness
-  else {
+  // Network first only for API calls
+  else if (NETWORK_FIRST_URLS.some(pattern => url.pathname.includes(pattern))) {
     event.respondWith(networkFirstStrategy(event.request));
   }
-});
-
-async function networkFirstStrategy(request) {
-  try {
-    // Always try network first for HTML and critical resources
-    const networkResponse = await fetch(request, {
-      cache: 'no-cache',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate'
-      }
-    });
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('Network failed, trying cache:', error);
-    const cachedResponse = await caches.match(request);
-    
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return a basic offline response for HTML requests
-    if (request.headers.get('accept')?.includes('text/html')) {
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-          <head><title>Offline</title></head>
-          <body>
-            <h1>You're offline</h1>
-            <p>Please check your internet connection and try again.</p>
-            <button onclick="window.location.reload()">Retry</button>
-          </body>
-        </html>
-      `, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    return new Response('Offline', { status: 503 });
+  // Default to cache first for everything else (mobile optimization)
+  else {
+    event.respondWith(cacheFirstStrategy(event.request));
   }
-}
+});
 
 async function cacheFirstStrategy(request) {
   try {
@@ -149,6 +101,24 @@ async function cacheFirstStrategy(request) {
   }
 }
 
+async function networkFirstStrategy(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('Network failed, trying cache:', error);
+    const cachedResponse = await caches.match(request);
+    return cachedResponse || new Response('Offline', { status: 503 });
+  }
+}
+
 self.addEventListener('activate', (event) => {
   console.log('Service Worker: Activating version', CACHE_VERSION);
   
@@ -156,7 +126,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          // Delete all old caches to ensure fresh content
+          // Delete old caches but keep current one
           if (cacheName !== CACHE_NAME && cacheName.startsWith('offer-alert-')) {
             console.log('Service Worker: Deleting old cache:', cacheName);
             return caches.delete(cacheName);
@@ -165,7 +135,7 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       console.log('Service Worker: Cache cleanup complete');
-      // Take control immediately
+      // Take control immediately for faster mobile experience
       return self.clients.claim();
     })
   );
@@ -173,7 +143,7 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CHECK_FOR_UPDATES') {
-    // Always report update available to force refresh
+    // Notify about available update without forcing it
     event.ports[0].postMessage({
       type: 'UPDATE_AVAILABLE',
       version: CACHE_VERSION
@@ -186,7 +156,7 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Handle push notifications
+// Handle push notifications for mobile
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
