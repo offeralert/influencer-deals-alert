@@ -7,5 +7,5 @@ interface TooltipWrapperProps {
 }
 
 export const TooltipWrapper = ({ children }: TooltipWrapperProps) => {
-  return <TooltipProvider>{children}</TooltipProvider>;
+  return <TooltipProvider delayDuration={100}>{children}</TooltipProvider>;
 };
