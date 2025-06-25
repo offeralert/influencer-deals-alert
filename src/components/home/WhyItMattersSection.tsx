@@ -63,9 +63,9 @@ const WhyItMattersSection = () => {
     <section className="py-8 md:py-16 bg-white">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-6">Trusted by Shoppers at Top Brands</h2>
+          <h2 className="text-2xl md:text-3xl font-bold mb-6">Why it Matters</h2>
           <p className="text-base md:text-lg text-muted-foreground mb-8 md:mb-12">
-            Get exclusive deals and promo codes from your favorite influencers at the brands you love most.
+            Whether you're buying skincare, booking a vacation, or browsing for gifts, Offer Alert makes sure you never miss a deal - and every purcahse supports the influencers you trust. 
           </p>
           
           {/* Mobile view - 6 logos in 3x2 grid */}
