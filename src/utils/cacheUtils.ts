@@ -19,23 +19,38 @@ const isMobileSafari = (): boolean => {
          !/Chrome/.test(navigator.userAgent);
 };
 
-// Track update state to prevent redundant checks
+// Track update state to prevent redundant checks - MUCH more conservative now
 let updateCheckInProgress = false;
 let lastUpdateCheck = 0;
-const UPDATE_CHECK_COOLDOWN = 30000; // 30 seconds
+let consecutiveUpdateDetections = 0;
+let lastDetectedVersion = '';
+const UPDATE_CHECK_COOLDOWN = 5 * 60 * 1000; // Increased to 5 minutes
+const MINIMUM_VERSION_AGE = 2 * 60 * 1000; // 2 minutes - don't trust versions newer than this
+const REQUIRED_CONSECUTIVE_DETECTIONS = 2; // Require 2 consecutive detections before showing update
+
+// Session-based update throttling
+const SESSION_STORAGE_KEY = 'update_notifications_shown';
+const MAX_UPDATES_PER_SESSION = 1;
 
 /**
- * Check for service worker updates with enhanced detection
+ * Check for service worker updates with much more conservative detection
  */
 export const checkForUpdates = async (): Promise<boolean> => {
   if (!('serviceWorker' in navigator)) {
     return false;
   }
 
-  // Prevent redundant checks
+  // Prevent redundant checks with much longer cooldown
   const now = Date.now();
   if (updateCheckInProgress || (now - lastUpdateCheck) < UPDATE_CHECK_COOLDOWN) {
-    console.log('Update check skipped - too frequent');
+    console.log('Update check skipped - cooldown active for', Math.round((UPDATE_CHECK_COOLDOWN - (now - lastUpdateCheck)) / 1000), 'more seconds');
+    return false;
+  }
+
+  // Check session-based throttling
+  const sessionsUpdatesShown = parseInt(sessionStorage.getItem(SESSION_STORAGE_KEY) || '0');
+  if (sessionsUpdatesShown >= MAX_UPDATES_PER_SESSION) {
+    console.log('Update check skipped - maximum updates per session reached');
     return false;
   }
 
@@ -52,36 +67,72 @@ export const checkForUpdates = async (): Promise<boolean> => {
     // Check if there's a waiting service worker (most reliable indicator)
     if (registration.waiting) {
       console.log('Update available - service worker waiting');
-      updateCheckInProgress = false;
-      return true;
+      consecutiveUpdateDetections++;
+      
+      // Require multiple consecutive detections
+      if (consecutiveUpdateDetections >= REQUIRED_CONSECUTIVE_DETECTIONS) {
+        updateCheckInProgress = false;
+        return true;
+      } else {
+        console.log(`Update detected but requires ${REQUIRED_CONSECUTIVE_DETECTIONS - consecutiveUpdateDetections} more confirmations`);
+        updateCheckInProgress = false;
+        return false;
+      }
     }
 
-    // Force update check but don't immediately assume there's an update
-    await registration.update();
-
-    // Only check server version if we don't have a waiting worker
+    // Much more conservative server version checking
     let hasServerVersionUpdate = false;
     try {
-      const versionResponse = await fetch('/version.json?' + Date.now());
+      const versionResponse = await fetch('/version.json?' + Date.now(), {
+        cache: 'no-store', // Don't cache this request
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      });
+      
       if (versionResponse.ok) {
         const serverVersion = await versionResponse.json();
         const currentVersion = localStorage.getItem('app-version');
         
-        if (currentVersion && currentVersion !== serverVersion.version) {
-          console.log('Server version differs:', { current: currentVersion, server: serverVersion.version });
+        // Only consider it an update if:
+        // 1. We have a current version to compare against
+        // 2. The server version is actually different
+        // 3. The version isn't too new (might be a timing issue)
+        // 4. This version hasn't been detected before recently
+        if (currentVersion && 
+            currentVersion !== serverVersion.version && 
+            serverVersion.buildTime && 
+            (now - new Date(serverVersion.buildTime).getTime()) > MINIMUM_VERSION_AGE &&
+            lastDetectedVersion !== serverVersion.version) {
+          
+          console.log('Server version differs and is mature enough:', { 
+            current: currentVersion, 
+            server: serverVersion.version,
+            buildAge: Math.round((now - new Date(serverVersion.buildTime).getTime()) / 1000 / 60) + ' minutes'
+          });
+          
+          lastDetectedVersion = serverVersion.version;
           localStorage.setItem('app-version', serverVersion.version);
           hasServerVersionUpdate = true;
         }
         
         if (!currentVersion) {
           localStorage.setItem('app-version', serverVersion.version);
+          lastDetectedVersion = serverVersion.version;
         }
       }
     } catch (error) {
-      console.log('Could not check server version:', error);
+      console.log('Could not check server version (this is normal):', error.message);
+      // Don't treat network errors as updates
     }
 
-    // Listen for new service worker installations with timeout
+    // Only proceed with service worker update check if we don't have server version update
+    if (!hasServerVersionUpdate) {
+      // Force update check but with much longer timeout
+      await registration.update();
+    }
+
+    // Listen for new service worker installations with longer timeout
     const hasNewWorker = await new Promise<boolean>((resolve) => {
       let resolved = false;
       
@@ -94,8 +145,11 @@ export const checkForUpdates = async (): Promise<boolean> => {
             if (resolved) return;
             
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              consecutiveUpdateDetections++;
               resolved = true;
-              resolve(true);
+              
+              // Require multiple consecutive detections for service worker updates too
+              resolve(consecutiveUpdateDetections >= REQUIRED_CONSECUTIVE_DETECTIONS);
             }
           };
           
@@ -105,20 +159,29 @@ export const checkForUpdates = async (): Promise<boolean> => {
 
       registration.addEventListener('updatefound', handleUpdateFound);
 
-      // Shorter timeout for mobile, and resolve false instead of hanging
+      // Much longer timeout, and always default to false for conservative behavior
       setTimeout(() => {
         if (!resolved) {
           resolved = true;
-          resolve(hasServerVersionUpdate);
+          // FIXED: Always resolve false on timeout instead of hasServerVersionUpdate
+          resolve(false);
         }
-      }, isMobileSafari() ? 3000 : 5000);
+      }, isMobileSafari() ? 8000 : 15000); // Longer timeouts
     });
 
     updateCheckInProgress = false;
-    return hasNewWorker;
+    
+    // Reset consecutive detections if no update found
+    if (!hasNewWorker && !hasServerVersionUpdate) {
+      consecutiveUpdateDetections = 0;
+      lastDetectedVersion = '';
+    }
+    
+    return hasNewWorker || (hasServerVersionUpdate && consecutiveUpdateDetections >= REQUIRED_CONSECUTIVE_DETECTIONS);
   } catch (error) {
     console.error('Error checking for updates:', error);
     updateCheckInProgress = false;
+    consecutiveUpdateDetections = 0; // Reset on error
     return false;
   }
 };
@@ -132,6 +195,10 @@ export const applyUpdate = async (): Promise<void> => {
   }
 
   try {
+    // Track that we're showing an update to this session
+    const currentCount = parseInt(sessionStorage.getItem(SESSION_STORAGE_KEY) || '0');
+    sessionStorage.setItem(SESSION_STORAGE_KEY, (currentCount + 1).toString());
+    
     const registration = await navigator.serviceWorker.getRegistration();
     
     // Only apply update if there's actually a waiting service worker
@@ -150,16 +217,20 @@ export const applyUpdate = async (): Promise<void> => {
         
         navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
         
-        // Timeout to prevent hanging
-        setTimeout(() => resolve(), isMobileSafari() ? 2000 : 5000);
+        // Longer timeout to prevent hanging
+        setTimeout(() => resolve(), isMobileSafari() ? 3000 : 8000);
       });
       
+      // Reset detection counters before reload
+      consecutiveUpdateDetections = 0;
+      lastDetectedVersion = '';
+      
       // Reload the page to get the new version
-      console.log('Reloading for update');
+      console.log('Reloading for confirmed update');
       window.location.reload();
     } else {
       // No waiting worker - don't reload unnecessarily
-      console.log('No pending update to apply');
+      console.log('No pending update to apply - not reloading');
     }
   } catch (error) {
     console.error('Error applying update:', error);
@@ -184,8 +255,13 @@ export const clearAllCaches = async (): Promise<void> => {
     // Clear localStorage version tracking
     localStorage.removeItem('app-version');
     
-    // Clear sessionStorage
+    // Clear sessionStorage including update tracking
     sessionStorage.clear();
+    
+    // Reset update detection state
+    consecutiveUpdateDetections = 0;
+    lastDetectedVersion = '';
+    lastUpdateCheck = 0;
     
     // Additional mobile Safari cache clearing
     if (isMobileSafari()) {
@@ -232,6 +308,10 @@ export const forceUpdateCheck = async (): Promise<boolean> => {
   }
 
   try {
+    // Reset cooldown for forced check
+    lastUpdateCheck = 0;
+    consecutiveUpdateDetections = 0;
+    
     const registration = await navigator.serviceWorker.getRegistration();
     if (registration) {
       await registration.update();
@@ -253,6 +333,8 @@ export const getCacheStatus = async (): Promise<{
   hasUpdate: boolean;
   isMobileSafari: boolean;
   serviceWorkerStatus: string;
+  consecutiveDetections: number;
+  sessionUpdatesShown: number;
 }> => {
   try {
     const cacheNames = 'caches' in window ? await caches.keys() : [];
@@ -281,7 +363,9 @@ export const getCacheStatus = async (): Promise<{
       currentVersion: CACHE_VERSION,
       hasUpdate,
       isMobileSafari: isMobileSafari(),
-      serviceWorkerStatus
+      serviceWorkerStatus,
+      consecutiveDetections: consecutiveUpdateDetections,
+      sessionUpdatesShown: parseInt(sessionStorage.getItem(SESSION_STORAGE_KEY) || '0')
     };
   } catch (error) {
     console.error('Error getting cache status:', error);
@@ -290,7 +374,9 @@ export const getCacheStatus = async (): Promise<{
       currentVersion: CACHE_VERSION,
       hasUpdate: false,
       isMobileSafari: isMobileSafari(),
-      serviceWorkerStatus: 'error'
+      serviceWorkerStatus: 'error',
+      consecutiveDetections: 0,
+      sessionUpdatesShown: 0
     };
   }
 };

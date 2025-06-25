@@ -19,7 +19,7 @@ export const useUpdateManager = (enabled: boolean = true) => {
         const hasUpdate = await checkForUpdates();
         
         if (hasUpdate && !updateAvailable && !hasShownUpdateNotification.current) {
-          console.log('Update detected, showing notification');
+          console.log('Confirmed update detected, showing notification');
           setUpdateAvailable(true);
           showUpdateNotification();
           hasShownUpdateNotification.current = true;
@@ -29,11 +29,11 @@ export const useUpdateManager = (enabled: boolean = true) => {
       }
     };
 
-    // Check for updates every 10 minutes (increased from 5)
-    interval = setInterval(checkUpdates, 10 * 60 * 1000);
+    // Much longer intervals - check for updates every 30 minutes (increased from 10)
+    interval = setInterval(checkUpdates, 30 * 60 * 1000);
     
-    // Initial check after 60 seconds (increased from 30)
-    initialTimeout = setTimeout(checkUpdates, 60000);
+    // Initial check after 5 minutes (increased from 60 seconds)
+    initialTimeout = setTimeout(checkUpdates, 5 * 60 * 1000);
 
     return () => {
       clearInterval(interval);
@@ -43,8 +43,8 @@ export const useUpdateManager = (enabled: boolean = true) => {
 
   const showUpdateNotification = () => {
     toast({
-      title: "Update Available",
-      description: "A new version of the app is available. Click to update.",
+      title: "App Update Available",
+      description: "A new version has been confirmed. Click to update now.",
       action: (
         <button
           onClick={handleApplyUpdate}
@@ -54,6 +54,7 @@ export const useUpdateManager = (enabled: boolean = true) => {
           {isApplyingUpdate ? 'Updating...' : 'Update Now'}
         </button>
       ),
+      duration: 10000, // Show for 10 seconds
     });
   };
 

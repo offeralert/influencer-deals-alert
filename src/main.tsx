@@ -28,8 +28,8 @@ const registerServiceWorker = async () => {
         }
       });
       
-      // Force update check
-      registration.update();
+      // Remove immediate update check - let the update manager handle this with proper timing
+      // registration.update(); // REMOVED - this was causing immediate false update notifications
       
     } catch (error) {
       console.error('Service Worker registration failed:', error);
