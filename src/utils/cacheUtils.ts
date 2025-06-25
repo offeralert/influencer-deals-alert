@@ -21,7 +21,7 @@ const isMobileSafari = (): boolean => {
 };
 
 /**
- * Check for service worker updates with mobile optimization
+ * Check for service worker updates with enhanced detection
  */
 export const checkForUpdates = async (): Promise<boolean> => {
   if (!('serviceWorker' in navigator)) {
@@ -39,9 +39,27 @@ export const checkForUpdates = async (): Promise<boolean> => {
       return true;
     }
 
-    // Force update check for mobile Safari
-    if (isMobileSafari()) {
-      await registration.update();
+    // Force update check
+    await registration.update();
+
+    // Check version against server
+    try {
+      const versionResponse = await fetch('/version.json?' + Date.now());
+      if (versionResponse.ok) {
+        const serverVersion = await versionResponse.json();
+        const currentVersion = localStorage.getItem('app-version');
+        
+        if (currentVersion && currentVersion !== serverVersion.version) {
+          localStorage.setItem('app-version', serverVersion.version);
+          return true;
+        }
+        
+        if (!currentVersion) {
+          localStorage.setItem('app-version', serverVersion.version);
+        }
+      }
+    } catch (error) {
+      console.log('Could not check server version:', error);
     }
 
     // Listen for new service worker installations
@@ -92,19 +110,23 @@ export const applyUpdate = async (): Promise<void> => {
       
       // Reload the page to get the new version
       window.location.reload();
+    } else {
+      // No waiting worker, just reload to force update
+      window.location.reload();
     }
   } catch (error) {
     console.error('Error applying update:', error);
-    // Fallback to simple reload
-    window.location.reload();
+    // Fallback to simple reload with cache busting
+    window.location.href = window.location.href + '?v=' + Date.now();
   }
 };
 
 /**
- * Clear all caches manually with mobile Safari specific handling
+ * Clear all caches manually with enhanced mobile Safari handling
  */
 export const clearAllCaches = async (): Promise<void> => {
   try {
+    // Clear service worker caches
     if ('caches' in window) {
       const cacheNames = await caches.keys();
       await Promise.all(
@@ -112,17 +134,116 @@ export const clearAllCaches = async (): Promise<void> => {
       );
     }
     
+    // Clear localStorage version tracking
+    localStorage.removeItem('app-version');
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
     // Additional mobile Safari cache clearing
     if (isMobileSafari()) {
-      // Force reload to clear Safari's additional caches
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Clear application cache if available
+      if ('applicationCache' in window && window.applicationCache.status !== window.applicationCache.UNCACHED) {
+        try {
+          window.applicationCache.update();
+        } catch (e) {
+          // Ignore errors
+        }
+      }
+    }
+    
+    // Send message to service worker to clear its caches
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration?.active) {
+        const messageChannel = new MessageChannel();
+        
+        return new Promise((resolve) => {
+          messageChannel.port1.onmessage = () => resolve();
+          registration.active?.postMessage({ type: 'CLEAR_CACHE' }, [messageChannel.port2]);
+          
+          // Resolve after timeout if no response
+          setTimeout(() => resolve(), 2000);
+        });
+      }
     }
     
     console.log('All caches cleared');
   } catch (error) {
     console.error('Error clearing caches:', error);
+    throw error;
+  }
+};
+
+/**
+ * Force immediate update check
+ */
+export const forceUpdateCheck = async (): Promise<boolean> => {
+  if (!('serviceWorker' in navigator)) {
+    return false;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration) {
+      await registration.update();
+      return await checkForUpdates();
+    }
+    return false;
+  } catch (error) {
+    console.error('Error forcing update check:', error);
+    return false;
+  }
+};
+
+/**
+ * Get current cache status with enhanced mobile info
+ */
+export const getCacheStatus = async (): Promise<{
+  cacheNames: string[];
+  currentVersion: string;
+  hasUpdate: boolean;
+  isMobileSafari: boolean;
+  serviceWorkerStatus: string;
+}> => {
+  try {
+    const cacheNames = 'caches' in window ? await caches.keys() : [];
+    const hasUpdate = await checkForUpdates();
+    
+    let serviceWorkerStatus = 'not-supported';
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        if (registration.active) {
+          serviceWorkerStatus = 'active';
+        } else if (registration.installing) {
+          serviceWorkerStatus = 'installing';
+        } else if (registration.waiting) {
+          serviceWorkerStatus = 'waiting';
+        } else {
+          serviceWorkerStatus = 'registered';
+        }
+      } else {
+        serviceWorkerStatus = 'not-registered';
+      }
+    }
+    
+    return {
+      cacheNames,
+      currentVersion: CACHE_VERSION,
+      hasUpdate,
+      isMobileSafari: isMobileSafari(),
+      serviceWorkerStatus
+    };
+  } catch (error) {
+    console.error('Error getting cache status:', error);
+    return {
+      cacheNames: [],
+      currentVersion: CACHE_VERSION,
+      hasUpdate: false,
+      isMobileSafari: isMobileSafari(),
+      serviceWorkerStatus: 'error'
+    };
   }
 };
 
@@ -137,8 +258,6 @@ export const preWarmCache = async (): Promise<void> => {
   try {
     const cache = await caches.open(`offer-alert-${CACHE_VERSION}`);
     const criticalResources = [
-      '/',
-      '/index.html',
       '/manifest.json'
     ];
 
@@ -155,35 +274,5 @@ export const preWarmCache = async (): Promise<void> => {
     );
   } catch (error) {
     console.error('Error pre-warming cache:', error);
-  }
-};
-
-/**
- * Get current cache status with mobile info
- */
-export const getCacheStatus = async (): Promise<{
-  cacheNames: string[];
-  currentVersion: string;
-  hasUpdate: boolean;
-  isMobileSafari: boolean;
-}> => {
-  try {
-    const cacheNames = 'caches' in window ? await caches.keys() : [];
-    const hasUpdate = await checkForUpdates();
-    
-    return {
-      cacheNames,
-      currentVersion: CACHE_VERSION,
-      hasUpdate,
-      isMobileSafari: isMobileSafari()
-    };
-  } catch (error) {
-    console.error('Error getting cache status:', error);
-    return {
-      cacheNames: [],
-      currentVersion: CACHE_VERSION,
-      hasUpdate: false,
-      isMobileSafari: isMobileSafari()
-    };
   }
 };

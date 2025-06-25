@@ -4,11 +4,13 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
+import CacheClearButton from "@/components/CacheClearButton";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 import { useProgressiveEnhancement } from "@/hooks/useProgressiveEnhancement";
 import { useUpdateManager } from "@/hooks/useUpdateManager";
+import { CACHE_VERSION } from "@/utils/cacheUtils";
 
 const MainLayout = () => {
   const isEnhanced = useProgressiveEnhancement();
@@ -34,6 +36,15 @@ const MainLayout = () => {
       <div className="md:hidden">
         {isEnhanced && <BottomNav />}
       </div>
+      
+      {/* Debug info - only show in development or when needed */}
+      {(process.env.NODE_ENV === 'development' || window.location.search.includes('debug=cache')) && (
+        <div className="fixed bottom-4 right-4 bg-white p-2 rounded shadow border text-xs space-y-1">
+          <div>Version: {CACHE_VERSION}</div>
+          <CacheClearButton />
+        </div>
+      )}
+      
       <SonnerToaster position="top-right" />
       <Toaster />
     </div>

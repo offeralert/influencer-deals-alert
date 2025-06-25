@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { DeferredAuthProvider } from "@/contexts/DeferredAuthContext";
+import { useUpdateManager } from "@/hooks/useUpdateManager";
 import MainLayout from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -35,6 +36,44 @@ import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  // Initialize update manager to handle automatic updates
+  useUpdateManager(true);
+
+  return (
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route index element={<Index />} />
+        <Route path="login" element={<Login />} />
+        <Route path="signup" element={<Signup />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="my-deals" element={<MyAlerts />} />
+        <Route path="explore" element={<Explore />} />
+        <Route path="influencer/:username" element={<InfluencerProfile />} />
+        <Route path="brand/:brandName" element={<BrandProfile />} />
+        <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
+        <Route path="agency-dashboard" element={<AgencyDashboard />} />
+        <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
+        <Route path="categories" element={<Categories />} />
+        <Route path="brands" element={<Brands />} />
+        <Route path="contact" element={<Contact />} />
+        <Route path="terms" element={<Terms />} />
+        <Route path="privacy" element={<Privacy />} />
+        <Route path="how-it-works" element={<HowItWorks />} />
+        <Route path="why-join" element={<WhyJoin />} />
+        <Route path="influencer-apply" element={<InfluencerApply />} />
+        <Route path="affiliate-program" element={<AffiliateProgram />} />
+        <Route path="origin" element={<Origin />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="csv-upload" element={<CsvUpload />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <Toaster />
@@ -42,36 +81,7 @@ const App = () => (
     <BrowserRouter>
       <AuthProvider>
         <DeferredAuthProvider>
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Index />} />
-              <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
-              <Route path="profile" element={<Profile />} />
-              <Route path="my-deals" element={<MyAlerts />} />
-              <Route path="explore" element={<Explore />} />
-              <Route path="influencer/:username" element={<InfluencerProfile />} />
-              <Route path="brand/:brandName" element={<BrandProfile />} />
-              <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
-              <Route path="agency-dashboard" element={<AgencyDashboard />} />
-              <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
-              <Route path="categories" element={<Categories />} />
-              <Route path="brands" element={<Brands />} />
-              <Route path="contact" element={<Contact />} />
-              <Route path="terms" element={<Terms />} />
-              <Route path="privacy" element={<Privacy />} />
-              <Route path="how-it-works" element={<HowItWorks />} />
-              <Route path="why-join" element={<WhyJoin />} />
-              <Route path="influencer-apply" element={<InfluencerApply />} />
-              <Route path="affiliate-program" element={<AffiliateProgram />} />
-              <Route path="origin" element={<Origin />} />
-              <Route path="pricing" element={<Pricing />} />
-              <Route path="csv-upload" element={<CsvUpload />} />
-              <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="reset-password" element={<ResetPassword />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
+          <AppContent />
         </DeferredAuthProvider>
       </AuthProvider>
     </BrowserRouter>

@@ -24,21 +24,31 @@ jobs:
       - name: Add cache headers file
         run: |
           cat > dist/_headers << EOF
-          # Cache static assets for 1 year
+          # Don't cache HTML files to ensure updates work
+          /*.html
+            Cache-Control: no-cache, no-store, must-revalidate
+            Pragma: no-cache
+            Expires: 0
+            
+          # Root path should not be cached
+          /
+            Cache-Control: no-cache, no-store, must-revalidate
+            Pragma: no-cache
+            Expires: 0
+            
+          # Service worker should never be cached
+          /service-worker.js
+            Cache-Control: no-cache, no-store, must-revalidate
+            Pragma: no-cache
+            Expires: 0
+            
+          # Cache static assets for 1 year with immutable flag
           /assets/*
             Cache-Control: public, max-age=31536000, immutable
             
           # Cache images for 1 month
           /lovable-uploads/*
             Cache-Control: public, max-age=2592000
-            
-          # Don't cache HTML files
-          /*.html
-            Cache-Control: no-cache, no-store, must-revalidate
-            
-          # Service worker should not be cached
-          /service-worker.js
-            Cache-Control: no-cache, no-store, must-revalidate
             
           # Manifest can be cached for 1 day
           /manifest.json
@@ -48,7 +58,10 @@ jobs:
       - name: Inject version into service worker
         run: |
           BUILD_VERSION=$(date +%s)
+          echo "Build version: $BUILD_VERSION"
           sed -i "s/self.__SW_VERSION__ || 'sw-fallback'/\"sw-$BUILD_VERSION\"/g" dist/service-worker.js
+          # Also add build info to a version file
+          echo "{\"version\":\"$BUILD_VERSION\",\"buildTime\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > dist/version.json
 
       - name: Debug build output
         run: |
@@ -56,6 +69,8 @@ jobs:
           ls -la
           echo "Listing contents of the dist directory..."
           ls -R dist
+          echo "Service worker content (first 10 lines):"
+          head -10 dist/service-worker.js
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
