@@ -1,39 +1,34 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
 export const useUpdateManager = (enabled: boolean = true) => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
-  const hasShownUpdateNotification = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
 
     let interval: NodeJS.Timeout;
-    let initialTimeout: NodeJS.Timeout;
 
     const checkUpdates = async () => {
       try {
         const hasUpdate = await checkForUpdates();
-        
-        if (hasUpdate && !updateAvailable && !hasShownUpdateNotification.current) {
-          console.log('Confirmed update detected, showing notification');
+        if (hasUpdate && !updateAvailable) {
           setUpdateAvailable(true);
           showUpdateNotification();
-          hasShownUpdateNotification.current = true;
         }
       } catch (error) {
         console.error('Error checking for updates:', error);
       }
     };
 
-    // Much longer intervals - check for updates every 30 minutes (increased from 10)
-    interval = setInterval(checkUpdates, 30 * 60 * 1000);
+    // Check for updates every 5 minutes
+    interval = setInterval(checkUpdates, 5 * 60 * 1000);
     
-    // Initial check after 5 minutes (increased from 60 seconds)
-    initialTimeout = setTimeout(checkUpdates, 5 * 60 * 1000);
+    // Initial check after 30 seconds
+    const initialTimeout = setTimeout(checkUpdates, 30000);
 
     return () => {
       clearInterval(interval);
@@ -43,8 +38,8 @@ export const useUpdateManager = (enabled: boolean = true) => {
 
   const showUpdateNotification = () => {
     toast({
-      title: "App Update Available",
-      description: "A new version has been confirmed. Click to update now.",
+      title: "Update Available",
+      description: "A new version of the app is available. Click to update.",
       action: (
         <button
           onClick={handleApplyUpdate}
@@ -54,7 +49,6 @@ export const useUpdateManager = (enabled: boolean = true) => {
           {isApplyingUpdate ? 'Updating...' : 'Update Now'}
         </button>
       ),
-      duration: 10000, // Show for 10 seconds
     });
   };
 
@@ -79,11 +73,6 @@ export const useUpdateManager = (enabled: boolean = true) => {
     updateAvailable,
     isApplyingUpdate,
     applyUpdate: handleApplyUpdate,
-    checkForUpdates: () => checkForUpdates().then(hasUpdate => {
-      if (hasUpdate && !hasShownUpdateNotification.current) {
-        setUpdateAvailable(hasUpdate);
-        hasShownUpdateNotification.current = true;
-      }
-    })
+    checkForUpdates: () => checkForUpdates().then(setUpdateAvailable)
   };
 };
