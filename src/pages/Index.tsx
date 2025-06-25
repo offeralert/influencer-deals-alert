@@ -58,8 +58,8 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, [track, isEnhanced]);
 
-  // Show static content first, then enhance - NEW EDUCATIONAL FLOW for non-logged-in users
-  if (!isEnhanced) {
+  // NEW EDUCATIONAL FLOW for non-logged-in users - Show immediately without progressive enhancement
+  if (!user) {
     return (
       <div className="min-h-screen">
         <div className="section-container">
@@ -88,6 +88,29 @@ const Index = () => {
         
         <div className="section-container">
           <OfferAlertAdvantageSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container">
+          <CallToActionSection />
+        </div>
+      </div>
+    );
+  }
+
+  // For logged-in users, use progressive enhancement and existing functionality
+  if (!isEnhanced) {
+    return (
+      <div className="min-h-screen">
+        <div className="section-container">
+          <HeroSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container bg-white shadow-sm">
+          <FeaturedOffersSection />
         </div>
         
         <Separator className="h-[1px] bg-gray-100" />
