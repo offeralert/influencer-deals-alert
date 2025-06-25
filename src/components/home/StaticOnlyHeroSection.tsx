@@ -36,8 +36,8 @@ const StaticOnlyHeroSection = () => {
           </div>
           <div className="hidden lg:block relative">
             <img 
-              src="/lovable-uploads/4163e391-453b-4996-94e7-1d82186d21b6.png" 
-              alt="Online Shopping Experience" 
+              src="/lovable-uploads/3c14008e-37a3-4193-b523-8a681aa82718.png" 
+              alt="Search Interface with Green Logo" 
               width="600"
               height="400"
               className="rounded-lg shadow-xl object-cover h-auto w-full"
