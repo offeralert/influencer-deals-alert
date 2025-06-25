@@ -9,6 +9,10 @@ import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
 import PopularCategoriesSection from "@/components/home/PopularCategoriesSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
 import BrowserExtensionPromo from "@/components/home/BrowserExtensionPromo";
+import HowItWorksSection from "@/components/home/HowItWorksSection";
+import AddToDesktopSection from "@/components/home/AddToDesktopSection";
+import WhyItMattersSection from "@/components/home/WhyItMattersSection";
+import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSection";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -54,7 +58,7 @@ const Index = () => {
     return () => clearTimeout(timer);
   }, [track, isEnhanced]);
 
-  // Show static content first, then enhance - simplified loading
+  // Show static content first, then enhance - NEW EDUCATIONAL FLOW for non-logged-in users
   if (!isEnhanced) {
     return (
       <div className="min-h-screen">
@@ -64,14 +68,26 @@ const Index = () => {
         
         <Separator className="h-[1px] bg-gray-100" />
         
-        <div className="section-container bg-white shadow-sm">
-          <FeaturedOffersSection />
+        <div className="section-container">
+          <HowItWorksSection />
         </div>
         
         <Separator className="h-[1px] bg-gray-100" />
         
-        <div className="section-container bg-white shadow-sm">
-          <FeaturedAccountsSection />
+        <div className="section-container">
+          <AddToDesktopSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container">
+          <WhyItMattersSection />
+        </div>
+        
+        <Separator className="h-[1px] bg-gray-100" />
+        
+        <div className="section-container">
+          <OfferAlertAdvantageSection />
         </div>
         
         <Separator className="h-[1px] bg-gray-100" />

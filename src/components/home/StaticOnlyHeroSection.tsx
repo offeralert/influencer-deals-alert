@@ -12,14 +12,20 @@ const StaticOnlyHeroSection = () => {
               Shop. <span className="text-brand-green">Save.</span> Influencers Get Paid.
             </h1>
             <p className="text-sm md:text-lg text-muted-foreground">
-              Follow the influencers you love and get automatic alerts with their latest promo codes and affiliate links while you shop online. You save money and they keep 100% of the commission. <span className="text-brand-green font-medium">Win. Win.</span>
+              Follow your favorite influencers and get notified of their promo codes when you shop online.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="h-10 md:h-12" asChild>
-                <Link to="/signup">Create Account</Link>
+                <Link to="/signup">Create Your Account</Link>
               </Button>
               <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
-                <Link to="/explore">Explore Deals</Link>
+                <a 
+                  href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  Download Extension
+                </a>
               </Button>
             </div>
           </div>
