@@ -1,4 +1,3 @@
-
 // Dynamic cache version from build
 export const CACHE_VERSION = (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : Date.now().toString());
 
@@ -20,6 +19,11 @@ const isMobileSafari = (): boolean => {
          !/Chrome/.test(navigator.userAgent);
 };
 
+// Track update state to prevent redundant checks
+let updateCheckInProgress = false;
+let lastUpdateCheck = 0;
+const UPDATE_CHECK_COOLDOWN = 30000; // 30 seconds
+
 /**
  * Check for service worker updates with enhanced detection
  */
@@ -28,21 +32,35 @@ export const checkForUpdates = async (): Promise<boolean> => {
     return false;
   }
 
+  // Prevent redundant checks
+  const now = Date.now();
+  if (updateCheckInProgress || (now - lastUpdateCheck) < UPDATE_CHECK_COOLDOWN) {
+    console.log('Update check skipped - too frequent');
+    return false;
+  }
+
+  updateCheckInProgress = true;
+  lastUpdateCheck = now;
+
   try {
     const registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
+      updateCheckInProgress = false;
       return false;
     }
 
-    // Check if there's a waiting service worker
+    // Check if there's a waiting service worker (most reliable indicator)
     if (registration.waiting) {
+      console.log('Update available - service worker waiting');
+      updateCheckInProgress = false;
       return true;
     }
 
-    // Force update check
+    // Force update check but don't immediately assume there's an update
     await registration.update();
 
-    // Check version against server
+    // Only check server version if we don't have a waiting worker
+    let hasServerVersionUpdate = false;
     try {
       const versionResponse = await fetch('/version.json?' + Date.now());
       if (versionResponse.ok) {
@@ -50,8 +68,9 @@ export const checkForUpdates = async (): Promise<boolean> => {
         const currentVersion = localStorage.getItem('app-version');
         
         if (currentVersion && currentVersion !== serverVersion.version) {
+          console.log('Server version differs:', { current: currentVersion, server: serverVersion.version });
           localStorage.setItem('app-version', serverVersion.version);
-          return true;
+          hasServerVersionUpdate = true;
         }
         
         if (!currentVersion) {
@@ -62,30 +81,50 @@ export const checkForUpdates = async (): Promise<boolean> => {
       console.log('Could not check server version:', error);
     }
 
-    // Listen for new service worker installations
-    return new Promise((resolve) => {
-      registration.addEventListener('updatefound', () => {
+    // Listen for new service worker installations with timeout
+    const hasNewWorker = await new Promise<boolean>((resolve) => {
+      let resolved = false;
+      
+      const handleUpdateFound = () => {
+        if (resolved) return;
+        
         const newWorker = registration.installing;
         if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
+          const handleStateChange = () => {
+            if (resolved) return;
+            
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              resolved = true;
               resolve(true);
             }
-          });
+          };
+          
+          newWorker.addEventListener('statechange', handleStateChange);
         }
-      });
+      };
 
-      // Shorter timeout for mobile
-      setTimeout(() => resolve(false), isMobileSafari() ? 3000 : 5000);
+      registration.addEventListener('updatefound', handleUpdateFound);
+
+      // Shorter timeout for mobile, and resolve false instead of hanging
+      setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          resolve(hasServerVersionUpdate);
+        }
+      }, isMobileSafari() ? 3000 : 5000);
     });
+
+    updateCheckInProgress = false;
+    return hasNewWorker;
   } catch (error) {
     console.error('Error checking for updates:', error);
+    updateCheckInProgress = false;
     return false;
   }
 };
 
 /**
- * Apply pending service worker update with mobile optimization
+ * Apply pending service worker update - only reload when there's actually an update
  */
 export const applyUpdate = async (): Promise<void> => {
   if (!('serviceWorker' in navigator)) {
@@ -94,30 +133,38 @@ export const applyUpdate = async (): Promise<void> => {
 
   try {
     const registration = await navigator.serviceWorker.getRegistration();
+    
+    // Only apply update if there's actually a waiting service worker
     if (registration?.waiting) {
+      console.log('Applying service worker update');
+      
       // Tell the waiting service worker to activate
       registration.waiting.postMessage({ type: 'APPLY_UPDATE' });
       
       // Wait for the new service worker to take control
       await new Promise<void>((resolve) => {
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
+        const handleControllerChange = () => {
+          console.log('New service worker took control');
           resolve();
-        }, { once: true });
+        };
         
-        // Shorter timeout for mobile
+        navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
+        
+        // Timeout to prevent hanging
         setTimeout(() => resolve(), isMobileSafari() ? 2000 : 5000);
       });
       
       // Reload the page to get the new version
+      console.log('Reloading for update');
       window.location.reload();
     } else {
-      // No waiting worker, just reload to force update
-      window.location.reload();
+      // No waiting worker - don't reload unnecessarily
+      console.log('No pending update to apply');
     }
   } catch (error) {
     console.error('Error applying update:', error);
-    // Fallback to simple reload with cache busting
-    window.location.href = window.location.href + '?v=' + Date.now();
+    // Only fallback to cache-busting reload if explicitly requested by user
+    throw error;
   }
 };
 

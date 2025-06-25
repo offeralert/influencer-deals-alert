@@ -1,34 +1,39 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
 export const useUpdateManager = (enabled: boolean = true) => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
+  const hasShownUpdateNotification = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
 
     let interval: NodeJS.Timeout;
+    let initialTimeout: NodeJS.Timeout;
 
     const checkUpdates = async () => {
       try {
         const hasUpdate = await checkForUpdates();
-        if (hasUpdate && !updateAvailable) {
+        
+        if (hasUpdate && !updateAvailable && !hasShownUpdateNotification.current) {
+          console.log('Update detected, showing notification');
           setUpdateAvailable(true);
           showUpdateNotification();
+          hasShownUpdateNotification.current = true;
         }
       } catch (error) {
         console.error('Error checking for updates:', error);
       }
     };
 
-    // Check for updates every 5 minutes
-    interval = setInterval(checkUpdates, 5 * 60 * 1000);
+    // Check for updates every 10 minutes (increased from 5)
+    interval = setInterval(checkUpdates, 10 * 60 * 1000);
     
-    // Initial check after 30 seconds
-    const initialTimeout = setTimeout(checkUpdates, 30000);
+    // Initial check after 60 seconds (increased from 30)
+    initialTimeout = setTimeout(checkUpdates, 60000);
 
     return () => {
       clearInterval(interval);
@@ -73,6 +78,11 @@ export const useUpdateManager = (enabled: boolean = true) => {
     updateAvailable,
     isApplyingUpdate,
     applyUpdate: handleApplyUpdate,
-    checkForUpdates: () => checkForUpdates().then(setUpdateAvailable)
+    checkForUpdates: () => checkForUpdates().then(hasUpdate => {
+      if (hasUpdate && !hasShownUpdateNotification.current) {
+        setUpdateAvailable(hasUpdate);
+        hasShownUpdateNotification.current = true;
+      }
+    })
   };
 };
