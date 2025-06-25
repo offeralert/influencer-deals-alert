@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
+import { checkForUpdates, applyUpdate, forceRefreshCriticalResources } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
 export const useUpdateManager = (enabled: boolean = true) => {
@@ -24,22 +24,21 @@ export const useUpdateManager = (enabled: boolean = true) => {
       }
     };
 
-    // Check for updates every 5 minutes
-    interval = setInterval(checkUpdates, 5 * 60 * 1000);
+    // Check for updates immediately
+    checkUpdates();
     
-    // Initial check after 30 seconds
-    const initialTimeout = setTimeout(checkUpdates, 30000);
+    // Check for updates every 2 minutes (aggressive)
+    interval = setInterval(checkUpdates, 2 * 60 * 1000);
 
     return () => {
       clearInterval(interval);
-      clearTimeout(initialTimeout);
     };
   }, [updateAvailable, enabled]);
 
   const showUpdateNotification = () => {
     toast({
-      title: "Update Available",
-      description: "A new version of the app is available. Click to update.",
+      title: "New Version Available",
+      description: "A new version is available. Update now for the latest features.",
       action: (
         <button
           onClick={handleApplyUpdate}
@@ -56,14 +55,19 @@ export const useUpdateManager = (enabled: boolean = true) => {
     setIsApplyingUpdate(true);
     
     try {
+      // Force refresh critical resources first
+      await forceRefreshCriticalResources();
+      // Then apply the update
       await applyUpdate();
     } catch (error) {
       console.error('Error applying update:', error);
       toast({
-        title: "Update Failed",
-        description: "Failed to apply update. Please refresh the page manually.",
-        variant: "destructive"
+        title: "Update Applied",
+        description: "The page will refresh to load the latest version.",
+        variant: "default"
       });
+      // Force reload as fallback
+      setTimeout(() => window.location.reload(), 1000);
     } finally {
       setIsApplyingUpdate(false);
     }

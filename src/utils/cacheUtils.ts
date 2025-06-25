@@ -1,14 +1,13 @@
 
-// Dynamic cache version from build
-export const CACHE_VERSION = (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : Date.now().toString());
+// Aggressive cache version management
+export const CACHE_VERSION = Date.now().toString();
 
 /**
- * Adds cache busting parameter to a URL with mobile Safari optimization
+ * Adds cache busting parameter to a URL with aggressive versioning
  */
 export const addCacheBuster = (url: string, version: string = CACHE_VERSION): string => {
   const separator = url.includes('?') ? '&' : '?';
-  // Add timestamp for mobile Safari cache busting
-  return `${url}${separator}v=${version}&t=${Date.now()}&mobile=${isMobileSafari() ? '1' : '0'}`;
+  return `${url}${separator}v=${version}&t=${Date.now()}`;
 };
 
 /**
@@ -21,7 +20,7 @@ const isMobileSafari = (): boolean => {
 };
 
 /**
- * Check for service worker updates with mobile optimization
+ * Aggressively check for updates with immediate detection
  */
 export const checkForUpdates = async (): Promise<boolean> => {
   if (!('serviceWorker' in navigator)) {
@@ -39,27 +38,16 @@ export const checkForUpdates = async (): Promise<boolean> => {
       return true;
     }
 
-    // Force update check for mobile Safari
-    if (isMobileSafari()) {
-      await registration.update();
+    // Force update check
+    await registration.update();
+
+    // Check for version mismatch by comparing current page version
+    const hasVersionMismatch = await checkVersionMismatch();
+    if (hasVersionMismatch) {
+      return true;
     }
 
-    // Listen for new service worker installations
-    return new Promise((resolve) => {
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              resolve(true);
-            }
-          });
-        }
-      });
-
-      // Shorter timeout for mobile
-      setTimeout(() => resolve(false), isMobileSafari() ? 3000 : 5000);
-    });
+    return false;
   } catch (error) {
     console.error('Error checking for updates:', error);
     return false;
@@ -67,7 +55,42 @@ export const checkForUpdates = async (): Promise<boolean> => {
 };
 
 /**
- * Apply pending service worker update with mobile optimization
+ * Check for version mismatch by fetching current index.html
+ */
+const checkVersionMismatch = async (): Promise<boolean> => {
+  try {
+    const response = await fetch('/index.html?v=' + Date.now(), {
+      cache: 'no-cache',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      }
+    });
+    
+    if (!response.ok) {
+      return false;
+    }
+
+    const html = await response.text();
+    const currentVersion = extractVersionFromHtml(html);
+    const cachedVersion = extractVersionFromHtml(document.documentElement.outerHTML);
+    
+    return currentVersion !== cachedVersion;
+  } catch (error) {
+    console.error('Error checking version mismatch:', error);
+    return false;
+  }
+};
+
+/**
+ * Extract version information from HTML
+ */
+const extractVersionFromHtml = (html: string): string => {
+  const match = html.match(/assets\/[^"']*-([^-"']+)\.(js|css)/);
+  return match ? match[1] : 'unknown';
+};
+
+/**
+ * Apply pending service worker update immediately
  */
 export const applyUpdate = async (): Promise<void> => {
   if (!('serviceWorker' in navigator)) {
@@ -86,13 +109,13 @@ export const applyUpdate = async (): Promise<void> => {
           resolve();
         }, { once: true });
         
-        // Shorter timeout for mobile
-        setTimeout(() => resolve(), isMobileSafari() ? 2000 : 5000);
+        // Short timeout for immediate update
+        setTimeout(() => resolve(), 1000);
       });
-      
-      // Reload the page to get the new version
-      window.location.reload();
     }
+    
+    // Force reload to get the new version
+    window.location.reload();
   } catch (error) {
     console.error('Error applying update:', error);
     // Fallback to simple reload
@@ -101,7 +124,7 @@ export const applyUpdate = async (): Promise<void> => {
 };
 
 /**
- * Clear all caches manually with mobile Safari specific handling
+ * Aggressively clear all caches
  */
 export const clearAllCaches = async (): Promise<void> => {
   try {
@@ -112,70 +135,71 @@ export const clearAllCaches = async (): Promise<void> => {
       );
     }
     
-    // Additional mobile Safari cache clearing
-    if (isMobileSafari()) {
-      // Force reload to clear Safari's additional caches
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+    // Clear browser cache programmatically if possible
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (registration) {
+        await registration.unregister();
+        // Re-register after clearing
+        await navigator.serviceWorker.register('/service-worker.js', {
+          scope: '/',
+          updateViaCache: 'none'
+        });
+      }
     }
     
-    console.log('All caches cleared');
+    console.log('All caches cleared aggressively');
   } catch (error) {
     console.error('Error clearing caches:', error);
   }
 };
 
 /**
- * Pre-warm cache with critical resources
+ * Force refresh of critical resources
  */
-export const preWarmCache = async (): Promise<void> => {
-  if (!('caches' in window)) {
-    return;
-  }
+export const forceRefreshCriticalResources = async (): Promise<void> => {
+  const criticalUrls = [
+    '/',
+    '/index.html',
+    '/manifest.json'
+  ];
 
   try {
-    const cache = await caches.open(`offer-alert-${CACHE_VERSION}`);
-    const criticalResources = [
-      '/',
-      '/index.html',
-      '/manifest.json'
-    ];
-
     await Promise.all(
-      criticalResources.map(resource => 
-        fetch(resource).then(response => {
-          if (response.ok) {
-            return cache.put(resource, response);
+      criticalUrls.map(url => 
+        fetch(addCacheBuster(url), {
+          cache: 'no-cache',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
           }
-        }).catch(() => {
-          // Ignore pre-warming failures
         })
       )
     );
+    console.log('Critical resources refreshed');
   } catch (error) {
-    console.error('Error pre-warming cache:', error);
+    console.error('Error refreshing critical resources:', error);
   }
 };
 
 /**
- * Get current cache status with mobile info
+ * Get cache status with version information
  */
 export const getCacheStatus = async (): Promise<{
   cacheNames: string[];
   currentVersion: string;
   hasUpdate: boolean;
-  isMobileSafari: boolean;
+  needsRefresh: boolean;
 }> => {
   try {
     const cacheNames = 'caches' in window ? await caches.keys() : [];
     const hasUpdate = await checkForUpdates();
+    const needsRefresh = await checkVersionMismatch();
     
     return {
       cacheNames,
       currentVersion: CACHE_VERSION,
       hasUpdate,
-      isMobileSafari: isMobileSafari()
+      needsRefresh
     };
   } catch (error) {
     console.error('Error getting cache status:', error);
@@ -183,7 +207,7 @@ export const getCacheStatus = async (): Promise<{
       cacheNames: [],
       currentVersion: CACHE_VERSION,
       hasUpdate: false,
-      isMobileSafari: isMobileSafari()
+      needsRefresh: false
     };
   }
 };
