@@ -1,9 +1,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import HeroSection from "@/components/home/HeroSection";
 import StaticOnlyHeroSection from "@/components/home/StaticOnlyHeroSection";
+import PersonalizedWelcomeBanner from "@/components/home/PersonalizedWelcomeBanner";
 import DownloadBanner from "@/components/home/DownloadBanner";
 import FeaturedAccountsSection from "@/components/home/FeaturedInfluencersSection";
 import FeaturedOffersSection from "@/components/home/FeaturedOffersSection";
@@ -15,28 +14,9 @@ import AddToDesktopSection from "@/components/home/AddToDesktopSection";
 import WhyItMattersSection from "@/components/home/WhyItMattersSection";
 import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSection";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
 
 const Index = () => {
-  const { user, profile, loading, isInfluencer, isAgency } = useAuth();
-  const navigate = useNavigate();
-
-  // Redirect authenticated users to their appropriate dashboard
-  useEffect(() => {
-    if (!loading && user && profile) {
-      if (isAgency) {
-        navigate("/agency-dashboard");
-        return;
-      }
-      if (isInfluencer) {
-        navigate("/influencer-dashboard");
-        return;
-      }
-      // Regular users stay on the homepage but see the logged-in version
-    }
-  }, [user, profile, loading, isInfluencer, isAgency, navigate]);
+  const { user, profile, loading } = useAuth();
 
   // Show loading state while authentication is being determined
   if (loading) {
@@ -91,12 +71,10 @@ const Index = () => {
     );
   }
 
-  // For regular authenticated users (not influencers or agencies)
+  // For all authenticated users (regular users, influencers, and agencies)
   return (
     <div className="min-h-screen">
-      <div className="section-container">
-        <DownloadBanner />
-      </div>
+      <PersonalizedWelcomeBanner />
       
       <Separator className="h-[1px] bg-gray-100" />
       
