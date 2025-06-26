@@ -16,9 +16,9 @@ import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSec
 import { Separator } from "@/components/ui/separator";
 
 const Index = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, profileLoading } = useAuth();
 
-  // Show loading state while authentication is being determined
+  // Show loading state while authentication is being determined OR while profile is loading for authenticated users
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">

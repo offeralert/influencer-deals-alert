@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +26,7 @@ type AuthContextType = {
   isInfluencer: boolean;
   isAgency: boolean;
   isAuthenticated: boolean;
+  profileLoading: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     console.log("AuthProvider: Initializing auth state");
@@ -49,10 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          // Fetch profile immediately without delay
+          // Keep loading true until profile is fetched
+          setProfileLoading(true);
           fetchProfile(currentSession.user.id);
         } else {
           setProfile(null);
+          setProfileLoading(false);
           setLoading(false);
         }
       }
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
+        setProfileLoading(true);
         fetchProfile(currentSession.user.id);
       } else {
         setLoading(false);
@@ -90,21 +94,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        setLoading(false);
-        return;
+        setProfile(null);
+      } else {
+        console.log("Fetched profile:", data);
+        setProfile(data);
       }
-
-      console.log("Fetched profile:", data);
-      setProfile(data);
-      setLoading(false);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
+      setProfile(null);
+    } finally {
+      setProfileLoading(false);
       setLoading(false);
     }
   };
 
   const refreshProfile = async () => {
     if (user) {
+      setProfileLoading(true);
       await fetchProfile(user.id);
     }
   };
@@ -145,19 +151,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isInfluencer = profile?.is_influencer === true;
   const isAgency = profile?.is_agency === true;
   const isAuthenticated = !!user;
+  
+  // Overall loading includes both auth loading and profile loading for authenticated users
+  const overallLoading = loading || (user && profileLoading);
 
   return (
     <AuthContext.Provider value={{ 
       session, 
       user, 
       profile, 
-      loading,
-      isLoading: loading,
+      loading: overallLoading,
+      isLoading: overallLoading,
       signOut, 
       refreshProfile,
       isInfluencer,
       isAgency,
-      isAuthenticated
+      isAuthenticated,
+      profileLoading
     }}>
       {children}
     </AuthContext.Provider>

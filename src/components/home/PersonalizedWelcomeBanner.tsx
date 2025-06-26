@@ -2,9 +2,26 @@
 import { useAuth } from "@/contexts/AuthContext";
 
 const PersonalizedWelcomeBanner = () => {
-  const { user, profile, isInfluencer, isAgency } = useAuth();
+  const { user, profile, isInfluencer, isAgency, profileLoading } = useAuth();
 
-  if (!user || !profile) return null;
+  // Don't render anything if no user
+  if (!user) return null;
+
+  // Show loading state while profile is being fetched
+  if (profileLoading || !profile) {
+    return (
+      <div className="bg-gray-100 py-6 px-4">
+        <div className="container mx-auto">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 rounded w-64 mx-auto mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-48 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const displayName = profile.full_name || profile.username || 'there';
   
