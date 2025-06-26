@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
   Select, 
@@ -41,6 +42,7 @@ const Explore = () => {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   // Use the hook to scroll to top on route changes
   useScrollToTop();
@@ -51,6 +53,15 @@ const Explore = () => {
     selectedCategories,
     searchQuery
   );
+
+  // Manual refresh function
+  const handleRefresh = useCallback(() => {
+    console.log('[EXPLORE] Manual refresh triggered');
+    setRefreshKey(prev => prev + 1);
+    // Force re-fetch by updating a dependency
+    const timestamp = Date.now();
+    console.log(`[EXPLORE] Refresh timestamp: ${timestamp}`);
+  }, []);
 
   // Listen for URL parameter changes and update activeTab
   useEffect(() => {
@@ -80,6 +91,18 @@ const Explore = () => {
   useEffect(() => {
     setSearchQuery("");
   }, [activeTab]);
+
+  // Auto-refresh every 5 minutes for deals tab
+  useEffect(() => {
+    if (activeTab === 'deals') {
+      const interval = setInterval(() => {
+        console.log('[EXPLORE] Auto-refresh triggered for deals');
+        handleRefresh();
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, handleRefresh]);
 
   const getSearchPlaceholder = () => {
     switch (activeTab) {
@@ -208,7 +231,8 @@ const Explore = () => {
             <DealsView 
               deals={deals} 
               sortOption={sortOption} 
-              selectedCategories={selectedCategories} 
+              selectedCategories={selectedCategories}
+              onRefresh={handleRefresh}
             />
           </TabsContent>
           

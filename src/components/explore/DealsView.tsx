@@ -2,27 +2,46 @@
 import { Deal } from "@/types/explore";
 import { DealCard } from "@/components/ui/deal-card";
 import { Compass } from "lucide-react";
+import PromoCodeDebugPanel from "@/components/debug/PromoCodeDebugPanel";
 
 interface DealsViewProps {
   deals: Deal[];
   sortOption: string;
   selectedCategories: string[];
+  onRefresh?: () => void;
 }
 
-const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) => {
+const DealsView = ({ deals, sortOption, selectedCategories, onRefresh }: DealsViewProps) => {
+  const handleRefresh = () => {
+    console.log('[DEALS] Manual refresh triggered');
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
   if (deals.length === 0) {
     return (
-      <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-        <h3 className="text-lg font-medium mb-2">No deals found</h3>
-        <p className="text-gray-500">
-          {selectedCategories.length > 0 
-            ? "Try adjusting your category filters"
-            : "Check back later for exciting promotions and discounts"}
-        </p>
+      <div>
+        <div className="text-center py-12 bg-gray-50 rounded-lg">
+          <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium mb-2">No deals found</h3>
+          <p className="text-gray-500">
+            {selectedCategories.length > 0 
+              ? "Try adjusting your category filters"
+              : "Check back later for exciting promotions and discounts"}
+          </p>
+        </div>
+        
+        {/* Debug panel - only show in development or when there should be deals */}
+        <PromoCodeDebugPanel 
+          displayedDealsCount={0} 
+          onRefresh={handleRefresh}
+        />
       </div>
     );
   }
+
+  console.log(`[DEALS] Rendering ${deals.length} deals`);
 
   return (
     <div>
@@ -60,6 +79,12 @@ const DealsView = ({ deals, sortOption, selectedCategories }: DealsViewProps) =>
           ))}
         </div>
       )}
+      
+      {/* Debug panel */}
+      <PromoCodeDebugPanel 
+        displayedDealsCount={deals.length} 
+        onRefresh={handleRefresh}
+      />
     </div>
   );
 };
