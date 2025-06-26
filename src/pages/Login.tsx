@@ -13,7 +13,7 @@ import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user, loading, isInfluencer, isAgency } = useAuth();
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,16 +24,21 @@ const Login = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user && !isLoading) {
-      console.log("User already logged in, redirecting to home");
-      navigate("/");
+    if (user && !loading) {
+      console.log("User already logged in, redirecting based on type");
+      if (isAgency) {
+        navigate("/agency-dashboard");
+      } else if (isInfluencer) {
+        navigate("/influencer-dashboard");
+      } else {
+        navigate("/");
+      }
     }
-  }, [user, isLoading, navigate]);
+  }, [user, loading, isInfluencer, isAgency, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing again
     if (loginError) setLoginError(null);
   };
 
@@ -53,7 +58,6 @@ const Login = () => {
       });
 
       if (error) {
-        // Set a user-friendly error message based on the error
         if (error.message.includes("Invalid login credentials")) {
           setLoginError("The email or password you entered is incorrect. Please try again.");
         } else if (error.message.includes("Email not confirmed")) {
@@ -68,7 +72,8 @@ const Login = () => {
       toast({
         title: "Successfully logged in!",
       });
-      navigate("/");
+      
+      // Navigation will be handled by the useEffect hook based on user type
     } catch (error) {
       console.error("Unexpected error during login:", error);
       setLoginError("An unexpected error occurred. Please try again.");
@@ -78,10 +83,13 @@ const Login = () => {
   };
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12 px-4">
-        <p>Checking authentication...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mx-auto mb-4"></div>
+          <p>Checking authentication...</p>
+        </div>
       </div>
     );
   }

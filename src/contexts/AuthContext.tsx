@@ -3,7 +3,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Database } from "@/integrations/supabase/types";
 
 type ProfileType = {
   id: string;
@@ -25,6 +24,9 @@ type AuthContextType = {
   isLoading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  isInfluencer: boolean;
+  isAgency: boolean;
+  isAuthenticated: boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,17 +45,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       (event, currentSession) => {
         console.log("Auth state changed:", event, currentSession?.user?.email);
         
-        // Only update state synchronously here
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Use setTimeout to fetch profile to avoid Supabase deadlock
         if (currentSession?.user) {
-          setTimeout(() => {
-            fetchProfile(currentSession.user.id);
-          }, 0);
+          // Fetch profile immediately without delay
+          fetchProfile(currentSession.user.id);
         } else {
           setProfile(null);
+          setLoading(false);
         }
       }
     );
@@ -66,9 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (currentSession?.user) {
         fetchProfile(currentSession.user.id);
+      } else {
+        setLoading(false);
       }
-      
-      setLoading(false);
     }).catch(error => {
       console.error("Error getting session:", error);
       setLoading(false);
@@ -90,13 +90,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error);
+        setLoading(false);
         return;
       }
 
       console.log("Fetched profile:", data);
       setProfile(data);
+      setLoading(false);
     } catch (error) {
       console.error('Error in fetchProfile:', error);
+      setLoading(false);
     }
   };
 
@@ -110,12 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log("Signing out user");
       
-      // Clear local state first for better UI responsiveness
       setSession(null);
       setUser(null);
       setProfile(null);
       
-      // Call Supabase signOut - no need to check for session as the method handles this gracefully
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -141,6 +142,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const isInfluencer = profile?.is_influencer === true;
+  const isAgency = profile?.is_agency === true;
+  const isAuthenticated = !!user;
+
   return (
     <AuthContext.Provider value={{ 
       session, 
@@ -149,7 +154,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       isLoading: loading,
       signOut, 
-      refreshProfile 
+      refreshProfile,
+      isInfluencer,
+      isAgency,
+      isAuthenticated
     }}>
       {children}
     </AuthContext.Provider>

@@ -1,6 +1,7 @@
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useDeferredAuth } from "@/contexts/DeferredAuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import HeroSection from "@/components/home/HeroSection";
 import StaticOnlyHeroSection from "@/components/home/StaticOnlyHeroSection";
 import DownloadBanner from "@/components/home/DownloadBanner";
@@ -17,48 +18,39 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
-import { useProgressiveEnhancement } from "@/hooks/useProgressiveEnhancement";
-import { useDeferredMetaTracking } from "@/hooks/useDeferredMetaTracking";
-import { useDeferredPerformanceMonitoring } from "@/hooks/useDeferredPerformanceMonitoring";
-import { useEffect, Suspense, lazy, startTransition } from "react";
-import { createViewContentPayload } from "@/utils/metaTrackingHelpers";
-
-// Only lazy load non-critical, below-the-fold sections
-const LazyPopularCategoriesSection = lazy(() => import("@/components/home/PopularCategoriesSection"));
-const LazyBrowserExtensionPromo = lazy(() => import("@/components/home/BrowserExtensionPromo"));
 
 const Index = () => {
-  const { user, profile } = useAuth();
-  const deferredAuth = useDeferredAuth();
-  const isEnhanced = useProgressiveEnhancement();
-  const { track } = useDeferredMetaTracking();
-  
-  // Enable deferred performance monitoring only after enhancement
-  useDeferredPerformanceMonitoring();
-  
-  // Check if the user is an influencer or agency (only after auth is loaded)
-  const isInfluencer = isEnhanced && deferredAuth.initialized ? deferredAuth.profile?.is_influencer === true : false;
-  const isAgency = isEnhanced && deferredAuth.initialized ? deferredAuth.profile?.is_agency === true : false;
-  const enhancedUser = isEnhanced && deferredAuth.initialized ? deferredAuth.user : null;
+  const { user, profile, loading, isInfluencer, isAgency } = useAuth();
+  const navigate = useNavigate();
 
-  // Track homepage view with deferred execution (only after enhancement)
+  // Redirect authenticated users to their appropriate dashboard
   useEffect(() => {
-    if (!isEnhanced) return;
-    
-    const timer = setTimeout(() => {
-      startTransition(() => {
-        track('ViewContent', createViewContentPayload({
-          content_name: 'homepage',
-          content_category: 'main_page',
-          value: 0
-        }));
-      });
-    }, 1000);
+    if (!loading && user && profile) {
+      if (isAgency) {
+        navigate("/agency-dashboard");
+        return;
+      }
+      if (isInfluencer) {
+        navigate("/influencer-dashboard");
+        return;
+      }
+      // Regular users stay on the homepage but see the logged-in version
+    }
+  }, [user, profile, loading, isInfluencer, isAgency, navigate]);
 
-    return () => clearTimeout(timer);
-  }, [track, isEnhanced]);
+  // Show loading state while authentication is being determined
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mx-auto mb-4"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // NEW EDUCATIONAL FLOW for non-logged-in users - Show immediately without progressive enhancement
+  // For non-logged-in users, show the educational flow
   if (!user) {
     return (
       <div className="min-h-screen">
@@ -99,141 +91,11 @@ const Index = () => {
     );
   }
 
-  // For logged-in users, use progressive enhancement and existing functionality
-  if (!isEnhanced) {
-    return (
-      <div className="min-h-screen">
-        <div className="section-container">
-          <HeroSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container bg-white shadow-sm">
-          <FeaturedOffersSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <CallToActionSection />
-        </div>
-      </div>
-    );
-  }
-
-  // Special view for agencies (only after enhancement)
-  if (enhancedUser && isAgency) {
-    return (
-      <div className="min-h-screen">
-        <div className="section-container bg-gradient-to-br from-purple-50 to-white py-8 md:py-12">
-          <div className="max-w-5xl mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome to Your Agency Dashboard</h1>
-            <p className="text-lg text-muted-foreground mb-6">
-              Manage your influencers and promo codes all in one place.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-purple-600 hover:bg-purple-600/90" asChild>
-                <Link to="/agency-dashboard">
-                  Go to Agency Dashboard
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/my-deals">
-                  View My Alerts
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container bg-white shadow-sm">
-          <FeaturedOffersSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container bg-white shadow-sm">
-          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-            <LazyPopularCategoriesSection />
-          </Suspense>
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-            <LazyBrowserExtensionPromo />
-          </Suspense>
-        </div>
-      </div>
-    );
-  }
-
-  // Special view for influencers (only after enhancement)
-  if (enhancedUser && isInfluencer) {
-    return (
-      <div className="min-h-screen">
-        <div className="section-container bg-gradient-to-br from-brand-paleGreen to-white py-8 md:py-12">
-          <div className="max-w-5xl mx-auto px-4">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">Welcome, {deferredAuth.profile?.full_name || deferredAuth.profile?.username || 'Influencer'}</h1>
-            <p className="text-lg text-muted-foreground mb-6">
-              Manage your promo codes from your influencer dashboard.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-brand-green hover:bg-brand-green/90" asChild>
-                <Link to="/influencer-dashboard">
-                  Go to Dashboard
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link to="/my-deals">
-                  View My Alerts
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container bg-white shadow-sm">
-          <FeaturedOffersSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container bg-white shadow-sm">
-          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-            <LazyPopularCategoriesSection />
-          </Suspense>
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-            <LazyBrowserExtensionPromo />
-          </Suspense>
-        </div>
-      </div>
-    );
-  }
-
-  // Regular user view - load critical sections immediately
+  // For regular authenticated users (not influencers or agencies)
   return (
-    <div className={`min-h-screen ${enhancedUser ? 'pb-0' : ''}`}>
+    <div className="min-h-screen">
       <div className="section-container">
-        {enhancedUser ? (
-          <DownloadBanner />
-        ) : (
-          <HeroSection />
-        )}
+        <DownloadBanner />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
@@ -251,21 +113,13 @@ const Index = () => {
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container bg-white shadow-sm">
-        <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-          <LazyPopularCategoriesSection />
-        </Suspense>
+        <PopularCategoriesSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container">
-        {enhancedUser ? (
-          <Suspense fallback={<div className="h-32 bg-gray-50 animate-pulse" />}>
-            <LazyBrowserExtensionPromo />
-          </Suspense>
-        ) : (
-          <CallToActionSection />
-        )}
+        <BrowserExtensionPromo />
       </div>
     </div>
   );
