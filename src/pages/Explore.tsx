@@ -1,152 +1,257 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
+import { 
+  Select, 
+  SelectContent, 
+  SelectGroup, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import CategoryFilter from "@/components/CategoryFilter";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetFooter
+} from "@/components/ui/sheet";
+import { ExploreTab, SortOption } from "@/types/explore";
 import { useExploreData } from "@/hooks/useExploreData";
-import InfluencersView from "@/components/explore/InfluencersView";
 import DealsView from "@/components/explore/DealsView";
+import InfluencersView from "@/components/explore/InfluencersView";
 import BrandsView from "@/components/explore/BrandsView";
 import CreditCardsView from "@/components/explore/CreditCardsView";
-import CategoryFilter from "@/components/CategoryFilter";
 import SearchBar from "@/components/ui/search-bar";
-import { ExploreTab, SortOption } from "@/types/explore";
+import { useScrollToTop } from "@/hooks/useScrollToTop";
 
 const Explore = () => {
-  const [activeTab, setActiveTab] = useState<ExploreTab>("deals");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") as ExploreTab || "deals";
+  const initialCategory = searchParams.get("category") || "";
+  
+  const [activeTab, setActiveTab] = useState<ExploreTab>(initialTab);
   const [sortOption, setSortOption] = useState<SortOption>("newest");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    initialCategory ? [initialCategory] : []
+  );
   const [searchQuery, setSearchQuery] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Use the hook to scroll to top on route changes
+  useScrollToTop();
 
-  const { influencers, deals, brands, creditCards, loading } = useExploreData(
+  const { deals, influencers, brands, creditCards, loading } = useExploreData(
     activeTab,
     sortOption,
     selectedCategories,
     searchQuery
   );
 
-  const handleCategoryChange = (categories: string[]) => {
-    setSelectedCategories(categories);
-  };
+  // Manual refresh function
+  const handleRefresh = useCallback(() => {
+    console.log('[EXPLORE] Manual refresh triggered');
+    setRefreshKey(prev => prev + 1);
+    // Force re-fetch by updating a dependency
+    const timestamp = Date.now();
+    console.log(`[EXPLORE] Refresh timestamp: ${timestamp}`);
+  }, []);
 
-  const removeCategory = (categoryToRemove: string) => {
-    setSelectedCategories(prev => prev.filter(cat => cat !== categoryToRemove));
-  };
-
-  const clearAllCategories = () => {
-    setSelectedCategories([]);
-  };
-
-  const getSortOptions = () => {
-    const baseOptions: { value: SortOption; label: string }[] = [
-      { value: "newest", label: "Newest" },
-      { value: "alphabetical", label: "A-Z" }
-    ];
-
-    if (activeTab === "deals") {
-      baseOptions.push({ value: "category", label: "Category" });
-    } else if (activeTab === "brands") {
-      baseOptions.push({ value: "discount", label: "Most Deals" });
+  // Listen for URL parameter changes and update activeTab
+  useEffect(() => {
+    const tabFromUrl = searchParams.get("tab") as ExploreTab;
+    if (tabFromUrl && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
     }
+  }, [searchParams]);
 
-    return baseOptions;
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set("tab", activeTab);
+    setSearchParams(newParams);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    if (selectedCategories.length === 1) {
+      newParams.set("category", selectedCategories[0]);
+    } else {
+      newParams.delete("category");
+    }
+    setSearchParams(newParams);
+  }, [selectedCategories]);
+
+  // Clear search when tab changes
+  useEffect(() => {
+    setSearchQuery("");
+  }, [activeTab]);
+
+  // Auto-refresh every 5 minutes for deals tab
+  useEffect(() => {
+    if (activeTab === 'deals') {
+      const interval = setInterval(() => {
+        console.log('[EXPLORE] Auto-refresh triggered for deals');
+        handleRefresh();
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, handleRefresh]);
+
+  const getSearchPlaceholder = () => {
+    switch (activeTab) {
+      case "deals":
+        return "Search deals, promos, or brands...";
+      case "influencers":
+        return "Search influencers by name or username...";
+      case "brands":
+        return "Search brands...";
+      case "creditcards":
+        return "Search credit cards...";
+      default:
+        return "Search...";
+    }
   };
 
-  const refreshData = () => {
-    window.location.reload();
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setFiltersOpen(false);
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Explore</h1>
-        <p className="text-gray-600">Discover influencers, deals, and brands</p>
-      </div>
-
-      <div className="space-y-4">
-        <SearchBar 
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder={`Search ${activeTab}...`}
-        />
-
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <CategoryFilter 
-            selectedCategories={selectedCategories}
-            onChange={handleCategoryChange}
-            disabled={activeTab === "influencers" || activeTab === "creditcards"}
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 className="text-2xl font-bold">Explore</h1>
+        
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <SearchBar 
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={getSearchPlaceholder()}
+            className="w-full md:w-80"
           />
           
-          <Select value={sortOption} onValueChange={(value: SortOption) => setSortOption(value)}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              {getSortOptions().map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {selectedCategories.length > 0 && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-gray-600 font-medium">Filters:</span>
-            {selectedCategories.map((category) => (
-              <Badge 
-                key={category} 
-                variant="secondary" 
-                className="flex items-center gap-1 px-3 py-1"
-              >
-                {category}
-                <button 
-                  onClick={() => removeCategory(category)}
-                  className="ml-1 hover:text-red-600 transition-colors"
-                  aria-label={`Remove ${category} filter`}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            <button 
-              onClick={clearAllCategories}
-              className="text-sm text-blue-600 hover:text-blue-800 underline ml-2"
+          <Tabs 
+            value={activeTab} 
+            onValueChange={(value) => setActiveTab(value as ExploreTab)}
+            className="w-full sm:w-auto"
+          >
+            <TabsList className="grid grid-cols-4 w-full sm:w-[400px]">
+              <TabsTrigger value="deals">Deals</TabsTrigger>
+              <TabsTrigger value="influencers">Influencers</TabsTrigger>
+              <TabsTrigger value="brands">Brands</TabsTrigger>
+              <TabsTrigger value="creditcards">Credit Cards</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="flex gap-2">
+            <Select 
+              value={sortOption} 
+              onValueChange={(value) => setSortOption(value as SortOption)}
             >
-              Clear all
-            </button>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="newest">Newly Added</SelectItem>
+                  <SelectItem value="alphabetical">
+                    {activeTab === "influencers" ? "Name (A-Z)" : 
+                     activeTab === "brands" ? "Brand (A-Z)" : 
+                     activeTab === "creditcards" ? "Name (A-Z)" : "Brand (A-Z)"}
+                  </SelectItem>
+                  {activeTab === "deals" && (
+                    <>
+                      <SelectItem value="discount">Discount (High-Low)</SelectItem>
+                      <SelectItem value="category">Category</SelectItem>
+                    </>
+                  )}
+                  {activeTab === "brands" && (
+                    <SelectItem value="discount">Deal Count (High-Low)</SelectItem>
+                  )}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            
+            {(activeTab === "deals" || activeTab === "brands") && (
+              <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="md:w-auto md:px-3 flex items-center gap-2"
+                  >
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden md:inline">Filters</span>
+                    {selectedCategories.length > 0 && (
+                      <span className="bg-brand-green text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
+                        {selectedCategories.length}
+                      </span>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="py-4">
+                    <CategoryFilter 
+                      selectedCategories={selectedCategories} 
+                      onChange={setSelectedCategories} 
+                    />
+                  </div>
+                  <SheetFooter>
+                    <Button variant="outline" onClick={clearFilters}>
+                      Clear Filters
+                    </Button>
+                    <Button onClick={() => setFiltersOpen(false)}>
+                      Apply Filters
+                    </Button>
+                  </SheetFooter>
+                </SheetContent>
+              </Sheet>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ExploreTab)} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="deals">Deals</TabsTrigger>
-          <TabsTrigger value="influencers">Influencers</TabsTrigger>
-          <TabsTrigger value="brands">Brands</TabsTrigger>
-          <TabsTrigger value="creditcards">Credit Cards</TabsTrigger>
-        </TabsList>
-
-        <div className="mt-6">
-          <TabsContent value="deals" className="space-y-6">
-            <DealsView deals={deals} sortOption={sortOption} selectedCategories={selectedCategories} />
+      {loading ? (
+        <div className="text-center py-16">
+          <p>Loading...</p>
+        </div>
+      ) : (
+        <Tabs value={activeTab}>
+          <TabsContent value="deals" className="mt-0">
+            <DealsView 
+              deals={deals} 
+              sortOption={sortOption} 
+              selectedCategories={selectedCategories}
+              onRefresh={handleRefresh}
+            />
           </TabsContent>
-
-          <TabsContent value="influencers" className="space-y-6">
+          
+          <TabsContent value="influencers" className="mt-0">
             <InfluencersView influencers={influencers} />
           </TabsContent>
-
-          <TabsContent value="brands" className="space-y-6">
-            <BrandsView brands={brands} selectedCategories={selectedCategories} />
+          
+          <TabsContent value="brands" className="mt-0">
+            <BrandsView 
+              brands={brands} 
+              selectedCategories={selectedCategories} 
+            />
           </TabsContent>
-
-          <TabsContent value="creditcards" className="space-y-6">
+          
+          <TabsContent value="creditcards" className="mt-0">
             <CreditCardsView creditCards={creditCards} />
           </TabsContent>
-        </div>
-      </Tabs>
+        </Tabs>
+      )}
     </div>
   );
 };

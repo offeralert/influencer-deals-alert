@@ -17,23 +17,16 @@ export const CATEGORIES = [
 interface CategoryFilterProps {
   selectedCategories: string[];
   onChange: (categories: string[]) => void;
-  disabled?: boolean;
 }
 
-const CategoryFilter = ({ selectedCategories, onChange, disabled = false }: CategoryFilterProps) => {
+const CategoryFilter = ({ selectedCategories, onChange }: CategoryFilterProps) => {
   const handleCategoryToggle = (category: string) => {
-    if (disabled) return;
-    
     if (selectedCategories.includes(category)) {
       onChange(selectedCategories.filter(c => c !== category));
     } else {
       onChange([...selectedCategories, category]);
     }
   };
-
-  if (disabled) {
-    return null;
-  }
 
   return (
     <div className="space-y-2">
@@ -45,11 +38,10 @@ const CategoryFilter = ({ selectedCategories, onChange, disabled = false }: Cate
               id={`category-${category}`} 
               checked={selectedCategories.includes(category)}
               onCheckedChange={() => handleCategoryToggle(category)}
-              disabled={disabled}
             />
             <Label 
               htmlFor={`category-${category}`}
-              className={`cursor-pointer text-sm ${disabled ? 'text-gray-400 cursor-not-allowed' : ''}`}
+              className="cursor-pointer text-sm"
             >
               {category}
             </Label>
