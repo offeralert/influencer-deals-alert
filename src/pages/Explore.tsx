@@ -10,7 +10,7 @@ import DealsView from "@/components/explore/DealsView";
 import BrandsView from "@/components/explore/BrandsView";
 import CreditCardsView from "@/components/explore/CreditCardsView";
 import CategoryFilter from "@/components/CategoryFilter";
-import { SearchBar } from "@/components/ui/search-bar";
+import SearchBar from "@/components/ui/search-bar";
 import { ExploreTab, SortOption } from "@/types/explore";
 
 const Explore = () => {
@@ -74,7 +74,7 @@ const Explore = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <CategoryFilter 
             selectedCategories={selectedCategories}
-            onCategoryChange={handleCategoryChange}
+            onChange={handleCategoryChange}
             disabled={activeTab === "influencers" || activeTab === "creditcards"}
           />
           
@@ -131,19 +131,19 @@ const Explore = () => {
 
         <div className="mt-6">
           <TabsContent value="deals" className="space-y-6">
-            <DealsView deals={deals} loading={loading} />
+            <DealsView deals={deals} sortOption={sortOption} selectedCategories={selectedCategories} />
           </TabsContent>
 
           <TabsContent value="influencers" className="space-y-6">
-            <InfluencersView influencers={influencers} loading={loading} />
+            <InfluencersView influencers={influencers} />
           </TabsContent>
 
           <TabsContent value="brands" className="space-y-6">
-            <BrandsView brands={brands} loading={loading} />
+            <BrandsView brands={brands} selectedCategories={selectedCategories} />
           </TabsContent>
 
           <TabsContent value="creditcards" className="space-y-6">
-            <CreditCardsView creditCards={creditCards} loading={loading} />
+            <CreditCardsView creditCards={creditCards} />
           </TabsContent>
         </div>
       </Tabs>
