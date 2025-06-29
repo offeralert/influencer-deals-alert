@@ -175,7 +175,19 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="brandInstagramHandle">Brand Instagram Handle*</Label>
+          <div className="flex items-center gap-1">
+            <Label htmlFor="brandInstagramHandle">Brand Instagram Handle*</Label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">This Instagram handle will be used for our Instagram DM functionality to automatically respond with this promo code when users send brand posts to our account.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <Input
             id="brandInstagramHandle"
             name="brandInstagramHandle"
