@@ -33,6 +33,7 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
   const [formData, setFormData] = useState({
     brandName: "",
     brandUrl: "",
+    brandInstagramHandle: "",
     promoCode: "",
     expirationDate: "",
     affiliateLink: "",
@@ -44,7 +45,17 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Auto-format Instagram handle
+    if (name === 'brandInstagramHandle') {
+      let formattedValue = value.trim();
+      if (formattedValue && !formattedValue.startsWith('@')) {
+        formattedValue = '@' + formattedValue;
+      }
+      setFormData((prev) => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -87,8 +98,14 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!formData.brandName.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim() || !formData.brandUrl.trim()) {
+    if (!formData.brandName.trim() || !formData.brandInstagramHandle.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim() || !formData.brandUrl.trim()) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    // Validate Instagram handle format
+    if (!formData.brandInstagramHandle.match(/^@[a-zA-Z0-9._]+$/)) {
+      toast.error("Please enter a valid Instagram handle (e.g., @brandname)");
       return;
     }
 
@@ -100,6 +117,7 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
         .insert({
           brand_name: formData.brandName,
           brand_url: formData.brandUrl,
+          brand_instagram_handle: formData.brandInstagramHandle,
           promo_code: formData.promoCode,
           description: formData.description,
           expiration_date: formData.expirationDate || null,
@@ -123,6 +141,7 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
       setFormData({
         brandName: "",
         brandUrl: "",
+        brandInstagramHandle: "",
         promoCode: "",
         expirationDate: "",
         affiliateLink: "",
@@ -150,6 +169,19 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
             value={formData.brandName}
             onChange={handleChange}
             placeholder="e.g. Nike, Amazon"
+            required
+            disabled={isLoading}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="brandInstagramHandle">Brand Instagram Handle*</Label>
+          <Input
+            id="brandInstagramHandle"
+            name="brandInstagramHandle"
+            value={formData.brandInstagramHandle}
+            onChange={handleChange}
+            placeholder="@brandname"
             required
             disabled={isLoading}
           />

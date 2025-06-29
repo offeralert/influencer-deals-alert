@@ -23,6 +23,7 @@ import {
 interface PromoCodeFormData {
   brandName: string;
   brandUrl: string;
+  brandInstagramHandle: string;
   promoCode: string;
   expirationDate: string;
   affiliateLink: string;
@@ -58,6 +59,19 @@ const PromoCodeFormFields = ({
             value={formData.brandName}
             onChange={handleChange}
             placeholder="e.g. Nike, Amazon"
+            required
+            disabled={isLoading || disabled}
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="brandInstagramHandle">Brand Instagram Handle*</Label>
+          <Input
+            id="brandInstagramHandle"
+            name="brandInstagramHandle"
+            value={formData.brandInstagramHandle}
+            onChange={handleChange}
+            placeholder="@brandname"
             required
             disabled={isLoading || disabled}
           />

@@ -114,6 +114,7 @@ export type Database = {
       promo_codes: {
         Row: {
           affiliate_link: string
+          brand_instagram_handle: string
           brand_name: string
           brand_url: string
           category: string
@@ -129,6 +130,7 @@ export type Database = {
         }
         Insert: {
           affiliate_link: string
+          brand_instagram_handle?: string
           brand_name: string
           brand_url?: string
           category: string
@@ -144,6 +146,7 @@ export type Database = {
         }
         Update: {
           affiliate_link?: string
+          brand_instagram_handle?: string
           brand_name?: string
           brand_url?: string
           category?: string

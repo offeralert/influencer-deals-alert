@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +10,7 @@ import { SUBSCRIPTION_TIERS } from "@/constants/promoCodeConstants";
 interface PromoCodeFormData {
   brandName: string;
   brandUrl: string;
+  brandInstagramHandle: string;
   promoCode: string;
   expirationDate: string;
   affiliateLink: string;
@@ -62,6 +64,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     const defaultData = {
       brandName: "",
       brandUrl: "",
+      brandInstagramHandle: "",
       promoCode: "",
       expirationDate: "",
       affiliateLink: "",
@@ -126,7 +129,17 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Auto-format Instagram handle
+    if (name === 'brandInstagramHandle') {
+      let formattedValue = value.trim();
+      if (formattedValue && !formattedValue.startsWith('@')) {
+        formattedValue = '@' + formattedValue;
+      }
+      setFormData((prev) => ({ ...prev, [name]: formattedValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -183,7 +196,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       return;
     }
 
-    if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
+    if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.brandInstagramHandle.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -191,6 +204,12 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     // Validate the brand URL format
     if (!formData.brandUrl.match(/^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+([/?#].*)?$/i)) {
       toast.error("Please enter a valid brand URL");
+      return;
+    }
+
+    // Validate Instagram handle format
+    if (!formData.brandInstagramHandle.match(/^@[a-zA-Z0-9._]+$/)) {
+      toast.error("Please enter a valid Instagram handle (e.g., @brandname)");
       return;
     }
 
@@ -224,6 +243,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         influencer_id: user.id,
         brand_name: formData.brandName,
         brand_url: formData.brandUrl,
+        brand_instagram_handle: formData.brandInstagramHandle,
         promo_code: formData.promoCode,
         description: formData.description,
         expiration_date: formData.expirationDate || null,
@@ -249,6 +269,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       setFormData({
         brandName: "",
         brandUrl: "",
+        brandInstagramHandle: "",
         promoCode: "",
         expirationDate: "",
         affiliateLink: "",
