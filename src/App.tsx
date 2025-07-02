@@ -11,12 +11,15 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import MyAlerts from "./pages/MyAlerts";
 import Explore from "./pages/Explore";
+import Deals from "./pages/Deals";
+import Influencers from "./pages/Influencers";
+import Brands from "./pages/Brands";
+import CreditCards from "./pages/CreditCards";
 import InfluencerProfile from "./pages/InfluencerProfile";
 import BrandProfile from "./pages/BrandProfile";
 import InfluencerDashboard from "./pages/InfluencerDashboard";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import Categories from "./pages/Categories";
-import Brands from "./pages/Brands";
 import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -48,13 +51,16 @@ const App = () => (
             <Route path="profile" element={<Profile />} />
             <Route path="my-deals" element={<MyAlerts />} />
             <Route path="explore" element={<Explore />} />
+            <Route path="deals" element={<Deals />} />
+            <Route path="influencers" element={<Influencers />} />
+            <Route path="brands" element={<Brands />} />
+            <Route path="credit-cards" element={<CreditCards />} />
             <Route path="influencer/:username" element={<InfluencerProfile />} />
             <Route path="brand/:brandName" element={<BrandProfile />} />
             <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
             <Route path="agency-dashboard" element={<AgencyDashboard />} />
             <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
             <Route path="categories" element={<Categories />} />
-            <Route path="brands" element={<Brands />} />
             <Route path="contact" element={<Contact />} />
             <Route path="terms" element={<Terms />} />
             <Route path="privacy" element={<Privacy />} />

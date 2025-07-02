@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
   Select, 
@@ -21,12 +21,12 @@ import {
   SheetFooter
 } from "@/components/ui/sheet";
 import { SortOption } from "@/types/explore";
-import { useBrandsData } from "@/hooks/useBrandsData";
-import BrandsView from "@/components/explore/BrandsView";
+import { useDealsData } from "@/hooks/useDealsData";
+import DealsView from "@/components/explore/DealsView";
 import SearchBar from "@/components/ui/search-bar";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
 
-const Brands = () => {
+const Deals = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCategory = searchParams.get("category") || "";
   
@@ -36,14 +36,40 @@ const Brands = () => {
   );
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   
   useScrollToTop();
 
-  const { brands, loading } = useBrandsData(
+  const { deals, loading } = useDealsData(
     sortOption,
     selectedCategories,
-    searchQuery
+    searchQuery,
+    refreshKey
   );
+
+  const handleRefresh = useCallback(() => {
+    console.log('[DEALS] Manual refresh triggered');
+    setRefreshKey(prev => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    const newParams = new URLSearchParams(searchParams);
+    if (selectedCategories.length === 1) {
+      newParams.set("category", selectedCategories[0]);
+    } else {
+      newParams.delete("category");
+    }
+    setSearchParams(newParams);
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log('[DEALS] Auto-refresh triggered');
+      handleRefresh();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [handleRefresh]);
 
   const clearFilters = () => {
     setSelectedCategories([]);
@@ -53,13 +79,13 @@ const Brands = () => {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-bold">Brands</h1>
+        <h1 className="text-2xl font-bold">Deals & Promo Codes</h1>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
           <SearchBar 
             value={searchQuery}
             onChange={setSearchQuery}
-            placeholder="Search brands..."
+            placeholder="Search deals, promos, or brands..."
             className="w-full md:w-80"
           />
           
@@ -75,7 +101,8 @@ const Brands = () => {
                 <SelectGroup>
                   <SelectItem value="newest">Newly Added</SelectItem>
                   <SelectItem value="alphabetical">Brand (A-Z)</SelectItem>
-                  <SelectItem value="discount">Deal Count (High-Low)</SelectItem>
+                  <SelectItem value="discount">Discount (High-Low)</SelectItem>
+                  <SelectItem value="category">Category</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -122,16 +149,18 @@ const Brands = () => {
 
       {loading ? (
         <div className="text-center py-16">
-          <p>Loading brands...</p>
+          <p>Loading deals...</p>
         </div>
       ) : (
-        <BrandsView 
-          brands={brands} 
-          selectedCategories={selectedCategories} 
+        <DealsView 
+          deals={deals} 
+          sortOption={sortOption} 
+          selectedCategories={selectedCategories}
+          onRefresh={handleRefresh}
         />
       )}
     </div>
   );
 };
 
-export default Brands;
+export default Deals;
