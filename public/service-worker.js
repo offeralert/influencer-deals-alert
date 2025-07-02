@@ -2,19 +2,29 @@
 const CACHE_VERSION = self.__SW_VERSION__ || `sw-${Date.now()}`;
 const CACHE_NAME = `offer-alert-${CACHE_VERSION}`;
 
-// Mobile-optimized caching strategy
-const CACHE_FIRST_URLS = [
+// Enhanced caching strategies for different resource types
+const CACHE_STRATEGIES = {
+  CACHE_FIRST: [
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/favicon.ico',
+    '/placeholder.svg'
+  ],
+  STALE_WHILE_REVALIDATE: [
+    '/lovable-uploads/',
+    '/assets/'
+  ],
+  NETWORK_FIRST: [
+    '/api/'
+  ]
+};
+
+// Critical resources to preload
+const CRITICAL_RESOURCES = [
   '/',
   '/index.html',
-  '/manifest.json',
-  '/lovable-uploads/',
-  '/assets/',
-  '/favicon.ico',
-  '/placeholder.svg'
-];
-
-const NETWORK_FIRST_URLS = [
-  '/api/'
+  '/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -24,19 +34,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching critical resources');
-        return cache.addAll([
-          '/',
-          '/index.html',
-          '/manifest.json'
-        ]).catch(err => {
+        return cache.addAll(CRITICAL_RESOURCES).catch(err => {
           console.log('Service Worker: Cache addAll failed:', err);
-          // Don't fail installation if some resources fail to cache
           return Promise.resolve();
         });
       })
       .then(() => {
         console.log('Service Worker: Installation complete');
-        // Skip waiting for faster updates on mobile
         return self.skipWaiting();
       })
   );
@@ -45,24 +49,28 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
+  // Skip non-GET requests and chrome-extension requests
+  if (event.request.method !== 'GET' || url.protocol === 'chrome-extension:') {
     return;
   }
   
-  // Cache first strategy for most content (better for mobile)
-  if (CACHE_FIRST_URLS.some(pattern => url.pathname.includes(pattern))) {
-    event.respondWith(cacheFirstStrategy(event.request));
-  }
-  // Network first only for API calls
-  else if (NETWORK_FIRST_URLS.some(pattern => url.pathname.includes(pattern))) {
+  // Determine caching strategy based on URL
+  if (shouldUseNetworkFirst(url.pathname)) {
     event.respondWith(networkFirstStrategy(event.request));
-  }
-  // Default to cache first for everything else (mobile optimization)
-  else {
+  } else if (shouldUseStaleWhileRevalidate(url.pathname)) {
+    event.respondWith(staleWhileRevalidateStrategy(event.request));
+  } else {
     event.respondWith(cacheFirstStrategy(event.request));
   }
 });
+
+function shouldUseNetworkFirst(pathname) {
+  return CACHE_STRATEGIES.NETWORK_FIRST.some(pattern => pathname.includes(pattern));
+}
+
+function shouldUseStaleWhileRevalidate(pathname) {
+  return CACHE_STRATEGIES.STALE_WHILE_REVALIDATE.some(pattern => pathname.includes(pattern));
+}
 
 async function cacheFirstStrategy(request) {
   try {
@@ -101,6 +109,24 @@ async function cacheFirstStrategy(request) {
   }
 }
 
+async function staleWhileRevalidateStrategy(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(request);
+  
+  const fetchPromise = fetch(request).then(networkResponse => {
+    if (networkResponse.ok) {
+      cache.put(request, networkResponse.clone());
+    }
+    return networkResponse;
+  }).catch(() => {
+    // Return cached version if network fails
+    return cachedResponse;
+  });
+  
+  // Return cached version immediately if available, otherwise wait for network
+  return cachedResponse || fetchPromise;
+}
+
 async function networkFirstStrategy(request) {
   try {
     const networkResponse = await fetch(request);
@@ -135,7 +161,6 @@ self.addEventListener('activate', (event) => {
       );
     }).then(() => {
       console.log('Service Worker: Cache cleanup complete');
-      // Take control immediately for faster mobile experience
       return self.clients.claim();
     })
   );
@@ -143,7 +168,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'CHECK_FOR_UPDATES') {
-    // Notify about available update without forcing it
     event.ports[0].postMessage({
       type: 'UPDATE_AVAILABLE',
       version: CACHE_VERSION
@@ -151,19 +175,23 @@ self.addEventListener('message', (event) => {
   }
   
   if (event.data && event.data.type === 'APPLY_UPDATE') {
-    // User chose to apply update
     self.skipWaiting();
   }
 });
 
-// Handle push notifications for mobile
+// Enhanced push notification handling
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
     event.waitUntil(
       self.registration.showNotification(data.title, {
         body: data.body,
-        icon: '/lovable-uploads/edf0a8ab-4e46-4096-9778-1873148c2812.png'
+        icon: '/lovable-uploads/edf0a8ab-4e46-4096-9778-1873148c2812.png',
+        badge: '/lovable-uploads/edf0a8ab-4e46-4096-9778-1873148c2812.png',
+        tag: 'offer-alert',
+        renotify: true,
+        requireInteraction: false,
+        silent: false
       })
     );
   }

@@ -21,10 +21,10 @@ jobs:
       - name: Copy index.html to 404.html
         run: cp dist/index.html dist/404.html
 
-      - name: Add cache headers file
+      - name: Add comprehensive cache headers
         run: |
           cat > dist/_headers << EOF
-          # Cache static assets for 1 year
+          # Cache static assets for 1 year with immutable flag
           /assets/*
             Cache-Control: public, max-age=31536000, immutable
             
@@ -32,30 +32,57 @@ jobs:
           /lovable-uploads/*
             Cache-Control: public, max-age=2592000
             
-          # Don't cache HTML files
+          # Don't cache HTML files - always check for updates
           /*.html
             Cache-Control: no-cache, no-store, must-revalidate
+            Pragma: no-cache
+            Expires: 0
             
-          # Service worker should not be cached
+          # Service worker should never be cached
           /service-worker.js
             Cache-Control: no-cache, no-store, must-revalidate
+            Pragma: no-cache
+            Expires: 0
             
           # Manifest can be cached for 1 day
           /manifest.json
             Cache-Control: public, max-age=86400
+            
+          # Add security headers
+          /*
+            X-Frame-Options: DENY
+            X-Content-Type-Options: nosniff
+            Referrer-Policy: strict-origin-when-cross-origin
+            Permissions-Policy: camera=(), microphone=(), geolocation=()
           EOF
 
-      - name: Inject version into service worker
+      - name: Add cache control meta tags to HTML
+        run: |
+          sed -i '/<head>/a\
+          <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">\
+          <meta http-equiv="Pragma" content="no-cache">\
+          <meta http-equiv="Expires" content="0">' dist/index.html dist/404.html
+
+      - name: Inject version into service worker and add compression
         run: |
           BUILD_VERSION=$(date +%s)
           sed -i "s/self.__SW_VERSION__ || 'sw-fallback'/\"sw-$BUILD_VERSION\"/g" dist/service-worker.js
+          
+          # Add resource hints to HTML for better performance
+          sed -i '/<head>/a\
+          <link rel="preconnect" href="https://fonts.googleapis.com">\
+          <link rel="preconnect" href="https://connect.facebook.net">\
+          <link rel="dns-prefetch" href="https://r.wdfl.co">\
+          <link rel="dns-prefetch" href="https://static.cloudflareinsights.com">' dist/index.html dist/404.html
 
       - name: Debug build output
         run: |
-          echo "Listing contents of the root directory..."
-          ls -la
           echo "Listing contents of the dist directory..."
-          ls -R dist
+          ls -la dist/
+          echo "Assets directory:"
+          ls -la dist/assets/ | head -10
+          echo "Cache headers file:"
+          cat dist/_headers
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
