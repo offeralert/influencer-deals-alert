@@ -21,10 +21,12 @@ export const useDealsData = (
       try {
         let query = getPromoCodes();
         
+        // Only filter by categories if specific categories are selected
         if (selectedCategories.length > 0) {
           query = query.in('category', selectedCategories);
         }
         
+        // Apply sorting
         if (sortOption === 'alphabetical') {
           query = query.order('brand_name', { ascending: true });
         } else if (sortOption === 'discount') {
@@ -51,13 +53,39 @@ export const useDealsData = (
         
         console.log(`[DEALS] Raw promo codes fetched: ${data.length}`);
         
+        // Only filter out codes that are missing essential data
         const validData = data.filter((deal: PromoCodeWithInfluencer) => {
-          return deal.id && deal.brand_name && deal.promo_code && deal.profiles;
+          const hasRequiredFields = deal.id && deal.brand_name && deal.promo_code;
+          const hasValidProfile = deal.profiles && deal.profiles.username;
+          
+          if (!hasRequiredFields) {
+            console.log(`[DEALS] Filtering out deal with missing required fields:`, deal.id);
+            return false;
+          }
+          
+          if (!hasValidProfile) {
+            console.log(`[DEALS] Filtering out deal with invalid profile:`, deal.id);
+            return false;
+          }
+          
+          // Check if deal is expired
+          if (deal.expiration_date) {
+            const expiryDate = new Date(deal.expiration_date);
+            const now = new Date();
+            if (expiryDate < now) {
+              console.log(`[DEALS] Filtering out expired deal:`, deal.id);
+              return false;
+            }
+          }
+          
+          return true;
         });
+        
+        console.log(`[DEALS] Valid deals after filtering: ${validData.length}`);
         
         const formattedDeals = validData.map((deal: PromoCodeWithInfluencer) => ({
           id: deal.id || "",
-          title: deal.description || "",
+          title: deal.description || "Special Offer",
           brandName: deal.brand_name || "",
           discount: deal.promo_code || "",
           promoCode: deal.promo_code || "",
@@ -69,16 +97,21 @@ export const useDealsData = (
           category: deal.category || 'Fashion'
         }));
         
-        const filtered = searchQuery
-          ? formattedDeals.filter(deal => 
-              deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              deal.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              deal.promoCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              deal.influencerName.toLowerCase().includes(searchQuery.toLowerCase())
-            )
+        // Apply search filter only if search query exists
+        const filtered = searchQuery.trim()
+          ? formattedDeals.filter(deal => {
+              const searchLower = searchQuery.toLowerCase();
+              return (
+                deal.title.toLowerCase().includes(searchLower) ||
+                deal.brandName.toLowerCase().includes(searchLower) ||
+                deal.promoCode.toLowerCase().includes(searchLower) ||
+                deal.influencerName.toLowerCase().includes(searchLower) ||
+                deal.category.toLowerCase().includes(searchLower)
+              );
+            })
           : formattedDeals;
         
-        console.log(`[DEALS] Final deals count: ${filtered.length}`);
+        console.log(`[DEALS] Final deals count after search filter: ${filtered.length}`);
         setDeals(filtered);
       } catch (error) {
         console.error("[DEALS] Error in fetchDeals:", error);

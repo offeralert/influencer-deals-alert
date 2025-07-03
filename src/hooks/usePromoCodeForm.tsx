@@ -55,7 +55,7 @@ const clearStoredFormData = () => {
 
 export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) => {
   const { user } = useAuth();
-  const { subscriptionTier, maxOffers, bypassOfferLimits } = useSubscription();
+  const { subscriptionTier, maxOffers, bypassOfferLimits, refresh } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   
   // Initialize form data with stored values if available
@@ -115,6 +115,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         
         if (error) throw error;
         setCurrentOfferCount(count || 0);
+        console.log(`[PROMO_FORM] Current offer count: ${count || 0}, Max offers: ${maxOffers}`);
       } catch (err) {
         console.error("Error fetching offer count:", err);
       } finally {
@@ -123,7 +124,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     };
 
     fetchOfferCount();
-  }, [user]);
+  }, [user, maxOffers]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -213,9 +214,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       return;
     }
 
-    // Check if user has reached their subscription offer limit
-    // Removed the bypassOfferLimits check to enforce limits
-    if (currentOfferCount >= maxOffers) {
+    // Check subscription limits only if not bypassing
+    if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
       // Find the next subscription tier that would accommodate more offers
       let requiredTier = "Boost";
       
@@ -252,8 +252,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       }).select();
 
       if (error) {
-        toast.error("Failed to add promo code");
         console.error("Error adding promo code:", error);
+        toast.error(`Failed to add promo code: ${error.message}`);
         return;
       }
 
@@ -280,8 +280,11 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       // Update the current offer count
       setCurrentOfferCount(prev => prev + 1);
       
+      // Refresh subscription data to ensure we have the latest limits
+      await refresh();
+      
       // Show upgrade suggestions if approaching the limit
-      if (currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+      if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
         toast("Running out of offer slots!", {
           description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
           action: {

@@ -2,7 +2,7 @@
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
-// Set this to false to enforce the offer limit check in edge function
+// Set this to false to properly enforce subscription limits
 const BYPASS_OFFER_LIMITS = false;
 
 interface PromoCode {
@@ -48,7 +48,7 @@ serve(async (req) => {
     const body = await req.json();
     const promoCodes: PromoCode[] = body.promoCodes;
   
-    // Ensure all promoCodes have the required fields including brand_url
+    // Validate required fields
     const hasInvalidData = promoCodes.some(item => 
       !item.user_id || !item.brand_name || !item.promo_code || !item.description || 
       !item.category || !item.affiliate_link || !item.brand_url
@@ -67,13 +67,28 @@ serve(async (req) => {
       );
     }
     
-    // If we're bypassing offer limits, skip the offer count check
+    // Only check subscription limits if not bypassing
     if (!BYPASS_OFFER_LIMITS) {
-      // Check subscription limit
-      const { data: subscriptionData } = await supabaseClient.functions.invoke('check-subscription');
+      console.log("[UPLOAD] Checking subscription limits for user:", user.user.id);
+      
+      // Check subscription status using the proper edge function
+      const { data: subscriptionData, error: subError } = await supabaseClient.functions.invoke('check-subscription');
+      
+      if (subError) {
+        console.error("[UPLOAD] Error checking subscription:", subError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: "Failed to verify subscription status. Please try again."
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 500 }
+        );
+      }
       
       if (subscriptionData) {
         const { subscribed, subscription_tier } = subscriptionData;
+        
+        console.log(`[UPLOAD] User subscription: ${subscription_tier}, subscribed: ${subscribed}`);
         
         // Get current offer count
         const { count: currentCount } = await supabaseClient
@@ -88,16 +103,20 @@ serve(async (req) => {
         else if (subscription_tier === "Pro") maxOffers = 20;
         else if (subscription_tier === "Elite") maxOffers = Infinity;
         
+        console.log(`[UPLOAD] Current offers: ${currentCount}, Max offers: ${maxOffers}, Trying to add: ${promoCodes.length}`);
+        
         // Check if this batch would exceed the limit
-        if (currentCount !== null && currentCount + promoCodes.length > maxOffers) {
+        if (currentCount !== null && maxOffers !== Infinity && currentCount + promoCodes.length > maxOffers) {
           return new Response(
             JSON.stringify({
               success: false,
-              error: `You've reached your limit of ${maxOffers} offers with the ${subscription_tier} plan.`
+              error: `You've reached your limit of ${maxOffers} offers with the ${subscription_tier} plan. You currently have ${currentCount} offers and are trying to add ${promoCodes.length} more.`
             }),
             { headers: { "Content-Type": "application/json" }, status: 403 }
           );
         }
+        
+        console.log(`[UPLOAD] Subscription check passed. Proceeding with upload.`);
       }
     }
 
@@ -106,23 +125,27 @@ serve(async (req) => {
       .insert(
         promoCodes.map((promoCode) => ({
           ...promoCode,
-          user_id: user.user.id,
+          influencer_id: user.user.id, // Make sure to use influencer_id field
         }))
       )
       .select();
 
     if (error) {
+      console.error("[UPLOAD] Database error:", error);
       return new Response(
         JSON.stringify({ success: false, error: error.message }),
         { headers: { "Content-Type": "application/json" }, status: 500 }
       );
     }
 
+    console.log(`[UPLOAD] Successfully uploaded ${promoCodes.length} promo codes`);
+
     return new Response(
       JSON.stringify({ success: true, data }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
     );
   } catch (error) {
+    console.error("[UPLOAD] Unexpected error:", error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { "Content-Type": "application/json" }, status: 500 }

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 export type SubscriptionTier = "Starter" | "Boost" | "Growth" | "Pro" | "Elite";
 
-// Changed bypass flag to false to reinstate offer limits
+// Set to false to enforce proper subscription limits
 export const BYPASS_OFFER_LIMITS = false;
 
 interface SubscriptionData {
@@ -31,12 +31,12 @@ export const useSubscription = (): SubscriptionData => {
 
   // Calculate max offers based on subscription tier
   const maxOffers = useCallback(() => {
-    // If bypassing limits, return a very large number effectively making it unlimited
+    // If bypassing limits, return unlimited
     if (BYPASS_OFFER_LIMITS) {
       return Infinity;
     }
     
-    // Otherwise use normal tier-based limits
+    // Proper tier-based limits
     switch (subscriptionTier) {
       case "Boost": return 3;
       case "Growth": return 10;
@@ -55,6 +55,8 @@ export const useSubscription = (): SubscriptionData => {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("[SUBSCRIPTION] Checking subscription status for user:", user.id);
+      
       const { data, error: funcError } = await supabase.functions.invoke('check-subscription');
       
       if (funcError) {
@@ -65,9 +67,21 @@ export const useSubscription = (): SubscriptionData => {
       }
       
       if (data) {
+        console.log("[SUBSCRIPTION] Subscription data received:", data);
         setSubscribed(data.subscribed);
         setSubscriptionTier(data.subscription_tier || "Starter");
         setSubscriptionEnd(data.subscription_end);
+        
+        // Log the tier and max offers for debugging
+        const tier = data.subscription_tier || "Starter";
+        let maxOffersForTier = 1;
+        switch (tier) {
+          case "Boost": maxOffersForTier = 3; break;
+          case "Growth": maxOffersForTier = 10; break;
+          case "Pro": maxOffersForTier = 20; break;
+          case "Elite": maxOffersForTier = Infinity; break;
+        }
+        console.log(`[SUBSCRIPTION] User has ${tier} tier with ${maxOffersForTier} max offers`);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
@@ -89,7 +103,6 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
-      // Remove referral ID handling since Rewardful was removed
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           planType, 
