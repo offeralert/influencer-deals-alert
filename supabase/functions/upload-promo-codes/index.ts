@@ -1,6 +1,6 @@
 
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 // Set this to false to properly enforce subscription limits
 const BYPASS_OFFER_LIMITS = false;
