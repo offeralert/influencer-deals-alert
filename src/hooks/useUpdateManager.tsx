@@ -24,15 +24,25 @@ export const useUpdateManager = (enabled: boolean = true) => {
       }
     };
 
-    // Check for updates every 5 minutes
-    interval = setInterval(checkUpdates, 5 * 60 * 1000);
+    // Check for updates every 2 minutes
+    interval = setInterval(checkUpdates, 2 * 60 * 1000);
     
-    // Initial check after 30 seconds
-    const initialTimeout = setTimeout(checkUpdates, 30000);
+    // Initial check after 10 seconds for faster startup
+    const initialTimeout = setTimeout(checkUpdates, 10000);
+
+    // Check for updates when user returns to the app
+    const handleVisibilityChange = () => {
+      if (!document.hidden && enabled) {
+        checkUpdates();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       clearInterval(interval);
       clearTimeout(initialTimeout);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [updateAvailable, enabled]);
 
