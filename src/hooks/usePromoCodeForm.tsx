@@ -257,45 +257,50 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         return;
       }
 
-      // Update domain mappings for all followers with brand_url as the ONLY source
-      await updateFollowerDomains(user.id, formData.brandUrl);
+      if (data && data.length > 0) {
+        // Update domain mappings for all followers with brand_url as the ONLY source
+        await updateFollowerDomains(user.id, formData.brandUrl);
 
-      toast.success("Promo code added successfully!");
-      
-      // Clear stored form data on successful submission
-      clearStoredFormData();
-      
-      // Reset form
-      setFormData({
-        brandName: "",
-        brandUrl: "",
-        brandInstagramHandle: "",
-        promoCode: "",
-        expirationDate: "",
-        affiliateLink: "",
-        description: "",
-        category: "Fashion",
-      });
-      
-      // Update the current offer count
-      setCurrentOfferCount(prev => prev + 1);
-      
-      // Refresh subscription data to ensure we have the latest limits
-      await refresh();
-      
-      // Show upgrade suggestions if approaching the limit
-      if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
-        toast("Running out of offer slots!", {
-          description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
-          action: {
-            label: "Upgrade Plan",
-            onClick: () => window.location.href = "/pricing"
-          }
+        toast.success("Promo code added successfully!");
+        
+        // Clear stored form data on successful submission
+        clearStoredFormData();
+        
+        // Reset form
+        setFormData({
+          brandName: "",
+          brandUrl: "",
+          brandInstagramHandle: "",
+          promoCode: "",
+          expirationDate: "",
+          affiliateLink: "",
+          description: "",
+          category: "Fashion",
         });
+        
+        // Update the current offer count
+        setCurrentOfferCount(prev => prev + 1);
+        
+        // Refresh subscription data to ensure we have the latest limits
+        await refresh();
+        
+        // Show upgrade suggestions if approaching the limit
+        if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+          toast("Running out of offer slots!", {
+            description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
+            action: {
+              label: "Upgrade Plan",
+              onClick: () => window.location.href = "/pricing"
+            }
+          });
+        }
+        
+        // Notify parent component
+        onPromoCodeAdded();
+      } else {
+        console.error("No data returned from promo code insert");
+        toast.error("Failed to add promo code: No data returned");
       }
-      
-      // Notify parent component
-      onPromoCodeAdded();
     } catch (error) {
       console.error("Unexpected error adding promo code:", error);
       toast.error("An unexpected error occurred");

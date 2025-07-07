@@ -4,7 +4,16 @@ import { Button } from "@/components/ui/button";
 import CategoryCard from "@/components/ui/category-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { CATEGORIES } from "@/components/CategoryFilter";
+const CATEGORIES = [
+  "Fashion",
+  "Fitness", 
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel",
+  "Beauty"
+];
 import { getPromoCodes } from "@/utils/supabaseQueries";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";

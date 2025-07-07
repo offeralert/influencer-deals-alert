@@ -6,7 +6,6 @@ import { getAvatarUrl } from "@/utils/avatarUtils";
 
 export const useDealsData = (
   sortOption: SortOption,
-  selectedCategories: string[],
   searchQuery: string = "",
   refreshKey: number = 0
 ) => {
@@ -20,11 +19,6 @@ export const useDealsData = (
       
       try {
         let query = getPromoCodes();
-        
-        // Only filter by categories if specific categories are selected
-        if (selectedCategories.length > 0) {
-          query = query.in('category', selectedCategories);
-        }
         
         // Apply sorting
         if (sortOption === 'alphabetical') {
@@ -122,7 +116,7 @@ export const useDealsData = (
     };
     
     fetchDeals();
-  }, [sortOption, selectedCategories, searchQuery, refreshKey]);
+  }, [sortOption, searchQuery, refreshKey]);
 
   return { deals, loading };
 };

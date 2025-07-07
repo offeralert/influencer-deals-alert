@@ -51,32 +51,10 @@ const InfluencerProfileHeader = ({
                   {!isCreditCard && (
                     <p className="text-muted-foreground">@{username}</p>
                   )}
-                  <p className="text-sm text-muted-foreground">
-                    {isLoadingFollowerCount ? (
-                      "Loading followers..."
-                    ) : (
-                      formatFollowerCount(followerCount)
-                    )}
-                  </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-2 md:ml-auto">
-                <Button 
-                  variant={isFollowing ? "outline" : "default"}
-                  className="min-w-[120px]"
-                  onClick={onFollowToggle}
-                >
-                  {isFollowing ? (
-                    <>
-                      <Check className="h-4 w-4 mr-2" />
-                      Following
-                    </>
-                  ) : (
-                    "Follow"
-                  )}
-                </Button>
-                
                 {influencerId && (
                   <ShareProfileButton
                     influencerId={influencerId}

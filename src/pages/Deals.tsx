@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CategoryFilter from "@/components/CategoryFilter";
+
 import { 
   Sheet, 
   SheetContent, 
@@ -31,9 +31,6 @@ const Deals = () => {
   const initialCategory = searchParams.get("category") || "";
   
   const [sortOption, setSortOption] = useState<SortOption>("newest");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialCategory ? [initialCategory] : []
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -42,7 +39,6 @@ const Deals = () => {
 
   const { deals, loading } = useDealsData(
     sortOption,
-    selectedCategories,
     searchQuery,
     refreshKey
   );
@@ -52,15 +48,6 @@ const Deals = () => {
     setRefreshKey(prev => prev + 1);
   }, []);
 
-  useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
-    if (selectedCategories.length === 1) {
-      newParams.set("category", selectedCategories[0]);
-    } else {
-      newParams.delete("category");
-    }
-    setSearchParams(newParams);
-  }, [selectedCategories]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -71,10 +58,6 @@ const Deals = () => {
     return () => clearInterval(interval);
   }, [handleRefresh]);
 
-  const clearFilters = () => {
-    setSelectedCategories([]);
-    setFiltersOpen(false);
-  };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -107,42 +90,6 @@ const Deals = () => {
               </SelectContent>
             </Select>
             
-            <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-              <SheetTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="md:w-auto md:px-3 flex items-center gap-2"
-                >
-                  <Filter className="h-4 w-4" />
-                  <span className="hidden md:inline">Filters</span>
-                  {selectedCategories.length > 0 && (
-                    <span className="bg-brand-green text-white rounded-full h-5 w-5 flex items-center justify-center text-xs">
-                      {selectedCategories.length}
-                    </span>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent>
-                <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
-                </SheetHeader>
-                <div className="py-4">
-                  <CategoryFilter 
-                    selectedCategories={selectedCategories} 
-                    onChange={setSelectedCategories} 
-                  />
-                </div>
-                <SheetFooter>
-                  <Button variant="outline" onClick={clearFilters}>
-                    Clear Filters
-                  </Button>
-                  <Button onClick={() => setFiltersOpen(false)}>
-                    Apply Filters
-                  </Button>
-                </SheetFooter>
-              </SheetContent>
-            </Sheet>
           </div>
         </div>
       </div>
@@ -155,7 +102,6 @@ const Deals = () => {
         <DealsView 
           deals={deals} 
           sortOption={sortOption} 
-          selectedCategories={selectedCategories}
           onRefresh={handleRefresh}
         />
       )}

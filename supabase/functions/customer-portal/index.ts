@@ -1,7 +1,7 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -59,27 +59,39 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found for this user");
+      logStep("No Stripe customer found, creating new one");
+      // Create a new customer if one doesn't exist
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: { user_id: user.id }
+      });
+      logStep("Created new Stripe customer", { customerId: newCustomer.id });
+      
+      // Check if they have any subscriptions first
+      const subscriptions = await stripe.subscriptions.list({
+        customer: newCustomer.id,
+        status: "active",
+        limit: 1,
+      });
+      
+      if (subscriptions.data.length === 0) {
+        throw new Error("No active subscription found. Please subscribe to a plan first.");
+      }
     }
-    const customerId = customers.data[0].id;
+    const customerId = customers.data.length > 0 ? customers.data[0].id : null;
+    
+    if (!customerId) {
+      throw new Error("Unable to find or create Stripe customer");
+    }
+    
     logStep("Found Stripe customer", { customerId });
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
     
-    // Provide configuration for the portal
-    // This configuration specifies basic settings for the customer portal
+    // Create portal session without configuration to avoid 400 errors
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
       return_url: `${origin}/influencer-dashboard`,
-      configuration: {
-        features: {
-          subscription_cancel: { enabled: true },
-          subscription_pause: { enabled: false },
-          invoice_history: { enabled: true },
-          payment_method_update: { enabled: true },
-          subscription_update: { enabled: true }
-        },
-      },
     });
     
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });

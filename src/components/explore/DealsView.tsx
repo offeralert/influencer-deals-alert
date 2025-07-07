@@ -7,11 +7,10 @@ import PromoCodeDebugPanel from "@/components/debug/PromoCodeDebugPanel";
 interface DealsViewProps {
   deals: Deal[];
   sortOption: string;
-  selectedCategories: string[];
   onRefresh?: () => void;
 }
 
-const DealsView = ({ deals, sortOption, selectedCategories, onRefresh }: DealsViewProps) => {
+const DealsView = ({ deals, sortOption, onRefresh }: DealsViewProps) => {
   const handleRefresh = () => {
     console.log('[DEALS] Manual refresh triggered');
     if (onRefresh) {
@@ -26,9 +25,7 @@ const DealsView = ({ deals, sortOption, selectedCategories, onRefresh }: DealsVi
           <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium mb-2">No deals found</h3>
           <p className="text-gray-500">
-            {selectedCategories.length > 0 
-              ? "Try adjusting your category filters"
-              : "Check back later for exciting promotions and discounts"}
+            Check back later for exciting promotions and discounts
           </p>
         </div>
         

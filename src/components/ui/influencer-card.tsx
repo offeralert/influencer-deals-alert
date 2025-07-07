@@ -46,25 +46,7 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
               {!isCreditCard && (
                 <p className="text-xs text-gray-500 truncate leading-tight">@{username}</p>
               )}
-              <p className="text-xs text-gray-400 truncate leading-tight">
-                {isLoadingFollowerCount ? (
-                  "Loading..."
-                ) : (
-                  `${formatFollowerCountCompact(followerCount)} followers`
-                )}
-              </p>
             </Link>
-          </div>
-          <div className="w-16 flex-shrink-0">
-            <Button 
-              onClick={handleFollowToggle} 
-              variant={isFollowing ? "outline" : "default"} 
-              size="sm"
-              className="text-xs h-8 w-full"
-              disabled={isProcessing}
-            >
-              {isProcessing ? '...' : isFollowing ? 'Following' : 'Follow'}
-            </Button>
           </div>
         </div>
       </CardContent>

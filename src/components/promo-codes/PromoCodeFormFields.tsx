@@ -49,8 +49,8 @@ const PromoCodeFormFields = ({
   handleSubmit
 }: PromoCodeFormFieldsProps) => {
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="brandName">Brand Name*</Label>
           <Input
@@ -128,25 +128,6 @@ const PromoCodeFormFields = ({
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="category">Category*</Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => handleSelectChange("category", value)}
-            disabled={isLoading || disabled}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {PROMO_CODE_CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         
         <div className="space-y-2">
           <Label htmlFor="expirationDate">Expiration Date</Label>
@@ -187,7 +168,7 @@ const PromoCodeFormFields = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="description">Description*</Label>
+        <Label htmlFor="description">Offer Details*</Label>
         <Textarea
           id="description"
           name="description"

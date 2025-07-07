@@ -5,7 +5,6 @@ import { Brand, SortOption } from "@/types/explore";
 
 export const useBrandsData = (
   sortOption: SortOption,
-  selectedCategories: string[],
   searchQuery: string = ""
 ) => {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -18,10 +17,6 @@ export const useBrandsData = (
       
       try {
         let query = getPromoCodes();
-        
-        if (selectedCategories.length > 0) {
-          query = query.in('category', selectedCategories);
-        }
         
         const { data, error } = await query;
         
@@ -81,7 +76,7 @@ export const useBrandsData = (
     };
     
     fetchBrands();
-  }, [sortOption, selectedCategories, searchQuery]);
+  }, [sortOption, searchQuery]);
 
   return { brands, loading };
 };

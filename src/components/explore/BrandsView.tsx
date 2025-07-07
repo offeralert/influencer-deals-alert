@@ -6,10 +6,9 @@ import { Compass } from "lucide-react";
 
 interface BrandsViewProps {
   brands: Brand[];
-  selectedCategories: string[];
 }
 
-const BrandsView = ({ brands, selectedCategories }: BrandsViewProps) => {
+const BrandsView = ({ brands }: BrandsViewProps) => {
   return (
     <div>
       {brands.length > 0 ? (
@@ -36,9 +35,7 @@ const BrandsView = ({ brands, selectedCategories }: BrandsViewProps) => {
           <Compass className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium mb-2">No brands found</h3>
           <p className="text-gray-500">
-            {selectedCategories.length > 0 
-              ? "Try adjusting your category filters"
-              : "Check back later for exciting brands and offers!"}
+            Check back later for exciting brands and offers!
           </p>
         </div>
       )}

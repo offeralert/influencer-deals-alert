@@ -4,7 +4,16 @@ import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { CATEGORIES } from "@/components/CategoryFilter";
+const CATEGORIES = [
+  "Fashion",
+  "Fitness", 
+  "Food",
+  "Tech",
+  "Home",
+  "Jewelry",
+  "Travel",
+  "Beauty"
+];
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { getAvatarUrl } from "@/utils/avatarUtils";
 
