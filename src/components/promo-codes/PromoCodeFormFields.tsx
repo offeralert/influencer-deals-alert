@@ -167,19 +167,19 @@ const PromoCodeFormFields = ({
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="description">Offer Details*</Label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="10% off"
-          required
-          disabled={isLoading || disabled}
-          className="min-h-[60px]"
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">Offer Details*</Label>
+          <Textarea
+            id="description"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            placeholder="10% off"
+            required
+            disabled={isLoading || disabled}
+            className="min-h-[60px]"
+          />
+        </div>
       
       <Button
         type="submit"

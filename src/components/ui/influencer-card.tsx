@@ -23,11 +23,11 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
-    <Card className="overflow-hidden h-[88px]">
-      <CardContent className="p-3 h-full">
-        <div className="flex items-center gap-3 h-full">
-          <div className="w-10 h-10 flex-shrink-0">
-            <Avatar className="h-10 w-10">
+    <Card className="overflow-hidden h-[72px]">
+      <CardContent className="p-2.5 h-full">
+        <div className="flex items-center gap-2.5 h-full">
+          <div className="w-8 h-8 flex-shrink-0">
+            <Avatar className="h-8 w-8">
               <AvatarImage 
                 src={avatarUrl} 
                 alt={name}

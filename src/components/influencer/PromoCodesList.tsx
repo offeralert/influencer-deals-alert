@@ -35,11 +35,14 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
   const fetchPromoCodes = async () => {
     if (!user) return;
     
+    console.log("[PROMO CODES LIST] Fetching promo codes for user:", user.id);
     setLoading(true);
     try {
       const { data, error } = await getPromoCodes()
         .eq('influencer_id', user.id)
         .order('created_at', { ascending: false });
+      
+      console.log("[PROMO CODES LIST] Query result:", { data, error });
       
       if (error) {
         console.error("Error fetching promo codes:", error);
@@ -47,6 +50,7 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
         return;
       }
       
+      console.log("[PROMO CODES LIST] Fetched", data?.length || 0, "promo codes");
       setPromoCodes(data || []);
     } catch (error) {
       console.error("Error in fetchPromoCodes:", error);
