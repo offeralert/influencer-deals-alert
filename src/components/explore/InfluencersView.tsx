@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { Influencer } from "@/types/explore";
 import InfluencerCard from "@/components/ui/influencer-card";
-import { Compass, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useInfluencerBulkFollow } from "@/hooks/useInfluencerBulkFollow";
+import { Compass } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,7 +12,6 @@ interface InfluencersViewProps {
 
 const InfluencersView = ({ influencers }: InfluencersViewProps) => {
   const { user } = useAuth();
-  const { followAllInfluencers, isProcessing } = useInfluencerBulkFollow();
   const [followedInfluencers, setFollowedInfluencers] = useState<string[]>([]);
   const [loadingFollowStatus, setLoadingFollowStatus] = useState(false);
 
@@ -48,27 +45,6 @@ const InfluencersView = ({ influencers }: InfluencersViewProps) => {
     checkFollowStatus();
   }, [user, influencers]);
 
-  const handleFollowAll = async () => {
-    const result = await followAllInfluencers(influencers);
-    if (result.success) {
-      // Refresh follow status after bulk follow
-      const influencerIds = influencers.map(inf => inf.id);
-      try {
-        const { data, error } = await supabase
-          .from('user_domain_map')
-          .select('influencer_id')
-          .eq('user_id', user?.id)
-          .in('influencer_id', influencerIds);
-
-        if (!error && data) {
-          setFollowedInfluencers(data.map(item => item.influencer_id));
-        }
-      } catch (error) {
-        console.error("Error refreshing follow status:", error);
-      }
-    }
-  };
-
   if (influencers.length === 0) {
     return (
       <div className="text-center py-16 bg-gray-50 rounded-lg">
@@ -81,35 +57,11 @@ const InfluencersView = ({ influencers }: InfluencersViewProps) => {
     );
   }
 
-  const unfollowedCount = user ? influencers.filter(inf => !followedInfluencers.includes(inf.id)).length : influencers.length;
-  const allFollowed = user && unfollowedCount === 0;
-
   return (
     <div className="space-y-6">
-      {/* Follow All Button */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          {influencers.length} influencer{influencers.length === 1 ? '' : 's'} found
-        </div>
-        
-        {influencers.length > 0 && (
-          <Button
-            onClick={handleFollowAll}
-            disabled={isProcessing || loadingFollowStatus || allFollowed}
-            variant={allFollowed ? "outline" : "default"}
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <Users className="h-4 w-4" />
-            {isProcessing ? (
-              "Processing..."
-            ) : allFollowed ? (
-              "Following All"
-            ) : (
-              `Follow All${unfollowedCount > 0 ? ` (${unfollowedCount})` : ''}`
-            )}
-          </Button>
-        )}
+      {/* Influencers count */}
+      <div className="text-sm text-gray-600">
+        {influencers.length} influencer{influencers.length === 1 ? '' : 's'} found
       </div>
 
       {/* Influencers Grid */}
