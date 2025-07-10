@@ -23,7 +23,7 @@ const Footer = () => {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">For Users</h4>
+            <h4 className="font-semibold mb-4">General</h4>
             <ul className="space-y-2 text-sm">
               <li><Link to="/" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Home</Link></li>
               <li><Link to="/explore" className="text-gray-600 dark:text-gray-400 hover:text-brand-purple">Explore</Link></li>

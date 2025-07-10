@@ -4,36 +4,36 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UserSignupForm from "@/components/auth/UserSignupForm";
 import InfluencerSignupForm from "@/components/auth/InfluencerSignupForm";
+import AgencySignupForm from "@/components/auth/AgencySignupForm";
 
 const Signup = () => {
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("user");
+  const [activeTab, setActiveTab] = useState("influencer");
 
   useEffect(() => {
-    if (searchParams.get("tab") === "influencer") {
-      setActiveTab("influencer");
+    if (searchParams.get("tab") === "agency") {
+      setActiveTab("agency");
     }
   }, [searchParams]);
 
   const renderBenefits = () => {
-    if (activeTab === "user") {
+    if (activeTab === "influencer") {
       return (
         <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 mb-4">
-          <h3 className="font-medium text-foreground mb-2">Benefits of a User Account:</h3>
-          <p>Follow your favorite influencers and get notified of exclusive offers while shopping online.</p>
+          <h3 className="font-medium text-foreground mb-2">For Influencers:</h3>
+          <p>Perfect for content creators, social media influencers, and individuals who want to promote brands and earn commissions through exclusive promo codes and affiliate links.</p>
         </div>
       );
     }
     
     return (
       <div className="text-sm text-muted-foreground bg-muted/50 rounded-lg p-4 mb-4">
-        <h3 className="font-medium text-foreground mb-2">Benefits of an Influencer Account:</h3>
+        <h3 className="font-medium text-foreground mb-2">For Agencies:</h3>
         <p className="mb-2">
-          Promote your promo codes and affiliate links through our AI-powered notification system — boosting visibility and commissions.
+          Ideal for marketing agencies and businesses that manage multiple influencers and want to streamline promo code management.
         </p>
-        <p>Plus, enjoy all the same benefits as users if you also want to save while shopping online!</p>
+        <p>Track performance across your talent roster and manage campaigns efficiently.</p>
       </div>
     );
   };
@@ -48,20 +48,20 @@ const Signup = () => {
           </CardDescription>
         </CardHeader>
         
-        <Tabs defaultValue="user" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="influencer" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-2 mb-4">
-            <TabsTrigger value="user">Sign up as a User</TabsTrigger>
             <TabsTrigger value="influencer">Sign up as an Influencer</TabsTrigger>
+            <TabsTrigger value="agency">Sign up as an Agency</TabsTrigger>
           </TabsList>
           
           {renderBenefits()}
           
-          <TabsContent value="user">
-            <UserSignupForm />
-          </TabsContent>
-          
           <TabsContent value="influencer">
             <InfluencerSignupForm />
+          </TabsContent>
+          
+          <TabsContent value="agency">
+            <AgencySignupForm />
           </TabsContent>
         </Tabs>
         

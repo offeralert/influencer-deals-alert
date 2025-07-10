@@ -79,12 +79,6 @@ const Header = () => {
                   >
                     Credit Cards
                   </button>
-                  <button 
-                    onClick={() => handleNavigation("/my-deals")} 
-                    className="text-left text-lg font-medium hover:text-brand-green"
-                  >
-                    My Alerts
-                  </button>
                   {isInfluencer && (
                     <button 
                       onClick={() => handleNavigation("/influencer-dashboard")} 
@@ -135,12 +129,6 @@ const Header = () => {
                 className="text-sm font-medium hover:text-brand-green transition-colors"
               >
                 Credit Cards
-              </Link>
-              <Link
-                to="/my-deals"
-                className="text-sm font-medium hover:text-brand-green transition-colors"
-              >
-                My Alerts
               </Link>
               {isInfluencer && (
                 <Link
@@ -208,9 +196,6 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/my-deals">My Alerts</Link>
                   </DropdownMenuItem>
                   {isInfluencer && (
                     <DropdownMenuItem asChild>

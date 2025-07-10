@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
-import MyAlerts from "./pages/MyAlerts";
 import Explore from "./pages/Explore";
 import Deals from "./pages/Deals";
 import Influencers from "./pages/Influencers";
@@ -49,7 +48,6 @@ const AppContent = () => {
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="my-deals" element={<MyAlerts />} />
         <Route path="explore" element={<Explore />} />
         <Route path="deals" element={<Deals />} />
         <Route path="influencers" element={<Influencers />} />
