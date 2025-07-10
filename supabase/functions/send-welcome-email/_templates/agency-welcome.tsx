@@ -131,8 +131,6 @@ export const AgencyWelcomeEmail = ({ fullName }: AgencyWelcomeEmailProps) => {
               <li>Add and manage multiple influencers in your network</li>
               <li>Oversee promo codes and campaigns across your roster</li>
               <li>Streamlined onboarding process for new influencers</li>
-              <li>Performance tracking and analytics for all campaigns</li>
-              <li>Centralized management of brand partnerships</li>
             </ul>
           </div>
 
@@ -146,7 +144,7 @@ export const AgencyWelcomeEmail = ({ fullName }: AgencyWelcomeEmailProps) => {
             <h3>📋 Get Started in 3 Easy Steps:</h3>
             <ol>
               <li><strong>Access Your Dashboard:</strong> Click the button above to explore your agency control center</li>
-              <li><strong>Add Your First Influencer:</strong> Use the "Add Influencer" tab to bring your team members into the platform</li>
+              <li><strong>Add Your First Influencer:</strong> Use the "Add Influencer" tab to bring your roster into the platform</li>
               <li><strong>Start Managing Promo Codes:</strong> Help your influencers create and organize their promotional campaigns</li>
             </ol>
           </div>
@@ -154,8 +152,6 @@ export const AgencyWelcomeEmail = ({ fullName }: AgencyWelcomeEmailProps) => {
           <div className="features">
             <h3>💡 Pro Tips for Agency Success:</h3>
             <ul className="feature-list">
-              <li>Set up regular check-ins with your influencers to optimize performance</li>
-              <li>Use our analytics to identify top-performing promo codes and brands</li>
               <li>Encourage your influencers to diversify across multiple brand categories</li>
               <li>Monitor expiration dates to ensure timely campaign updates</li>
             </ul>
@@ -164,7 +160,7 @@ export const AgencyWelcomeEmail = ({ fullName }: AgencyWelcomeEmailProps) => {
           <div className="footer">
             <p>
               <strong>Need Help?</strong><br/>
-              Our team is here to support your agency's success. Visit our help center or contact us directly.
+              Our team is here to support your agency's success. Please email us at hello@offeralert.io.
             </p>
             <p>
               Best regards,<br/>
