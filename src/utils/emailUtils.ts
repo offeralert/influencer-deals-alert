@@ -5,6 +5,7 @@ interface SendWelcomeEmailParams {
   email: string;
   fullName: string;
   isInfluencer: boolean;
+  isAgency?: boolean;
   username?: string;
 }
 
@@ -14,6 +15,7 @@ export const sendWelcomeEmail = async (params: SendWelcomeEmailParams) => {
       email: params.email,
       fullName: params.fullName,
       isInfluencer: params.isInfluencer,
+      isAgency: params.isAgency || false,
       username: params.username || 'N/A'
     });
     

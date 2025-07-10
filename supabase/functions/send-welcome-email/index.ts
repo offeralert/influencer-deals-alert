@@ -5,6 +5,7 @@ import { renderAsync } from "npm:@react-email/components@0.0.22";
 import React from "npm:react@18.3.1";
 import { UserWelcomeEmail } from "./_templates/user-welcome.tsx";
 import { InfluencerWelcomeEmail } from "./_templates/influencer-welcome.tsx";
+import { AgencyWelcomeEmail } from "./_templates/agency-welcome.tsx";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -17,6 +18,7 @@ interface WelcomeEmailRequest {
   email: string;
   fullName: string;
   isInfluencer: boolean;
+  isAgency?: boolean;
   username?: string;
 }
 
@@ -49,12 +51,13 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Invalid JSON in request body");
     }
     
-    const { email, fullName, isInfluencer, username } = parsedBody;
+    const { email, fullName, isInfluencer, isAgency, username } = parsedBody;
 
     console.log("📧 Parsed email request details:", {
       email: email || "MISSING",
       fullName: fullName || "MISSING", 
       isInfluencer: isInfluencer,
+      isAgency: isAgency || false,
       username: username || "N/A",
       emailValid: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email || "")
     });
@@ -79,7 +82,17 @@ const handler = async (req: Request): Promise<Response> => {
     let templateType: string;
 
     try {
-      if (isInfluencer) {
+      // Priority: Agency > Influencer > User
+      if (isAgency) {
+        console.log("🏢 Rendering agency welcome email template");
+        templateType = "agency";
+        html = await renderAsync(
+          React.createElement(AgencyWelcomeEmail, {
+            fullName,
+          })
+        );
+        subject = "Welcome to Offer Alert - Your Agency Dashboard is Ready! 🚀";
+      } else if (isInfluencer) {
         console.log("🎯 Rendering influencer welcome email template");
         templateType = "influencer";
         html = await renderAsync(

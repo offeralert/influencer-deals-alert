@@ -111,14 +111,15 @@ const AgencySignupForm = () => {
 
         // Send welcome email for agencies
         try {
-          console.log("📧 Attempting to send welcome email to:", formData.contactEmail);
+          console.log("📧 Attempting to send agency welcome email to:", formData.contactEmail);
           const emailResult = await sendWelcomeEmail({
             email: formData.contactEmail,
             fullName: formData.agencyName,
-            isInfluencer: false, // This is an agency, not an influencer
+            isInfluencer: false,
+            isAgency: true, // Added isAgency flag
             username: formData.agencyName.toLowerCase().replace(/\s+/g, '_'),
           });
-          console.log("✅ Welcome email sent successfully:", emailResult);
+          console.log("✅ Agency welcome email sent successfully:", emailResult);
           toast.success("Account created! Check your email for next steps and welcome information.");
         } catch (emailError) {
           console.error("❌ Failed to send welcome email:", emailError);
