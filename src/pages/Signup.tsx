@@ -33,7 +33,6 @@ const Signup = () => {
         <p className="mb-2">
           Ideal for marketing agencies and businesses that manage multiple influencers and want to streamline promo code management.
         </p>
-        <p>Track performance across your talent roster and manage campaigns efficiently.</p>
       </div>
     );
   };
