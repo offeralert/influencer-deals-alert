@@ -81,7 +81,7 @@ serve(async (req) => {
           headers: corsHeaders,
         });
       } else {
-        console.log("Webhook verification failed");
+        console.log("Webhook verification failed - mode:", mode, "token:", token);
         return new Response("Forbidden", {
           status: 403,
           headers: corsHeaders,
@@ -102,10 +102,13 @@ serve(async (req) => {
               const senderId = messagingEvent.sender.id;
               let processedMessage = false;
 
+              console.log(`Processing message from sender: ${senderId}`);
+              console.log(`Message details:`, JSON.stringify(messagingEvent.message, null, 2));
+
               // Process text messages (existing functionality)
               if (messagingEvent.message.text) {
                 const messageText = messagingEvent.message.text;
-                console.log(`Processing text message from ${senderId}: ${messageText}`);
+                console.log(`Processing text message: ${messageText}`);
 
                 // Extract Instagram handles from the message using regex
                 const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
@@ -120,14 +123,14 @@ serve(async (req) => {
                 }
               }
 
-              // Process shared posts/attachments (new functionality)
+              // Process shared posts/attachments (enhanced for Facebook CDN URLs)
               if (messagingEvent.message.attachments) {
                 console.log(`Processing ${messagingEvent.message.attachments.length} attachments`);
                 
                 for (const attachment of messagingEvent.message.attachments) {
-                  console.log(`Processing attachment type: ${attachment.type}`);
+                  console.log(`Processing attachment:`, JSON.stringify(attachment, null, 2));
                   
-                  if (attachment.type === "share" || attachment.type === "media") {
+                  if (attachment.type === "share" && attachment.payload?.url) {
                     const brandHandle = await processSharedMedia(attachment, senderId);
                     if (brandHandle) {
                       console.log(`Extracted brand handle from shared post: ${brandHandle}`);
@@ -140,6 +143,7 @@ serve(async (req) => {
 
               // If no handles found in text or attachments, send help message
               if (!processedMessage) {
+                console.log(`No handles or valid attachments found, sending help message`);
                 await sendInstagramMessage(senderId, null, []);
               }
             }
@@ -172,69 +176,102 @@ async function processSharedMedia(attachment: any, senderId: string): Promise<st
   
   if (!accessToken) {
     console.error("Instagram access token not configured");
+    await sendInstagramMessage(senderId, "error_token_missing", []);
     return null;
   }
 
   try {
-    // Extract media ID from attachment URL
+    const sharedUrl = attachment.payload?.url;
+    console.log(`Processing shared URL: ${sharedUrl}`);
+
+    if (!sharedUrl) {
+      console.log("No URL found in attachment payload");
+      return null;
+    }
+
+    // Extract asset_id from Facebook CDN URLs (new format from your webhook)
+    let assetId = null;
+    const assetIdMatch = sharedUrl.match(/asset_id=(\d+)/);
+    if (assetIdMatch) {
+      assetId = assetIdMatch[1];
+      console.log(`Extracted asset ID from CDN URL: ${assetId}`);
+    }
+
+    // Also try to extract media ID from standard Instagram URLs
     let mediaId = null;
-    
-    if (attachment.payload?.url) {
-      // Try to extract media ID from Instagram URL
-      const urlMatches = attachment.payload.url.match(/\/p\/([A-Za-z0-9_-]+)/);
-      if (urlMatches) {
-        mediaId = urlMatches[1];
+    const urlMatches = sharedUrl.match(/\/p\/([A-Za-z0-9_-]+)/);
+    if (urlMatches) {
+      mediaId = urlMatches[1];
+      console.log(`Extracted media ID from Instagram URL: ${mediaId}`);
+    } else {
+      // Try alternative URL patterns
+      const altMatches = sharedUrl.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
+      if (altMatches) {
+        mediaId = altMatches[1];
+        console.log(`Extracted media ID from alternative pattern: ${mediaId}`);
+      }
+    }
+
+    // If we have an asset_id, try to get media info using it
+    if (assetId) {
+      console.log(`Attempting to fetch media info using asset ID: ${assetId}`);
+      
+      // Try using the asset_id as media_id (updated to v21.0)
+      const apiUrl = `https://graph.facebook.com/v21.0/${assetId}?fields=owner,caption,permalink,media_type,timestamp&access_token=${accessToken}`;
+      
+      const response = await fetch(apiUrl);
+      
+      if (response.ok) {
+        const mediaData: InstagramMediaData = await response.json();
+        console.log("Media data from asset ID:", JSON.stringify(mediaData, null, 2));
+
+        if (mediaData.owner?.username) {
+          let brandHandle = mediaData.owner.username.toLowerCase().trim();
+          if (!brandHandle.startsWith('@')) {
+            brandHandle = '@' + brandHandle;
+          }
+          return brandHandle;
+        }
       } else {
-        // Try alternative URL patterns
-        const altMatches = attachment.payload.url.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
-        if (altMatches) {
-          mediaId = altMatches[1];
+        const errorText = await response.text();
+        console.log(`Asset ID API call failed (${response.status}): ${errorText}`);
+      }
+    }
+
+    // Fallback: try with media ID if we have one
+    if (mediaId) {
+      console.log(`Fallback: trying with media ID: ${mediaId}`);
+      
+      const apiUrl = `https://graph.facebook.com/v21.0/${mediaId}?fields=owner,caption,permalink,media_type,timestamp&access_token=${accessToken}`;
+      
+      const response = await fetch(apiUrl);
+      
+      if (response.ok) {
+        const mediaData: InstagramMediaData = await response.json();
+        console.log("Media data from media ID:", JSON.stringify(mediaData, null, 2));
+
+        if (mediaData.owner?.username) {
+          let brandHandle = mediaData.owner.username.toLowerCase().trim();
+          if (!brandHandle.startsWith('@')) {
+            brandHandle = '@' + brandHandle;
+          }
+          return brandHandle;
+        }
+      } else {
+        const errorText = await response.text();
+        console.log(`Media ID API call failed (${response.status}): ${errorText}`);
+        
+        // Handle specific error cases
+        if (response.status === 400) {
+          await sendInstagramMessage(senderId, "error_media_not_found", []);
+        } else if (response.status === 403) {
+          await sendInstagramMessage(senderId, "error_private_media", []);
         }
       }
     }
 
-    if (!mediaId) {
-      console.log("Could not extract media ID from attachment:", JSON.stringify(attachment));
-      return null;
-    }
-
-    console.log(`Extracted media ID: ${mediaId}`);
-
-    // Call Instagram Graph API to get media information
-    const apiUrl = `https://graph.facebook.com/v18.0/${mediaId}?fields=owner,caption,permalink,media_type,timestamp&access_token=${accessToken}`;
-    
-    const response = await fetch(apiUrl);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Instagram API error (${response.status}):`, errorText);
-      
-      // Handle specific error cases
-      if (response.status === 400) {
-        await sendInstagramMessage(senderId, "error_media_not_found", []);
-      } else if (response.status === 403) {
-        await sendInstagramMessage(senderId, "error_private_media", []);
-      }
-      
-      return null;
-    }
-
-    const mediaData: InstagramMediaData = await response.json();
-    console.log("Media data from Instagram API:", JSON.stringify(mediaData, null, 2));
-
-    // Extract and normalize brand handle
-    if (mediaData.owner?.username) {
-      let brandHandle = mediaData.owner.username.toLowerCase().trim();
-      
-      // Ensure handle starts with @
-      if (!brandHandle.startsWith('@')) {
-        brandHandle = '@' + brandHandle;
-      }
-      
-      return brandHandle;
-    }
-
-    console.log("No owner username found in media data");
+    console.log("Could not extract media information from shared content");
+    await sendInstagramMessage(senderId, "error_processing", []);
     return null;
 
   } catch (error) {
@@ -273,6 +310,8 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
     return;
   }
 
+  console.log(`Found ${promoCodes?.length || 0} promo codes for ${requestedHandle}`);
+
   // Send response with promo codes
   await sendInstagramMessage(senderId, requestedHandle, promoCodes || []);
 }
@@ -287,7 +326,9 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
 
   let messageText = "";
 
-  if (requestedHandle === "error_media_not_found") {
+  if (requestedHandle === "error_token_missing") {
+    messageText = "Sorry, I'm having configuration issues. Please try again later or contact support.";
+  } else if (requestedHandle === "error_media_not_found") {
     messageText = "I couldn't access that post. It might be deleted, private, or from a restricted account. Try sharing a different post or send me a brand's Instagram handle directly!";
   } else if (requestedHandle === "error_private_media") {
     messageText = "That post appears to be private or restricted. Please share a post from a public account, or send me the brand's Instagram handle directly (like @nike).";
@@ -328,8 +369,10 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   }
 
   try {
-    // Send message via Instagram Graph API
-    const response = await fetch(`https://graph.facebook.com/v18.0/me/messages`, {
+    console.log(`Sending message to ${recipientId}: ${messageText.substring(0, 100)}...`);
+    
+    // Send message via Instagram Graph API (updated to v21.0)
+    const response = await fetch(`https://graph.facebook.com/v21.0/me/messages`, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${accessToken}`,
@@ -345,7 +388,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       const errorData = await response.text();
       console.error("Failed to send Instagram message:", errorData);
     } else {
-      console.log(`Successfully sent message to ${recipientId}`);
+      const responseData = await response.json();
+      console.log(`Successfully sent message to ${recipientId}:`, responseData);
     }
   } catch (error) {
     console.error("Error sending Instagram message:", error);
