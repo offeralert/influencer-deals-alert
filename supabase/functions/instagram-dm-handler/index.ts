@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
@@ -92,65 +91,129 @@ serve(async (req) => {
     // Handle incoming messages (POST request)
     if (req.method === "POST") {
       const body: InstagramWebhookData = await req.json();
-      console.log("Received webhook:", JSON.stringify(body, null, 2));
+      console.log("=== WEBHOOK RECEIVED ===");
+      console.log("Full webhook payload:", JSON.stringify(body, null, 2));
 
       // Process each entry in the webhook
       for (const entry of body.entry) {
+        console.log(`Processing entry ID: ${entry.id} at time: ${entry.time}`);
+        
         if (entry.messaging) {
+          console.log(`Found ${entry.messaging.length} messaging event(s)`);
+          
           for (const messagingEvent of entry.messaging) {
+            console.log(`=== PROCESSING MESSAGE EVENT ===`);
+            console.log(`Sender: ${messagingEvent.sender.id}`);
+            console.log(`Recipient: ${messagingEvent.recipient.id}`);
+            console.log(`Timestamp: ${messagingEvent.timestamp}`);
+            
             if (messagingEvent.message) {
               const senderId = messagingEvent.sender.id;
               let processedMessage = false;
 
-              console.log(`Processing message from sender: ${senderId}`);
-              console.log(`Message details:`, JSON.stringify(messagingEvent.message, null, 2));
+              console.log(`=== MESSAGE DETAILS ===`);
+              console.log(`Message ID: ${messagingEvent.message.mid}`);
+              console.log(`Has text: ${!!messagingEvent.message.text}`);
+              console.log(`Has attachments: ${!!messagingEvent.message.attachments}`);
+              console.log(`Full message object:`, JSON.stringify(messagingEvent.message, null, 2));
 
               // Process text messages (existing functionality)
               if (messagingEvent.message.text) {
                 const messageText = messagingEvent.message.text;
-                console.log(`Processing text message: ${messageText}`);
+                console.log(`=== TEXT MESSAGE PROCESSING ===`);
+                console.log(`Text content: "${messageText}"`);
 
                 // Extract Instagram handles from the message using regex
                 const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
                 const matches = messageText.match(instagramHandleRegex);
 
                 if (matches && matches.length > 0) {
+                  console.log(`Found ${matches.length} Instagram handle(s):`, matches);
                   for (const handle of matches) {
-                    console.log(`Found Instagram handle in text: ${handle}`);
+                    console.log(`Processing handle: ${handle}`);
                     await processPromoCodeRequest(senderId, handle, supabaseClient);
                     processedMessage = true;
                   }
+                } else {
+                  console.log("No Instagram handles found in text message");
                 }
               }
 
-              // Process shared posts/attachments (enhanced for Facebook CDN URLs)
+              // Process shared posts/attachments (enhanced debugging)
               if (messagingEvent.message.attachments) {
-                console.log(`Processing ${messagingEvent.message.attachments.length} attachments`);
+                console.log(`=== ATTACHMENTS PROCESSING ===`);
+                console.log(`Found ${messagingEvent.message.attachments.length} attachment(s)`);
                 
-                for (const attachment of messagingEvent.message.attachments) {
-                  console.log(`Processing attachment:`, JSON.stringify(attachment, null, 2));
+                for (let i = 0; i < messagingEvent.message.attachments.length; i++) {
+                  const attachment = messagingEvent.message.attachments[i];
+                  console.log(`--- Attachment ${i + 1} ---`);
+                  console.log(`Type: ${attachment.type}`);
+                  console.log(`Payload keys:`, Object.keys(attachment.payload || {}));
+                  console.log(`Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
-                  if (attachment.type === "share" && attachment.payload?.url) {
+                  if (attachment.payload?.url) {
+                    console.log(`URL found: ${attachment.payload.url}`);
+                  } else {
+                    console.log("No URL in payload");
+                  }
+                  
+                  if (attachment.payload?.template_type) {
+                    console.log(`Template type: ${attachment.payload.template_type}`);
+                  }
+                  
+                  if (attachment.payload?.sticker_id) {
+                    console.log(`Sticker ID: ${attachment.payload.sticker_id}`);
+                  }
+                  
+                  // Check if this is a share attachment
+                  if (attachment.type === "share") {
+                    console.log("✓ This is a SHARE attachment - processing...");
                     const brandHandle = await processSharedMedia(attachment, senderId);
                     if (brandHandle) {
-                      console.log(`Extracted brand handle from shared post: ${brandHandle}`);
+                      console.log(`Successfully extracted brand handle: ${brandHandle}`);
                       await processPromoCodeRequest(senderId, brandHandle, supabaseClient);
                       processedMessage = true;
+                    } else {
+                      console.log("Failed to extract brand handle from shared media");
+                    }
+                  } else {
+                    console.log(`✗ Not a share attachment (type: ${attachment.type}) - skipping share processing`);
+                    
+                    // Log other common attachment types for debugging
+                    if (attachment.type === "template") {
+                      console.log("This appears to be a template attachment (possibly a shared post)");
+                    } else if (attachment.type === "fallback") {
+                      console.log("This appears to be a fallback attachment");
+                    } else if (attachment.type === "image") {
+                      console.log("This appears to be an image attachment");
+                    } else {
+                      console.log(`Unknown attachment type: ${attachment.type}`);
                     }
                   }
                 }
+              } else {
+                console.log("No attachments found in message");
               }
 
               // If no handles found in text or attachments, send help message
               if (!processedMessage) {
-                console.log(`No handles or valid attachments found, sending help message`);
+                console.log(`=== NO VALID CONTENT FOUND ===`);
+                console.log("No Instagram handles found in text and no valid shared posts processed");
+                console.log("Sending help message to user");
                 await sendInstagramMessage(senderId, null, []);
+              } else {
+                console.log(`✓ Message processed successfully`);
               }
+            } else {
+              console.log("No message object found in messaging event");
             }
           }
+        } else {
+          console.log("No messaging events found in entry");
         }
       }
 
+      console.log("=== WEBHOOK PROCESSING COMPLETE ===");
       return new Response("OK", {
         status: 200,
         headers: corsHeaders,
@@ -163,7 +226,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Error processing webhook:", error);
+    console.error("=== ERROR PROCESSING WEBHOOK ===");
+    console.error("Error details:", error);
+    console.error("Error stack:", error.stack);
     return new Response("Internal Server Error", {
       status: 500,
       headers: corsHeaders,
@@ -172,20 +237,24 @@ serve(async (req) => {
 });
 
 async function processSharedMedia(attachment: any, senderId: string): Promise<string | null> {
+  console.log(`=== PROCESSING SHARED MEDIA ===`);
+  
   const accessToken = Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
   
   if (!accessToken) {
-    console.error("Instagram access token not configured");
+    console.error("❌ Instagram access token not configured");
     await sendInstagramMessage(senderId, "error_token_missing", []);
     return null;
   }
 
+  console.log("✓ Access token is configured");
+
   try {
     const sharedUrl = attachment.payload?.url;
-    console.log(`Processing shared URL: ${sharedUrl}`);
+    console.log(`Shared URL from payload: ${sharedUrl}`);
 
     if (!sharedUrl) {
-      console.log("No URL found in attachment payload");
+      console.log("❌ No URL found in attachment payload");
       return null;
     }
 
@@ -194,7 +263,9 @@ async function processSharedMedia(attachment: any, senderId: string): Promise<st
     const assetIdMatch = sharedUrl.match(/asset_id=(\d+)/);
     if (assetIdMatch) {
       assetId = assetIdMatch[1];
-      console.log(`Extracted asset ID from CDN URL: ${assetId}`);
+      console.log(`✓ Extracted asset ID from CDN URL: ${assetId}`);
+    } else {
+      console.log("No asset_id parameter found in URL");
     }
 
     // Also try to extract media ID from standard Instagram URLs
@@ -202,80 +273,102 @@ async function processSharedMedia(attachment: any, senderId: string): Promise<st
     const urlMatches = sharedUrl.match(/\/p\/([A-Za-z0-9_-]+)/);
     if (urlMatches) {
       mediaId = urlMatches[1];
-      console.log(`Extracted media ID from Instagram URL: ${mediaId}`);
+      console.log(`✓ Extracted media ID from Instagram URL: ${mediaId}`);
     } else {
+      console.log("No media ID found in standard Instagram URL format");
       // Try alternative URL patterns
       const altMatches = sharedUrl.match(/instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/);
       if (altMatches) {
         mediaId = altMatches[1];
-        console.log(`Extracted media ID from alternative pattern: ${mediaId}`);
+        console.log(`✓ Extracted media ID from alternative pattern: ${mediaId}`);
+      } else {
+        console.log("No media ID found in alternative URL patterns");
       }
     }
 
     // If we have an asset_id, try to get media info using it
     if (assetId) {
-      console.log(`Attempting to fetch media info using asset ID: ${assetId}`);
+      console.log(`=== ATTEMPTING API CALL WITH ASSET ID ===`);
+      console.log(`Asset ID: ${assetId}`);
       
       // Try using the asset_id as media_id (updated to v21.0)
       const apiUrl = `https://graph.facebook.com/v21.0/${assetId}?fields=owner,caption,permalink,media_type,timestamp&access_token=${accessToken}`;
+      console.log(`API URL: ${apiUrl.replace(accessToken, '[REDACTED]')}`);
       
       const response = await fetch(apiUrl);
+      console.log(`API Response status: ${response.status}`);
+      console.log(`API Response headers:`, Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
         const mediaData: InstagramMediaData = await response.json();
-        console.log("Media data from asset ID:", JSON.stringify(mediaData, null, 2));
+        console.log("✓ API call successful!");
+        console.log("Media data received:", JSON.stringify(mediaData, null, 2));
 
         if (mediaData.owner?.username) {
           let brandHandle = mediaData.owner.username.toLowerCase().trim();
           if (!brandHandle.startsWith('@')) {
             brandHandle = '@' + brandHandle;
           }
+          console.log(`✓ Successfully extracted brand handle: ${brandHandle}`);
           return brandHandle;
+        } else {
+          console.log("❌ No owner/username found in media data");
         }
       } else {
         const errorText = await response.text();
-        console.log(`Asset ID API call failed (${response.status}): ${errorText}`);
+        console.log(`❌ Asset ID API call failed (${response.status}): ${errorText}`);
       }
     }
 
     // Fallback: try with media ID if we have one
     if (mediaId) {
-      console.log(`Fallback: trying with media ID: ${mediaId}`);
+      console.log(`=== FALLBACK: ATTEMPTING API CALL WITH MEDIA ID ===`);
+      console.log(`Media ID: ${mediaId}`);
       
       const apiUrl = `https://graph.facebook.com/v21.0/${mediaId}?fields=owner,caption,permalink,media_type,timestamp&access_token=${accessToken}`;
+      console.log(`API URL: ${apiUrl.replace(accessToken, '[REDACTED]')}`);
       
       const response = await fetch(apiUrl);
+      console.log(`API Response status: ${response.status}`);
       
       if (response.ok) {
         const mediaData: InstagramMediaData = await response.json();
-        console.log("Media data from media ID:", JSON.stringify(mediaData, null, 2));
+        console.log("✓ Fallback API call successful!");
+        console.log("Media data received:", JSON.stringify(mediaData, null, 2));
 
         if (mediaData.owner?.username) {
           let brandHandle = mediaData.owner.username.toLowerCase().trim();
           if (!brandHandle.startsWith('@')) {
             brandHandle = '@' + brandHandle;
           }
+          console.log(`✓ Successfully extracted brand handle: ${brandHandle}`);
           return brandHandle;
+        } else {
+          console.log("❌ No owner/username found in media data");
         }
       } else {
         const errorText = await response.text();
-        console.log(`Media ID API call failed (${response.status}): ${errorText}`);
+        console.log(`❌ Media ID API call failed (${response.status}): ${errorText}`);
         
         // Handle specific error cases
         if (response.status === 400) {
+          console.log("Sending 'media not found' error message to user");
           await sendInstagramMessage(senderId, "error_media_not_found", []);
         } else if (response.status === 403) {
+          console.log("Sending 'private media' error message to user");
           await sendInstagramMessage(senderId, "error_private_media", []);
         }
       }
     }
 
-    console.log("Could not extract media information from shared content");
+    console.log("❌ Could not extract media information from shared content");
+    console.log("Summary: No valid asset_id or media_id found, or API calls failed");
     await sendInstagramMessage(senderId, "error_processing", []);
     return null;
 
   } catch (error) {
-    console.error("Error processing shared media:", error);
+    console.error("❌ Error processing shared media:", error);
+    console.error("Error stack:", error.stack);
     await sendInstagramMessage(senderId, "error_processing", []);
     return null;
   }
