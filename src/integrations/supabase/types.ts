@@ -175,6 +175,27 @@ export type Database = {
           },
         ]
       }
+      promo_domains: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscribers: {
         Row: {
           created_at: string
