@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 type ProfileType = {
   id: string;
@@ -203,24 +202,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         console.error('Error during sign out:', error);
-        toast({
-          variant: "destructive",
-          title: "Error signing out",
-          description: error.message,
-        });
+        toast.error("Error signing out: " + error.message);
         return;
       }
       
-      toast({
-        title: "Logged out successfully",
-      });
+      toast.success("Logged out successfully");
       
     } catch (error) {
       console.error('Error in signOut function:', error);
-      toast({
-        variant: "destructive", 
-        title: "Error signing out",
-      });
+      toast.error("Error signing out");
     }
   };
 

@@ -4,7 +4,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
-import { Toaster as SonnerToaster } from "sonner";
+import { Toaster } from "sonner";
 
 const MainLayout = () => {
   return (
@@ -22,7 +22,7 @@ const MainLayout = () => {
       <div className="md:hidden">
         <BottomNav />
       </div>
-      <SonnerToaster position="top-right" />
+      <Toaster position="top-right" />
     </div>
   );
 };
