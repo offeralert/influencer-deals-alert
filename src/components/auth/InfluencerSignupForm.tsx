@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { createLeadPayload } from "@/utils/metaTrackingHelpers";
 import { sendWelcomeEmail } from "@/utils/emailUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Helper function to track Meta Pixel events
 const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
@@ -25,6 +25,7 @@ const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
+  const { refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -114,6 +115,11 @@ const InfluencerSignupForm = () => {
         }
         
         console.log("✅ Profile updated to influencer successfully");
+        
+        // Refresh the profile in auth context to ensure latest data
+        console.log("🔄 Refreshing profile in auth context...");
+        await refreshProfile();
+        console.log("✅ Profile refreshed in auth context");
         
         // Track successful influencer signup with Meta
         try {

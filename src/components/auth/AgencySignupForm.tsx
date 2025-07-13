@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,10 +10,12 @@ import { Eye, EyeOff } from "lucide-react";
 import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { createLeadPayload } from "@/utils/metaTrackingHelpers";
 import { sendWelcomeEmail } from "@/utils/emailUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AgencySignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
+  const { refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -95,6 +96,11 @@ const AgencySignupForm = () => {
         
         console.log("✅ Profile updated to agency successfully");
         
+        // Refresh the profile in auth context to ensure latest data
+        console.log("🔄 Refreshing profile in auth context...");
+        await refreshProfile();
+        console.log("✅ Profile refreshed in auth context");
+        
         // Track successful agency signup with Meta
         try {
           await track('AgencySignup', createLeadPayload({
@@ -116,7 +122,7 @@ const AgencySignupForm = () => {
             email: formData.contactEmail,
             fullName: formData.agencyName,
             isInfluencer: false,
-            isAgency: true, // Added isAgency flag
+            isAgency: true,
             username: formData.agencyName.toLowerCase().replace(/\s+/g, '_'),
           });
           console.log("✅ Agency welcome email sent successfully:", emailResult);
