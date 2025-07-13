@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const Index = () => {
-  const { user, profile, loading, profileLoading, isInfluencer, isAgency } = useAuth();
+  const { user, profile, loading, profileLoading, isInfluencer, isAgency, justSignedUp, setJustSignedUp } = useAuth();
   const navigate = useNavigate();
 
   // Show loading state while authentication is being determined OR while profile is loading for authenticated users
@@ -75,12 +75,21 @@ const Index = () => {
   }
 
   // For authenticated users without roles, redirect to role selection
+  // BUT not if they just signed up (to prevent the race condition)
   useEffect(() => {
-    if (user && profile && !profileLoading && !isInfluencer && !isAgency) {
-      console.log("Authenticated user without role, redirecting to apply page");
+    if (user && profile && !profileLoading && !isInfluencer && !isAgency && !justSignedUp) {
+      console.log("Authenticated user without role (not just signed up), redirecting to apply page");
       navigate("/influencer-apply");
     }
-  }, [user, profile, profileLoading, isInfluencer, isAgency, navigate]);
+    
+    // Clear the justSignedUp flag after a delay to allow for proper loading
+    if (justSignedUp && (isInfluencer || isAgency)) {
+      console.log("User just signed up and has role assigned, clearing justSignedUp flag");
+      setTimeout(() => {
+        setJustSignedUp(false);
+      }, 2000);
+    }
+  }, [user, profile, profileLoading, isInfluencer, isAgency, justSignedUp, navigate, setJustSignedUp]);
 
   // For authenticated users with roles (influencers and agencies)
   return (

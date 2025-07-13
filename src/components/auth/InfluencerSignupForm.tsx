@@ -25,7 +25,7 @@ const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, setJustSignedUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -116,9 +116,15 @@ const InfluencerSignupForm = () => {
         
         console.log("✅ Profile updated to influencer successfully");
         
+        // Set flag to indicate fresh signup
+        setJustSignedUp(true);
+        
         // Refresh the profile in auth context to ensure latest data
         console.log("🔄 Refreshing profile in auth context...");
         await refreshProfile();
+        
+        // Add a small delay to ensure profile state is fully updated
+        await new Promise(resolve => setTimeout(resolve, 500));
         console.log("✅ Profile refreshed in auth context");
         
         // Track successful influencer signup with Meta

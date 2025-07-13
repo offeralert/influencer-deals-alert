@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const AgencySignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, setJustSignedUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -96,9 +97,15 @@ const AgencySignupForm = () => {
         
         console.log("✅ Profile updated to agency successfully");
         
+        // Set flag to indicate fresh signup
+        setJustSignedUp(true);
+        
         // Refresh the profile in auth context to ensure latest data
         console.log("🔄 Refreshing profile in auth context...");
         await refreshProfile();
+        
+        // Add a small delay to ensure profile state is fully updated
+        await new Promise(resolve => setTimeout(resolve, 500));
         console.log("✅ Profile refreshed in auth context");
         
         // Track successful agency signup with Meta

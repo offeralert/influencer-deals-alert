@@ -27,6 +27,8 @@ type AuthContextType = {
   isAgency: boolean;
   isAuthenticated: boolean;
   profileLoading: boolean;
+  justSignedUp: boolean;
+  setJustSignedUp: (value: boolean) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [justSignedUp, setJustSignedUp] = useState(false);
 
   useEffect(() => {
     console.log("AuthProvider: Initializing auth state");
@@ -57,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setProfile(null);
           setProfileLoading(false);
           setLoading(false);
+          setJustSignedUp(false);
         }
       }
     );
@@ -110,8 +114,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshProfile = async () => {
     if (user) {
+      console.log("🔄 Refreshing profile for user:", user.id);
       setProfileLoading(true);
       await fetchProfile(user.id);
+      console.log("✅ Profile refresh completed");
     }
   };
 
@@ -167,7 +173,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isInfluencer,
       isAgency,
       isAuthenticated,
-      profileLoading
+      profileLoading,
+      justSignedUp,
+      setJustSignedUp
     }}>
       {children}
     </AuthContext.Provider>
