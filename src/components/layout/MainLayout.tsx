@@ -4,7 +4,6 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import MobileFooter from "./MobileFooter";
-import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 
 const MainLayout = () => {
@@ -24,7 +23,6 @@ const MainLayout = () => {
         <BottomNav />
       </div>
       <SonnerToaster position="top-right" />
-      <Toaster />
     </div>
   );
 };
