@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -89,6 +88,8 @@ const InfluencerSignupForm = () => {
           data: {
             full_name: formData.fullName,
             username: formData.socialHandle,
+            is_influencer: true, // Pass user type in metadata
+            is_agency: false
           },
         },
       });
@@ -107,26 +108,6 @@ const InfluencerSignupForm = () => {
 
       if (data.user) {
         console.log("✅ User created successfully:", data.user.id);
-        
-        // Update the profile to set is_influencer to true
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ is_influencer: true })
-          .eq('id', data.user.id);
-
-        if (profileError) {
-          console.error("❌ Error updating profile:", profileError);
-          
-          // Handle specific username constraint error in profile update
-          if (profileError.message.includes('profiles_username_key') || profileError.message.includes('duplicate key')) {
-            toast.error("This username is already taken. Please try signing up with a different username.");
-          } else {
-            toast.error("Account created but influencer status couldn't be updated");
-          }
-          return;
-        }
-        
-        console.log("✅ Profile updated to influencer successfully");
         
         // Set flag to indicate fresh signup
         setJustSignedUp(true);

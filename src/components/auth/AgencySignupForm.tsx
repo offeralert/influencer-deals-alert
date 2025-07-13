@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -85,6 +84,8 @@ const AgencySignupForm = () => {
           data: {
             full_name: formData.agencyName,
             username: generatedUsername,
+            is_influencer: false,
+            is_agency: true // Pass user type in metadata
           },
         },
       });
@@ -103,26 +104,6 @@ const AgencySignupForm = () => {
 
       if (data.user) {
         console.log("✅ User created successfully:", data.user.id);
-        
-        // Update the profile to set is_agency to true
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ is_agency: true })
-          .eq('id', data.user.id);
-
-        if (profileError) {
-          console.error("❌ Error updating profile:", profileError);
-          
-          // Handle specific username constraint error in profile update
-          if (profileError.message.includes('profiles_username_key') || profileError.message.includes('duplicate key')) {
-            toast.error("An agency with this name already exists. Please try signing up with a different agency name.");
-          } else {
-            toast.error("Account created but agency status couldn't be updated");
-          }
-          return;
-        }
-        
-        console.log("✅ Profile updated to agency successfully");
         
         // Set flag to indicate fresh signup
         setJustSignedUp(true);
