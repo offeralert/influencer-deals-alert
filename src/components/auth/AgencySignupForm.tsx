@@ -12,6 +12,7 @@ import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { createLeadPayload } from "@/utils/metaTrackingHelpers";
 import { sendWelcomeEmail } from "@/utils/emailUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUsernameAvailability } from "@/hooks/useUsernameAvailability";
 
 const AgencySignupForm = () => {
   const navigate = useNavigate();
@@ -27,6 +28,10 @@ const AgencySignupForm = () => {
     confirmPassword: "",
     agreeToTerms: false,
   });
+
+  // Generate username from agency name
+  const generatedUsername = formData.agencyName.toLowerCase().replace(/\s+/g, '_');
+  const { isAvailable: isUsernameAvailable } = useUsernameAvailability(generatedUsername);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -57,6 +62,16 @@ const AgencySignupForm = () => {
       toast.error("You must agree to the terms and conditions");
       return;
     }
+
+    if (isUsernameAvailable === false) {
+      toast.error("An agency with this name already exists. Please choose a different name.");
+      return;
+    }
+
+    if (isUsernameAvailable === null && generatedUsername) {
+      toast.error("Please wait while we check agency name availability");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -69,14 +84,20 @@ const AgencySignupForm = () => {
         options: {
           data: {
             full_name: formData.agencyName,
-            username: formData.agencyName.toLowerCase().replace(/\s+/g, '_'),
+            username: generatedUsername,
           },
         },
       });
 
       if (error) {
         console.error("❌ Signup error:", error);
-        toast.error(error.message);
+        
+        // Handle specific username constraint error
+        if (error.message.includes('profiles_username_key') || error.message.includes('duplicate key')) {
+          toast.error("An agency with this name already exists. Please choose a different name.");
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
 
@@ -91,7 +112,13 @@ const AgencySignupForm = () => {
 
         if (profileError) {
           console.error("❌ Error updating profile:", profileError);
-          toast.error("Account created but agency status couldn't be updated");
+          
+          // Handle specific username constraint error in profile update
+          if (profileError.message.includes('profiles_username_key') || profileError.message.includes('duplicate key')) {
+            toast.error("An agency with this name already exists. Please try signing up with a different agency name.");
+          } else {
+            toast.error("Account created but agency status couldn't be updated");
+          }
           return;
         }
         
@@ -130,7 +157,7 @@ const AgencySignupForm = () => {
             fullName: formData.agencyName,
             isInfluencer: false,
             isAgency: true,
-            username: formData.agencyName.toLowerCase().replace(/\s+/g, '_'),
+            username: generatedUsername,
           });
           console.log("✅ Agency welcome email sent successfully:", emailResult);
           toast.success("Account created! Check your email for next steps and welcome information.");
@@ -151,6 +178,20 @@ const AgencySignupForm = () => {
     }
   };
 
+  const getUsernameFeedback = () => {
+    if (!generatedUsername) return null;
+    
+    if (isUsernameAvailable === false) {
+      return <span className="text-xs text-destructive">An agency with this name already exists</span>;
+    }
+    
+    if (isUsernameAvailable === true) {
+      return <span className="text-xs text-green-600">Agency name is available</span>;
+    }
+    
+    return null;
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -164,6 +205,7 @@ const AgencySignupForm = () => {
           onChange={handleChange}
           disabled={isLoading}
         />
+        {getUsernameFeedback()}
       </div>
       
       <div className="space-y-2">
@@ -278,7 +320,7 @@ const AgencySignupForm = () => {
       <Button 
         type="submit" 
         className="w-full bg-brand-green hover:bg-brand-green/90 mt-4" 
-        disabled={isLoading}
+        disabled={isLoading || isUsernameAvailable === false}
       >
         {isLoading ? "Creating Account..." : "Sign Up as Agency"}
       </Button>

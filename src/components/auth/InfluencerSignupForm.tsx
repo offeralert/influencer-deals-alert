@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,16 +12,8 @@ import { useMetaTracking } from "@/hooks/useMetaTracking";
 import { createLeadPayload } from "@/utils/metaTrackingHelpers";
 import { sendWelcomeEmail } from "@/utils/emailUtils";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Helper function to track Meta Pixel events
-const trackMetaEvent = (eventName: string, params?: Record<string, any>) => {
-  if (window.fbq) {
-    window.fbq('track', eventName, params);
-    console.log(`Meta Pixel event tracked: ${eventName}`, params);
-  } else {
-    console.warn('Meta Pixel not loaded. Event not tracked:', eventName);
-  }
-};
+import UsernameInput from "./UsernameInput";
+import { useUsernameAvailability } from "@/hooks/useUsernameAvailability";
 
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
@@ -38,17 +31,14 @@ const InfluencerSignupForm = () => {
     agreeToTerms: false,
   });
 
+  const { isAvailable: isUsernameAvailable } = useUsernameAvailability(formData.socialHandle);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSocialHandleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = e.target.value;
-    // Remove @ symbol if user types it
-    if (value.startsWith('@')) {
-      value = value.substring(1);
-    }
+  const handleSocialHandleChange = (value: string) => {
     setFormData((prev) => ({ ...prev, socialHandle: value }));
   };
 
@@ -76,6 +66,16 @@ const InfluencerSignupForm = () => {
       toast.error("You must agree to the terms and conditions");
       return;
     }
+
+    if (isUsernameAvailable === false) {
+      toast.error("Username is already taken. Please choose a different one.");
+      return;
+    }
+
+    if (isUsernameAvailable === null) {
+      toast.error("Please wait while we check username availability");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -95,7 +95,13 @@ const InfluencerSignupForm = () => {
 
       if (error) {
         console.error("❌ Signup error:", error);
-        toast.error(error.message);
+        
+        // Handle specific username constraint error
+        if (error.message.includes('profiles_username_key') || error.message.includes('duplicate key')) {
+          toast.error("This username is already taken. Please choose a different one.");
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
 
@@ -110,7 +116,13 @@ const InfluencerSignupForm = () => {
 
         if (profileError) {
           console.error("❌ Error updating profile:", profileError);
-          toast.error("Account created but influencer status couldn't be updated");
+          
+          // Handle specific username constraint error in profile update
+          if (profileError.message.includes('profiles_username_key') || profileError.message.includes('duplicate key')) {
+            toast.error("This username is already taken. Please try signing up with a different username.");
+          } else {
+            toast.error("Account created but influencer status couldn't be updated");
+          }
           return;
         }
         
@@ -184,22 +196,14 @@ const InfluencerSignupForm = () => {
         />
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="socialHandle">Social Media Handle</Label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">@</span>
-          <Input
-            id="socialHandle"
-            name="socialHandle"
-            placeholder="yourusername"
-            required
-            value={formData.socialHandle}
-            onChange={handleSocialHandleChange}
-            disabled={isLoading}
-            className="pl-8"
-          />
-        </div>
-      </div>
+      <UsernameInput
+        id="socialHandle"
+        label="Social Media Handle"
+        placeholder="yourusername"
+        value={formData.socialHandle}
+        onChange={handleSocialHandleChange}
+        disabled={isLoading}
+      />
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
@@ -313,7 +317,7 @@ const InfluencerSignupForm = () => {
       <Button 
         type="submit" 
         className="w-full bg-brand-green hover:bg-brand-green/90 mt-4" 
-        disabled={isLoading}
+        disabled={isLoading || isUsernameAvailable === false}
       >
         {isLoading ? "Creating Account..." : "Sign Up as Influencer"}
       </Button>
