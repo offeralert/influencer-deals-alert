@@ -16,10 +16,31 @@ import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSec
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const { user, profile, loading, profileLoading, isInfluencer, isAgency, justSignedUp, setJustSignedUp } = useAuth();
+  const { user, profile, loading, profileLoading, isInfluencer, isAgency, justSignedUp, setJustSignedUp, error } = useAuth();
   const navigate = useNavigate();
+
+  // Show error state if there's an authentication error
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center p-8">
+          <div className="text-red-500 mb-4">
+            <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
+            <p className="text-gray-600 mb-4">{error}</p>
+          </div>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="bg-brand-green hover:bg-brand-green/90"
+          >
+            Refresh Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while authentication is being determined OR while profile is loading for authenticated users
   if (loading) {

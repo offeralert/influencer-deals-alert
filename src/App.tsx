@@ -34,8 +34,26 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
+import { ErrorBoundary } from "react-error-boundary";
 
 const queryClient = new QueryClient();
+
+function ErrorFallback({ error, resetErrorBoundary }: { error: Error; resetErrorBoundary: () => void }) {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center p-8">
+        <h2 className="text-xl font-semibold mb-4 text-red-600">Something went wrong</h2>
+        <p className="text-gray-600 mb-4">An error occurred while loading the application.</p>
+        <button 
+          onClick={resetErrorBoundary}
+          className="bg-brand-green text-white px-4 py-2 rounded hover:bg-brand-green/90"
+        >
+          Try again
+        </button>
+      </div>
+    </div>
+  );
+}
 
 const AppContent = () => {
   // Enable automatic update checking
@@ -78,15 +96,17 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <Toaster />
-    <Sonner />
-    <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+  <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+          <Toaster />
+          <Sonner />
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;
