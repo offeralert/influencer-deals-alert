@@ -1,8 +1,11 @@
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const PersonalizedWelcomeBanner = () => {
   const { user, profile, isInfluencer, isAgency, profileLoading } = useAuth();
+  const navigate = useNavigate();
 
   // Don't render anything if no user
   if (!user) return null;
@@ -21,6 +24,19 @@ const PersonalizedWelcomeBanner = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirect users without roles to role selection
+  useEffect(() => {
+    if (profile && !isInfluencer && !isAgency) {
+      console.log("User has no role assigned, redirecting to role selection");
+      navigate("/influencer-apply");
+    }
+  }, [profile, isInfluencer, isAgency, navigate]);
+
+  // Don't render if user has no role (they'll be redirected)
+  if (!isInfluencer && !isAgency) {
+    return null;
   }
 
   const displayName = profile.full_name || profile.username || 'there';

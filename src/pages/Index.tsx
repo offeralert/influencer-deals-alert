@@ -14,9 +14,12 @@ import AddToDesktopSection from "@/components/home/AddToDesktopSection";
 import WhyItMattersSection from "@/components/home/WhyItMattersSection";
 import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSection";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Index = () => {
-  const { user, profile, loading, profileLoading } = useAuth();
+  const { user, profile, loading, profileLoading, isInfluencer, isAgency } = useAuth();
+  const navigate = useNavigate();
 
   // Show loading state while authentication is being determined OR while profile is loading for authenticated users
   if (loading) {
@@ -71,7 +74,15 @@ const Index = () => {
     );
   }
 
-  // For all authenticated users (regular users, influencers, and agencies)
+  // For authenticated users without roles, redirect to role selection
+  useEffect(() => {
+    if (user && profile && !profileLoading && !isInfluencer && !isAgency) {
+      console.log("Authenticated user without role, redirecting to apply page");
+      navigate("/influencer-apply");
+    }
+  }, [user, profile, profileLoading, isInfluencer, isAgency, navigate]);
+
+  // For authenticated users with roles (influencers and agencies)
   return (
     <div className="min-h-screen">
       <PersonalizedWelcomeBanner />

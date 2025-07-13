@@ -11,6 +11,12 @@ interface SendWelcomeEmailParams {
 
 export const sendWelcomeEmail = async (params: SendWelcomeEmailParams) => {
   try {
+    // Only send emails for influencers or agencies - no generic user emails
+    if (!params.isInfluencer && !params.isAgency) {
+      console.warn('No welcome email sent - user must be either influencer or agency');
+      return { success: false, error: 'User must be either influencer or agency' };
+    }
+
     console.log('📧 Calling send-welcome-email function with params:', {
       email: params.email,
       fullName: params.fullName,

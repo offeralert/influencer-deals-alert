@@ -15,6 +15,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const CATEGORIES = [
   "Fashion",
@@ -30,10 +31,21 @@ const CATEGORIES = [
 const InfluencerApply = () => {
   const { user, profile, isLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState(profile?.full_name || "");
-  const [socialHandle, setSocialHandle] = useState(profile?.username || "");
-  const [category, setCategory] = useState(profile?.category || "");
+  const [activeTab, setActiveTab] = useState("influencer");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Influencer form data
+  const [influencerData, setInfluencerData] = useState({
+    fullName: profile?.full_name || "",
+    socialHandle: profile?.username || "",
+    category: profile?.category || "",
+  });
+
+  // Agency form data
+  const [agencyData, setAgencyData] = useState({
+    agencyName: profile?.full_name || "",
+    contactEmail: user?.email || "",
+  });
 
   // Redirect to login if not authenticated
   if (!isLoading && !user) {
@@ -49,7 +61,7 @@ const InfluencerApply = () => {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleInfluencerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -59,7 +71,7 @@ const InfluencerApply = () => {
         return;
       }
 
-      if (!category) {
+      if (!influencerData.category) {
         toast.error("Please select your primary content category");
         return;
       }
@@ -68,9 +80,9 @@ const InfluencerApply = () => {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          full_name: fullName,
-          username: socialHandle,
-          category: category,
+          full_name: influencerData.fullName,
+          username: influencerData.socialHandle,
+          category: influencerData.category,
           is_influencer: true 
         })
         .eq('id', user.id);
@@ -81,9 +93,44 @@ const InfluencerApply = () => {
       await refreshProfile();
 
       toast.success("Application submitted successfully! You are now an influencer.");
-      navigate("/profile");
+      navigate("/");
     } catch (error) {
-      console.error("Error submitting application:", error);
+      console.error("Error submitting influencer application:", error);
+      toast.error("Failed to submit application. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAgencySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (!user) {
+        toast.error("You must be logged in to apply");
+        return;
+      }
+
+      // Update user profile to mark them as an agency
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          full_name: agencyData.agencyName,
+          username: agencyData.agencyName.toLowerCase().replace(/\s+/g, '_'),
+          is_agency: true 
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Refresh the profile to update the UI
+      await refreshProfile();
+
+      toast.success("Application submitted successfully! You are now an agency.");
+      navigate("/");
+    } catch (error) {
+      console.error("Error submitting agency application:", error);
       toast.error("Failed to submit application. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -92,91 +139,157 @@ const InfluencerApply = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Become an Influencer</h1>
+      <h1 className="text-2xl font-bold mb-6 text-center">Choose Your Role</h1>
+      <p className="text-center text-muted-foreground mb-8">
+        Please select whether you're joining as an influencer or an agency to complete your account setup.
+      </p>
       
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Influencer Application</CardTitle>
-          <CardDescription>
-            Share your details to apply for an influencer account. You can add promo codes after your account is approved.
-          </CardDescription>
-        </CardHeader>
-        
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="socialHandle">Social Media Handle</Label>
-                <Input
-                  id="socialHandle"
-                  value={socialHandle}
-                  onChange={(e) => setSocialHandle(e.target.value)}
-                  placeholder="@yourusername"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="category">Primary Content Category</Label>
-                <Select
-                  value={category}
-                  onValueChange={setCategory}
-                  required
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select your main category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-sm text-muted-foreground mt-1">
-                  This helps users find your promo codes
-                </p>
-              </div>
-              
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user?.email || ""}
-                  disabled
-                  className="bg-gray-100"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  We'll use your account email for communication
-                </p>
-              </div>
-            </div>
-          </CardContent>
+      <div className="max-w-2xl mx-auto">
+        <Tabs defaultValue="influencer" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid grid-cols-2 mb-6">
+            <TabsTrigger value="influencer">Apply as Influencer</TabsTrigger>
+            <TabsTrigger value="agency">Apply as Agency</TabsTrigger>
+          </TabsList>
           
-          <CardFooter>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full bg-brand-green hover:bg-brand-green/90"
-            >
-              {isSubmitting ? "Submitting..." : "Submit Application"}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
+          <TabsContent value="influencer">
+            <Card>
+              <CardHeader>
+                <CardTitle>Influencer Application</CardTitle>
+                <CardDescription>
+                  Share your details to set up your influencer account. You can add promo codes after your account is set up.
+                </CardDescription>
+              </CardHeader>
+              
+              <form onSubmit={handleInfluencerSubmit}>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="fullName">Full Name</Label>
+                      <Input
+                        id="fullName"
+                        value={influencerData.fullName}
+                        onChange={(e) => setInfluencerData(prev => ({...prev, fullName: e.target.value}))}
+                        placeholder="Your full name"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="socialHandle">Social Media Handle</Label>
+                      <Input
+                        id="socialHandle"
+                        value={influencerData.socialHandle}
+                        onChange={(e) => setInfluencerData(prev => ({...prev, socialHandle: e.target.value}))}
+                        placeholder="@yourusername"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="category">Primary Content Category</Label>
+                      <Select
+                        value={influencerData.category}
+                        onValueChange={(value) => setInfluencerData(prev => ({...prev, category: value}))}
+                        required
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select your main category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        This helps users find your promo codes
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={user?.email || ""}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        We'll use your account email for communication
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                <CardFooter>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full bg-brand-green hover:bg-brand-green/90"
+                  >
+                    {isSubmitting ? "Setting up..." : "Become an Influencer"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="agency">
+            <Card>
+              <CardHeader>
+                <CardTitle>Agency Application</CardTitle>
+                <CardDescription>
+                  Set up your agency account to manage multiple influencers and their promo codes.
+                </CardDescription>
+              </CardHeader>
+              
+              <form onSubmit={handleAgencySubmit}>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="agencyName">Agency Name</Label>
+                      <Input
+                        id="agencyName"
+                        value={agencyData.agencyName}
+                        onChange={(e) => setAgencyData(prev => ({...prev, agencyName: e.target.value}))}
+                        placeholder="Your agency name"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="contactEmail">Contact Email</Label>
+                      <Input
+                        id="contactEmail"
+                        type="email"
+                        value={agencyData.contactEmail}
+                        disabled
+                        className="bg-gray-100"
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        We'll use your account email for communication
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+                
+                <CardFooter>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full bg-brand-green hover:bg-brand-green/90"
+                  >
+                    {isSubmitting ? "Setting up..." : "Become an Agency"}
+                  </Button>
+                </CardFooter>
+              </form>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
