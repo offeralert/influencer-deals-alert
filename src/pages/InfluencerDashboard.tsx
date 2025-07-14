@@ -12,10 +12,9 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
-import SubscriptionErrorBoundary from "@/components/SubscriptionErrorBoundary";
 
 const InfluencerDashboard = () => {
-  const { user, profile, isReady, isInfluencer } = useAuth();
+  const { user, isReady, isInfluencer } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("promo-codes");
 
@@ -31,70 +30,62 @@ const InfluencerDashboard = () => {
     );
   }
 
-  // Redirect if not authenticated
-  if (!user) {
-    navigate("/login");
-    return null;
-  }
-
-  // Redirect if not an influencer
-  if (!isInfluencer) {
+  // Redirect if not authenticated or not an influencer
+  if (!user || !isInfluencer) {
     navigate("/login");
     return null;
   }
 
   return (
-    <SubscriptionErrorBoundary>
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Influencer Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage your profile and add promo codes.
-          </p>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
-            <TabsTrigger value="promo-codes" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Promo Codes
-            </TabsTrigger>
-            <TabsTrigger value="add-promo-code" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Promo Code
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="promo-codes">
-            <PromoCodesList />
-          </TabsContent>
-
-          <TabsContent value="add-promo-code">
-            <AddPromoCodeForm />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <Card>
-              <CardHeader>
-                <CardTitle>Settings</CardTitle>
-                <CardDescription>
-                  Manage your profile settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button asChild>
-                  <Link to="/profile">Edit Profile</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Influencer Dashboard</h1>
+        <p className="text-muted-foreground">
+          Manage your profile and add promo codes.
+        </p>
       </div>
-    </SubscriptionErrorBoundary>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3">
+          <TabsTrigger value="promo-codes" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Promo Codes
+          </TabsTrigger>
+          <TabsTrigger value="add-promo-code" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Promo Code
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="promo-codes">
+          <PromoCodesList />
+        </TabsContent>
+
+        <TabsContent value="add-promo-code">
+          <AddPromoCodeForm />
+        </TabsContent>
+
+        <TabsContent value="settings">
+          <Card>
+            <CardHeader>
+              <CardTitle>Settings</CardTitle>
+              <CardDescription>
+                Manage your profile settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild>
+                <Link to="/profile">Edit Profile</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

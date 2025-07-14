@@ -26,8 +26,4 @@ export interface AuthContextType {
   isInfluencer: boolean;
   isAgency: boolean;
   isAuthenticated: boolean;
-  profileLoading: boolean;
-  justSignedUp: boolean;
-  setJustSignedUp: (value: boolean) => void;
-  error: string | null;
 }

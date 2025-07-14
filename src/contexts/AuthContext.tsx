@@ -16,12 +16,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile,
     loading,
     setLoading,
-    profileLoading,
-    setProfileLoading,
-    justSignedUp,
-    setJustSignedUp,
-    error,
-    setError,
     fetchProfile,
     refreshProfile,
     signOut
@@ -31,8 +25,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useAuthInitialization({
     setSession,
     setUser,
-    setError,
-    setProfileLoading,
     setLoading,
     fetchProfile
   });
@@ -41,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAgency = profile?.is_agency === true;
   const isAuthenticated = !!user;
   
-  // Simple ready state - both auth and profile are loaded
-  const isReady = !loading && (!user || !profileLoading);
+  // Ultra-simple ready state: not loading AND (has user with profile OR no user at all)
+  const isReady = !loading && ((!user) || (user && profile !== null));
   
   return (
     <AuthContext.Provider value={{ 
@@ -56,11 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshProfile,
       isInfluencer,
       isAgency,
-      isAuthenticated,
-      profileLoading,
-      justSignedUp,
-      setJustSignedUp,
-      error
+      isAuthenticated
     }}>
       {children}
     </AuthContext.Provider>

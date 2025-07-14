@@ -33,7 +33,7 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
   const [deleting, setDeleting] = useState(false);
 
   const fetchPromoCodes = async () => {
-    if (!user || !isReady) return;
+    if (!user) return;
     
     console.log("[PROMO CODES LIST] Fetching promo codes for user:", user.id);
     setLoading(true);
