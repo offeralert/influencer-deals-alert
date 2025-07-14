@@ -25,14 +25,14 @@ const Index = () => {
   // For authenticated users, redirect to their dashboard immediately when ready
   useEffect(() => {
     if (user && isReady) {
-      console.log("Authenticated user, redirecting to dashboard");
+      console.log("Authenticated user detected, redirecting to dashboard");
       const dashboardRoute = getDashboardRoute(profile);
       navigate(dashboardRoute, { replace: true });
     }
   }, [user, profile, isReady, navigate]);
 
-  // Show loading state only while authentication is being determined
-  if (loading) {
+  // Show loading state only while initial auth check is happening
+  if (loading && user === undefined) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">

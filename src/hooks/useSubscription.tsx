@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -33,7 +34,7 @@ export const useSubscription = (): SubscriptionData => {
   const isFakeAccount = profile?.is_fake === true;
 
   // Calculate max offers based on subscription tier and fake account status
-  const maxOffers = useCallback(() => {
+  const maxOffers = useMemo(() => {
     console.log(`[SUBSCRIPTION] Calculating max offers - Fake account: ${isFakeAccount}, Global bypass: ${BYPASS_OFFER_LIMITS}, Tier: ${subscriptionTier}`);
     
     // If bypassing limits globally or if this is a fake account, return unlimited
@@ -59,14 +60,8 @@ export const useSubscription = (): SubscriptionData => {
     console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${isInfluencer}, Is fake: ${isFakeAccount}`);
     
     // Don't proceed if we don't have a user or if auth is not ready
-    if (!user) {
-      console.log(`[SUBSCRIPTION] No user found, stopping refresh`);
-      return;
-    }
-
-    // Wait for auth to be ready before proceeding
-    if (!isReady) {
-      console.log(`[SUBSCRIPTION] Auth not ready, will retry when ready`);
+    if (!user || !isReady) {
+      console.log(`[SUBSCRIPTION] Not ready for refresh - User: ${!!user}, Ready: ${isReady}`);
       return;
     }
 
@@ -128,7 +123,7 @@ export const useSubscription = (): SubscriptionData => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, profile, isReady, isInfluencer, isFakeAccount]);
+  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Removed user object and profile from dependencies
 
   const createCheckoutSession = async (
     planType: SubscriptionTier, 
@@ -197,18 +192,18 @@ export const useSubscription = (): SubscriptionData => {
 
   // Effect to trigger refresh when dependencies change
   useEffect(() => {
-    // Only refresh when we have a user and auth is ready
-    if (user && isReady) {
+    // Only refresh when we have the minimum required state
+    if (user && isReady && isInfluencer !== undefined) {
       console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
       refresh();
     }
-  }, [user, isReady, isInfluencer, profile?.is_fake, refresh]);
+  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Stable dependencies only
 
   return {
     subscribed,
     subscriptionTier,
     subscriptionEnd,
-    maxOffers: maxOffers(),
+    maxOffers,
     isLoading,
     bypassOfferLimits,
     refresh,

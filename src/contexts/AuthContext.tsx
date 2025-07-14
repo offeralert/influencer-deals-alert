@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAgency = profile?.is_agency === true;
   const isAuthenticated = !!user;
   
-  // Ultra-simple ready state: not loading AND (has user with profile OR no user at all)
-  const isReady = !loading && ((!user) || (user && profile !== null));
+  // Fixed ready state: consider the app ready when:
+  // 1. Not loading AND no user (logged out state)
+  // 2. Not loading AND has user (regardless of profile state, since new users might not have profiles)
+  const isReady = !loading && (user !== undefined);
   
   return (
     <AuthContext.Provider value={{ 
