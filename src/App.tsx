@@ -38,9 +38,6 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  // Only enable update manager after component mounts properly
-  const updateManager = useUpdateManager(true);
-
   return (
     <Routes>
       <Route path="/" element={<MainLayout />}>
@@ -85,13 +82,22 @@ const AppContent = () => {
   );
 };
 
+const AppWithUpdateManager = () => {
+  // Only enable update manager in production or when specifically needed
+  const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
+  
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+};
+
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
+        <AppWithUpdateManager />
       </BrowserRouter>
     </QueryClientProvider>
   </ErrorBoundary>

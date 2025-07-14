@@ -28,6 +28,9 @@ export const useUpdateManager = (enabled: boolean = true) => {
       }
     };
 
+    // Only start checking if we're in a browser environment
+    if (typeof window === 'undefined') return;
+
     // Check for updates every 2 minutes
     interval = setInterval(() => {
       if (mounted) checkUpdates();
