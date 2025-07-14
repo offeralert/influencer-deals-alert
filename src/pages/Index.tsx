@@ -19,30 +19,10 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 const Index = () => {
-  const { user, profile, loading, profileLoading, isInfluencer, isAgency, justSignedUp, setJustSignedUp, error } = useAuth();
+  const { user, profile, loading, isInfluencer, isAgency, isReady } = useAuth();
   const navigate = useNavigate();
 
-  // Show error state if there's an authentication error
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center p-8">
-          <div className="text-red-500 mb-4">
-            <h2 className="text-xl font-semibold mb-2">Authentication Error</h2>
-            <p className="text-gray-600 mb-4">{error}</p>
-          </div>
-          <Button 
-            onClick={() => window.location.reload()} 
-            className="bg-brand-green hover:bg-brand-green/90"
-          >
-            Refresh Page
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading state while authentication is being determined OR while profile is loading for authenticated users
+  // Show loading state while authentication is being determined
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -96,21 +76,12 @@ const Index = () => {
   }
 
   // For authenticated users without roles, redirect to role selection
-  // BUT not if they just signed up (to prevent the race condition)
   useEffect(() => {
-    if (user && profile && !profileLoading && !isInfluencer && !isAgency && !justSignedUp) {
-      console.log("Authenticated user without role (not just signed up), redirecting to apply page");
+    if (user && isReady && profile && !isInfluencer && !isAgency) {
+      console.log("Authenticated user without role, redirecting to apply page");
       navigate("/influencer-apply");
     }
-    
-    // Clear the justSignedUp flag after a delay to allow for proper loading
-    if (justSignedUp && (isInfluencer || isAgency)) {
-      console.log("User just signed up and has role assigned, clearing justSignedUp flag");
-      setTimeout(() => {
-        setJustSignedUp(false);
-      }, 2000);
-    }
-  }, [user, profile, profileLoading, isInfluencer, isAgency, justSignedUp, navigate, setJustSignedUp]);
+  }, [user, profile, isReady, isInfluencer, isAgency, navigate]);
 
   // For authenticated users with roles (influencers and agencies)
   return (

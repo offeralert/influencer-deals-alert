@@ -16,7 +16,7 @@ import { useUsernameAvailability } from "@/hooks/useUsernameAvailability";
 const AgencySignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
-  const { refreshProfile, setJustSignedUp } = useAuth();
+  const { refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -85,7 +85,7 @@ const AgencySignupForm = () => {
             full_name: formData.agencyName,
             username: generatedUsername,
             is_influencer: false,
-            is_agency: true // Pass user type in metadata
+            is_agency: true
           },
         },
       });
@@ -93,7 +93,6 @@ const AgencySignupForm = () => {
       if (error) {
         console.error("❌ Signup error:", error);
         
-        // Handle specific username constraint error
         if (error.message.includes('profiles_username_key') || error.message.includes('duplicate key')) {
           toast.error("An agency with this name already exists. Please choose a different name.");
         } else {
@@ -104,9 +103,6 @@ const AgencySignupForm = () => {
 
       if (data.user) {
         console.log("✅ User created successfully:", data.user.id);
-        
-        // Set flag to indicate fresh signup
-        setJustSignedUp(true);
         
         // Refresh the profile in auth context to ensure latest data
         console.log("🔄 Refreshing profile in auth context...");
@@ -127,7 +123,6 @@ const AgencySignupForm = () => {
           console.log("✅ Meta tracking event sent");
         } catch (trackingError) {
           console.error("❌ Meta tracking failed:", trackingError);
-          // Don't block signup for tracking failure
         }
 
         // Send welcome email for agencies
@@ -144,7 +139,6 @@ const AgencySignupForm = () => {
           toast.success("Account created! Check your email for next steps and welcome information.");
         } catch (emailError) {
           console.error("❌ Failed to send welcome email:", emailError);
-          // Don't block signup for email failure, but show a warning
           toast.success("Account created successfully! Welcome email may be delayed.");
         }
         

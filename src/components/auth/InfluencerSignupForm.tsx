@@ -17,7 +17,7 @@ import { useUsernameAvailability } from "@/hooks/useUsernameAvailability";
 const InfluencerSignupForm = () => {
   const navigate = useNavigate();
   const { track } = useMetaTracking();
-  const { refreshProfile, setJustSignedUp } = useAuth();
+  const { refreshProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -88,7 +88,7 @@ const InfluencerSignupForm = () => {
           data: {
             full_name: formData.fullName,
             username: formData.socialHandle,
-            is_influencer: true, // Pass user type in metadata
+            is_influencer: true,
             is_agency: false
           },
         },
@@ -97,7 +97,6 @@ const InfluencerSignupForm = () => {
       if (error) {
         console.error("❌ Signup error:", error);
         
-        // Handle specific username constraint error
         if (error.message.includes('profiles_username_key') || error.message.includes('duplicate key')) {
           toast.error("This username is already taken. Please choose a different one.");
         } else {
@@ -108,9 +107,6 @@ const InfluencerSignupForm = () => {
 
       if (data.user) {
         console.log("✅ User created successfully:", data.user.id);
-        
-        // Set flag to indicate fresh signup
-        setJustSignedUp(true);
         
         // Refresh the profile in auth context to ensure latest data
         console.log("🔄 Refreshing profile in auth context...");
@@ -131,7 +127,6 @@ const InfluencerSignupForm = () => {
           console.log("✅ Meta tracking event sent");
         } catch (trackingError) {
           console.error("❌ Meta tracking failed:", trackingError);
-          // Don't block signup for tracking failure
         }
 
         // Send welcome email for influencers
@@ -147,7 +142,6 @@ const InfluencerSignupForm = () => {
           toast.success("Account created! Check your email for next steps and welcome information.");
         } catch (emailError) {
           console.error("❌ Failed to send welcome email:", emailError);
-          // Don't block signup for email failure, but show a warning
           toast.success("Account created successfully! Welcome email may be delayed.");
         }
         

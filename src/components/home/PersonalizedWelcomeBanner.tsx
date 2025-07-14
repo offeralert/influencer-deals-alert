@@ -4,27 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const PersonalizedWelcomeBanner = () => {
-  const { user, profile, isInfluencer, isAgency, profileLoading, error } = useAuth();
+  const { user, profile, isInfluencer, isAgency, isReady } = useAuth();
   const navigate = useNavigate();
 
   // Don't render anything if no user
   if (!user) return null;
 
-  // Show error state if there's an error
-  if (error) {
-    return (
-      <div className="bg-red-50 border-l-4 border-red-400 py-6 px-4">
-        <div className="container mx-auto">
-          <div className="text-center">
-            <p className="text-red-700">Error loading profile: {error}</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Show loading state while profile is being fetched
-  if (profileLoading || !profile) {
+  if (!isReady) {
     return (
       <div className="bg-gray-100 py-6 px-4">
         <div className="container mx-auto">
@@ -52,7 +39,7 @@ const PersonalizedWelcomeBanner = () => {
     return null;
   }
 
-  const displayName = profile.full_name || profile.username || 'there';
+  const displayName = profile?.full_name || profile?.username || 'there';
   
   const getBannerStyles = () => {
     if (isAgency) {

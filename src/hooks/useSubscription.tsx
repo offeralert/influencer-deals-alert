@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +22,7 @@ interface SubscriptionData {
 }
 
 export const useSubscription = (): SubscriptionData => {
-  const { user, profile, profileLoading } = useAuth();
+  const { user, profile, isReady } = useAuth();
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -53,18 +52,18 @@ export const useSubscription = (): SubscriptionData => {
   const bypassOfferLimits = BYPASS_OFFER_LIMITS || isFakeAccount;
 
   const refresh = useCallback(async () => {
-    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Profile loading: ${profileLoading}, Is influencer: ${profile?.is_influencer}`);
+    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${profile?.is_influencer}`);
     
-    // Don't proceed if we don't have a user or if profile is still loading
+    // Don't proceed if we don't have a user or if auth is not ready
     if (!user) {
       console.log(`[SUBSCRIPTION] No user found, stopping refresh`);
       setIsLoading(false);
       return;
     }
 
-    // Wait for profile to load before proceeding
-    if (profileLoading) {
-      console.log(`[SUBSCRIPTION] Profile still loading, will retry when profile loads`);
+    // Wait for auth to be ready before proceeding
+    if (!isReady) {
+      console.log(`[SUBSCRIPTION] Auth not ready, will retry when ready`);
       return;
     }
 
@@ -131,7 +130,7 @@ export const useSubscription = (): SubscriptionData => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, profile, profileLoading]);
+  }, [user, profile, isReady]);
 
   const createCheckoutSession = async (
     planType: SubscriptionTier, 
@@ -200,12 +199,12 @@ export const useSubscription = (): SubscriptionData => {
 
   // Effect to trigger refresh when dependencies change
   useEffect(() => {
-    // Only refresh when we have a user and profile loading is complete
-    if (user && !profileLoading) {
+    // Only refresh when we have a user and auth is ready
+    if (user && isReady) {
       console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
       refresh();
     }
-  }, [user, profileLoading, profile?.is_influencer, profile?.is_fake, refresh]);
+  }, [user, isReady, profile?.is_influencer, profile?.is_fake, refresh]);
 
   return {
     subscribed,
