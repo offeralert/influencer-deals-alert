@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,10 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { getDashboardRoute } from "@/utils/authRedirectUtils";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, loading, isInfluencer, isAgency } = useAuth();
+  const { user, profile, loading, isReady } = useAuth();
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,19 +22,14 @@ const Login = () => {
   });
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Redirect if already logged in
+  // Redirect if already logged in - wait for isReady to ensure profile is loaded
   useEffect(() => {
-    if (user && !loading) {
-      console.log("User already logged in, redirecting based on type");
-      if (isAgency) {
-        navigate("/agency-dashboard");
-      } else if (isInfluencer) {
-        navigate("/influencer-dashboard");
-      } else {
-        navigate("/");
-      }
+    if (user && isReady) {
+      console.log("User already logged in, redirecting to dashboard");
+      const dashboardRoute = getDashboardRoute(profile);
+      navigate(dashboardRoute);
     }
-  }, [user, loading, isInfluencer, isAgency, navigate]);
+  }, [user, profile, isReady, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

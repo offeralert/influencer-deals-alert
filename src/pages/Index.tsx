@@ -16,10 +16,10 @@ import OfferAlertAdvantageSection from "@/components/home/OfferAlertAdvantageSec
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { getDashboardRoute } from "@/utils/authRedirectUtils";
 
 const Index = () => {
-  const { user, profile, loading, isInfluencer, isAgency, isReady } = useAuth();
+  const { user, profile, loading, isReady } = useAuth();
   const navigate = useNavigate();
 
   // Show loading state while authentication is being determined
@@ -75,41 +75,21 @@ const Index = () => {
     );
   }
 
-  // For authenticated users without roles, redirect to role selection
+  // For authenticated users, redirect to their dashboard when ready
   useEffect(() => {
-    if (user && isReady && profile && !isInfluencer && !isAgency) {
-      console.log("Authenticated user without role, redirecting to apply page");
-      navigate("/influencer-apply");
+    if (user && isReady) {
+      console.log("Authenticated user, redirecting to dashboard");
+      const dashboardRoute = getDashboardRoute(profile);
+      navigate(dashboardRoute);
     }
-  }, [user, profile, isReady, isInfluencer, isAgency, navigate]);
+  }, [user, profile, isReady, navigate]);
 
-  // For authenticated users with roles (influencers and agencies)
+  // Show loading while we redirect authenticated users
   return (
-    <div className="min-h-screen">
-      <PersonalizedWelcomeBanner />
-      
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container bg-white shadow-sm">
-        <FeaturedOffersSection />
-      </div>
-      
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container bg-white shadow-sm">
-        <FeaturedAccountsSection />
-      </div>
-      
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container bg-white shadow-sm">
-        <PopularCategoriesSection />
-      </div>
-      
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container">
-        <BrowserExtensionPromo />
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mx-auto mb-4"></div>
+        <p>Redirecting to your dashboard...</p>
       </div>
     </div>
   );
