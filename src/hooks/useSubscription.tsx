@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,10 +19,11 @@ interface SubscriptionData {
   refresh: () => Promise<void>;
   createCheckoutSession: (planType: SubscriptionTier, productId?: string | null) => Promise<string | null>;
   openCustomerPortal: () => Promise<string | null>;
+  error: string | null;
 }
 
 export const useSubscription = (): SubscriptionData => {
-  const { user, profile } = useAuth();
+  const { user, profile, profileLoading } = useAuth();
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -51,7 +53,24 @@ export const useSubscription = (): SubscriptionData => {
   const bypassOfferLimits = BYPASS_OFFER_LIMITS || isFakeAccount;
 
   const refresh = useCallback(async () => {
-    if (!user || !profile?.is_influencer) {
+    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Profile loading: ${profileLoading}, Is influencer: ${profile?.is_influencer}`);
+    
+    // Don't proceed if we don't have a user or if profile is still loading
+    if (!user) {
+      console.log(`[SUBSCRIPTION] No user found, stopping refresh`);
+      setIsLoading(false);
+      return;
+    }
+
+    // Wait for profile to load before proceeding
+    if (profileLoading) {
+      console.log(`[SUBSCRIPTION] Profile still loading, will retry when profile loads`);
+      return;
+    }
+
+    // Check if user is an influencer
+    if (!profile?.is_influencer) {
+      console.log(`[SUBSCRIPTION] User is not an influencer, skipping subscription check`);
       setIsLoading(false);
       return;
     }
@@ -78,17 +97,17 @@ export const useSubscription = (): SubscriptionData => {
       const { data, error: funcError } = await supabase.functions.invoke('check-subscription');
       
       if (funcError) {
-        console.error("Error checking subscription:", funcError);
-        setError(funcError.message || "Failed to check subscription status");
+        console.error("[SUBSCRIPTION] Error checking subscription:", funcError);
+        setError(`Failed to check subscription: ${funcError.message}`);
         toast.error("Failed to check subscription status");
         return;
       }
       
       if (data) {
         console.log("[SUBSCRIPTION] Subscription data received:", data);
-        setSubscribed(data.subscribed);
+        setSubscribed(data.subscribed || false);
         setSubscriptionTier(data.subscription_tier || "Starter");
-        setSubscriptionEnd(data.subscription_end);
+        setSubscriptionEnd(data.subscription_end || null);
         
         // Log the tier and max offers for debugging
         const tier = data.subscription_tier || "Starter";
@@ -100,16 +119,19 @@ export const useSubscription = (): SubscriptionData => {
           case "Elite": maxOffersForTier = Infinity; break;
         }
         console.log(`[SUBSCRIPTION] User has ${tier} tier with ${maxOffersForTier} max offers`);
+      } else {
+        console.warn("[SUBSCRIPTION] No data returned from check-subscription function");
+        setError("No subscription data received");
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
-      console.error("Error in subscription check:", errorMessage);
-      setError(errorMessage);
+      console.error("[SUBSCRIPTION] Error in subscription check:", errorMessage);
+      setError(`Subscription check failed: ${errorMessage}`);
       toast.error("Failed to check subscription status");
     } finally {
       setIsLoading(false);
     }
-  }, [user, profile]);
+  }, [user, profile, profileLoading]);
 
   const createCheckoutSession = async (
     planType: SubscriptionTier, 
@@ -121,6 +143,7 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
+      console.log(`[SUBSCRIPTION] Creating checkout session for plan: ${planType}`);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { 
           planType, 
@@ -129,14 +152,15 @@ export const useSubscription = (): SubscriptionData => {
       });
 
       if (error) {
-        console.error("Error creating checkout:", error);
+        console.error("[SUBSCRIPTION] Error creating checkout:", error);
         toast.error(`Failed to create checkout session: ${error.message}`);
         return null;
       }
 
+      console.log("[SUBSCRIPTION] Checkout session created successfully");
       return data?.url || null;
     } catch (error) {
-      console.error("Error in createCheckoutSession:", error);
+      console.error("[SUBSCRIPTION] Error in createCheckoutSession:", error);
       toast.error("Failed to create checkout session");
       return null;
     }
@@ -149,32 +173,39 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     try {
+      console.log("[SUBSCRIPTION] Opening customer portal");
       const { data, error } = await supabase.functions.invoke('customer-portal');
 
       if (error) {
-        console.error("Error opening customer portal:", error);
+        console.error("[SUBSCRIPTION] Error opening customer portal:", error);
         toast.error(`Failed to open customer portal: ${error.message}`);
         return null;
       }
 
       if (!data?.url) {
-        console.error("No portal URL returned from function");
+        console.error("[SUBSCRIPTION] No portal URL returned from function");
         toast.error("Failed to open customer portal: No portal URL returned");
         return null;
       }
 
+      console.log("[SUBSCRIPTION] Customer portal opened successfully");
       return data.url;
     } catch (error) {
-      console.error("Error in openCustomerPortal:", error);
+      console.error("[SUBSCRIPTION] Error in openCustomerPortal:", error);
       const errorMessage = error instanceof Error ? error.message : String(error);
       toast.error(`Failed to open customer portal: ${errorMessage}`);
       return null;
     }
   };
 
+  // Effect to trigger refresh when dependencies change
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    // Only refresh when we have a user and profile loading is complete
+    if (user && !profileLoading) {
+      console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
+      refresh();
+    }
+  }, [user, profileLoading, profile?.is_influencer, profile?.is_fake, refresh]);
 
   return {
     subscribed,
@@ -185,6 +216,7 @@ export const useSubscription = (): SubscriptionData => {
     bypassOfferLimits,
     refresh,
     createCheckoutSession,
-    openCustomerPortal
+    openCustomerPortal,
+    error
   };
 };
