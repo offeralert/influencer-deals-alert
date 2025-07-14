@@ -97,34 +97,21 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
   return (
     <SubscriptionErrorBoundary>
       <div className="space-y-6">
-        {isLoadingCount ? (
-          <Card>
-            <CardContent className="py-6">
-              <div className="flex items-center justify-center">
-                <Loader className="h-6 w-6 animate-spin mr-2" />
-                Loading subscription status...
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <SubscriptionStatus
-              currentOfferCount={currentOfferCount}
-              maxOffers={maxOffers}
-              subscriptionTier={subscriptionTier}
-              bypassOfferLimits={bypassOfferLimits}
-              nextTier={nextTier}
-            />
-            
-            <UpgradePlanSection
-              currentOfferCount={currentOfferCount}
-              maxOffers={maxOffers}
-              subscriptionTier={subscriptionTier}
-              nextTier={nextTier}
-              bypassOfferLimits={bypassOfferLimits}
-            />
-          </>
-        )}
+        <SubscriptionStatus
+          currentOfferCount={currentOfferCount}
+          maxOffers={maxOffers}
+          subscriptionTier={subscriptionTier}
+          bypassOfferLimits={bypassOfferLimits}
+          nextTier={nextTier}
+        />
+        
+        <UpgradePlanSection
+          currentOfferCount={currentOfferCount}
+          maxOffers={maxOffers}
+          subscriptionTier={subscriptionTier}
+          nextTier={nextTier}
+          bypassOfferLimits={bypassOfferLimits}
+        />
 
         <Card>
           <CardHeader>

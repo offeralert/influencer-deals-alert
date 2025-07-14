@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +26,7 @@ export const useSubscription = (): SubscriptionData => {
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Check if this is a fake account - this determines unlimited uploads
@@ -62,7 +61,6 @@ export const useSubscription = (): SubscriptionData => {
     // Don't proceed if we don't have a user or if auth is not ready
     if (!user) {
       console.log(`[SUBSCRIPTION] No user found, stopping refresh`);
-      setIsLoading(false);
       return;
     }
 
@@ -75,7 +73,15 @@ export const useSubscription = (): SubscriptionData => {
     // Check if user is an influencer
     if (!isInfluencer) {
       console.log(`[SUBSCRIPTION] User is not an influencer, skipping subscription check`);
-      setIsLoading(false);
+      return;
+    }
+
+    // For fake accounts, skip the expensive subscription check entirely
+    if (isFakeAccount) {
+      console.log("[SUBSCRIPTION] Fake account detected - bypassing subscription check");
+      setSubscribed(false);
+      setSubscriptionTier("Starter");
+      setSubscriptionEnd(null);
       return;
     }
 
@@ -83,16 +89,6 @@ export const useSubscription = (): SubscriptionData => {
     setError(null);
     
     try {
-      // For fake accounts, we don't need to check Stripe subscription
-      if (isFakeAccount) {
-        console.log("[SUBSCRIPTION] Fake account detected - bypassing subscription check");
-        setSubscribed(false);
-        setSubscriptionTier("Starter");
-        setSubscriptionEnd(null);
-        setIsLoading(false);
-        return;
-      }
-
       console.log("[SUBSCRIPTION] Checking subscription status for real user:", user.id);
       
       const { data, error: funcError } = await supabase.functions.invoke('check-subscription');

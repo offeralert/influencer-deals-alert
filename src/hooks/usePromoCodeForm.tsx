@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -80,7 +79,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   });
   
   const [currentOfferCount, setCurrentOfferCount] = useState(0);
-  const [isLoadingCount, setIsLoadingCount] = useState(true);
+  const [isLoadingCount, setIsLoadingCount] = useState(false);
 
   // Save form data to localStorage whenever it changes
   useEffect(() => {
@@ -105,13 +104,23 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   
   const nextTier = getNextTier();
 
-  // Fetch current offer count
+  // Fetch current offer count only when needed for real accounts
   useEffect(() => {
     const fetchOfferCount = async () => {
       if (!user) return;
       
+      // For fake accounts, skip the count check entirely
+      if (isFakeAccount) {
+        console.log(`[PROMO_FORM] Fake account detected - skipping offer count check`);
+        setCurrentOfferCount(0);
+        setIsLoadingCount(false);
+        return;
+      }
+      
+      setIsLoadingCount(true);
+      
       try {
-        console.log(`[PROMO_FORM] Fetching offer count for user: ${user.id}, Fake account: ${isFakeAccount}`);
+        console.log(`[PROMO_FORM] Fetching offer count for real user: ${user.id}`);
         
         const { count, error } = await supabase
           .from('promo_codes')
@@ -230,29 +239,34 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       return;
     }
 
-    // Check subscription limits for real accounts only
-    if (!isFakeAccount && !bypassOfferLimits && currentOfferCount >= maxOffers) {
-      console.log(`[PROMO_FORM] Subscription limit reached - Current: ${currentOfferCount}, Max: ${maxOffers}, Tier: ${subscriptionTier}`);
-      
-      // Find the next subscription tier that would accommodate more offers
-      let requiredTier = "Boost";
-      
-      if (currentOfferCount >= 20) {
-        requiredTier = "Elite";
-      } else if (currentOfferCount >= 10) {
-        requiredTier = "Pro";
-      } else if (currentOfferCount >= 3) {
-        requiredTier = "Growth";
+    // For fake accounts, completely bypass subscription checks
+    if (isFakeAccount) {
+      console.log(`[PROMO_FORM] Fake account - bypassing all subscription checks`);
+    } else {
+      // Check subscription limits for real accounts only
+      if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
+        console.log(`[PROMO_FORM] Subscription limit reached - Current: ${currentOfferCount}, Max: ${maxOffers}, Tier: ${subscriptionTier}`);
+        
+        // Find the next subscription tier that would accommodate more offers
+        let requiredTier = "Boost";
+        
+        if (currentOfferCount >= 20) {
+          requiredTier = "Elite";
+        } else if (currentOfferCount >= 10) {
+          requiredTier = "Pro";
+        } else if (currentOfferCount >= 3) {
+          requiredTier = "Growth";
+        }
+        
+        toast.error(`You've reached your limit of ${maxOffers} offers with the ${subscriptionTier} plan.`, {
+          description: `Upgrade to ${requiredTier} for more offer slots.`,
+          action: {
+            label: `Upgrade to ${requiredTier}`,
+            onClick: () => window.location.href = "/pricing"
+          },
+        });
+        return;
       }
-      
-      toast.error(`You've reached your limit of ${maxOffers} offers with the ${subscriptionTier} plan.`, {
-        description: `Upgrade to ${requiredTier} for more offer slots.`,
-        action: {
-          label: `Upgrade to ${requiredTier}`,
-          onClick: () => window.location.href = "/pricing"
-        },
-      });
-      return;
     }
 
     setIsLoading(true);
@@ -301,21 +315,23 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
           category: "Fashion",
         });
         
-        // Update the current offer count
-        setCurrentOfferCount(prev => prev + 1);
-        
-        // Refresh subscription data to ensure we have the latest limits
-        await refresh();
-        
-        // Show upgrade suggestions if approaching the limit (only for real accounts)
-        if (!isFakeAccount && !bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
-          toast("Running out of offer slots!", {
-            description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
-            action: {
-              label: "Upgrade Plan",
-              onClick: () => window.location.href = "/pricing"
-            }
-          });
+        // Update the current offer count only for real accounts
+        if (!isFakeAccount) {
+          setCurrentOfferCount(prev => prev + 1);
+          
+          // Refresh subscription data to ensure we have the latest limits
+          await refresh();
+          
+          // Show upgrade suggestions if approaching the limit
+          if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+            toast("Running out of offer slots!", {
+              description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
+              action: {
+                label: "Upgrade Plan",
+                onClick: () => window.location.href = "/pricing"
+              }
+            });
+          }
         }
         
         // Notify parent component
