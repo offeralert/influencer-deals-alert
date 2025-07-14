@@ -22,7 +22,16 @@ const Index = () => {
   const { user, profile, loading, isReady } = useAuth();
   const navigate = useNavigate();
 
-  // Show loading state while authentication is being determined
+  // For authenticated users, redirect to their dashboard immediately when ready
+  useEffect(() => {
+    if (user && isReady) {
+      console.log("Authenticated user, redirecting to dashboard");
+      const dashboardRoute = getDashboardRoute(profile);
+      navigate(dashboardRoute, { replace: true });
+    }
+  }, [user, profile, isReady, navigate]);
+
+  // Show loading state only while authentication is being determined
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -34,62 +43,46 @@ const Index = () => {
     );
   }
 
-  // For non-logged-in users, show the educational flow
-  if (!user) {
-    return (
-      <div className="min-h-screen">
-        <div className="section-container">
-          <StaticOnlyHeroSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <HowItWorksSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <AddToDesktopSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <WhyItMattersSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <OfferAlertAdvantageSection />
-        </div>
-        
-        <Separator className="h-[1px] bg-gray-100" />
-        
-        <div className="section-container">
-          <CallToActionSection />
-        </div>
-      </div>
-    );
+  // For authenticated users who haven't redirected yet, show minimal loading
+  if (user && isReady) {
+    return null; // This will be very brief as the useEffect will redirect immediately
   }
 
-  // For authenticated users, redirect to their dashboard when ready
-  useEffect(() => {
-    if (user && isReady) {
-      console.log("Authenticated user, redirecting to dashboard");
-      const dashboardRoute = getDashboardRoute(profile);
-      navigate(dashboardRoute);
-    }
-  }, [user, profile, isReady, navigate]);
-
-  // Show loading while we redirect authenticated users
+  // For non-logged-in users, show the educational flow
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mx-auto mb-4"></div>
-        <p>Redirecting to your dashboard...</p>
+    <div className="min-h-screen">
+      <div className="section-container">
+        <StaticOnlyHeroSection />
+      </div>
+      
+      <Separator className="h-[1px] bg-gray-100" />
+      
+      <div className="section-container">
+        <HowItWorksSection />
+      </div>
+      
+      <Separator className="h-[1px] bg-gray-100" />
+      
+      <div className="section-container">
+        <AddToDesktopSection />
+      </div>
+      
+      <Separator className="h-[1px] bg-gray-100" />
+      
+      <div className="section-container">
+        <WhyItMattersSection />
+      </div>
+      
+      <Separator className="h-[1px] bg-gray-100" />
+      
+      <div className="section-container">
+        <OfferAlertAdvantageSection />
+      </div>
+      
+      <Separator className="h-[1px] bg-gray-100" />
+      
+      <div className="section-container">
+        <CallToActionSection />
       </div>
     </div>
   );
