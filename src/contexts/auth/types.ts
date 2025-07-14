@@ -6,12 +6,12 @@ export interface ProfileType {
   username?: string;
   full_name?: string;
   avatar_url?: string;
-  is_influencer?: boolean;
   is_agency?: boolean;
   is_fake?: boolean;
   category?: string;
   created_at?: string;
   updated_at?: string;
+  is_creditcard?: boolean;
 }
 
 export interface AuthContextType {

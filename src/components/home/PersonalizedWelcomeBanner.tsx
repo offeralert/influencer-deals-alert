@@ -26,35 +26,20 @@ const PersonalizedWelcomeBanner = () => {
     );
   }
 
-  // Redirect users without roles to role selection
-  useEffect(() => {
-    if (profile && !isInfluencer && !isAgency) {
-      console.log("User has no role assigned, redirecting to role selection");
-      navigate("/influencer-apply");
-    }
-  }, [profile, isInfluencer, isAgency, navigate]);
-
-  // Don't render if user has no role (they'll be redirected)
-  if (!isInfluencer && !isAgency) {
-    return null;
-  }
-
   const displayName = profile?.full_name || profile?.username || 'there';
   
   const getBannerStyles = () => {
     if (isAgency) {
       return "bg-brand-purple text-white";
     }
-    if (isInfluencer) {
-      return "bg-brand-green text-white";
-    }
-    return "bg-gray-100 text-gray-800";
+    // Everyone else is an influencer by default
+    return "bg-brand-green text-white";
   };
 
   const getUserTypeLabel = () => {
     if (isAgency) return "Agency";
-    if (isInfluencer) return "Influencer";
-    return "Member";
+    // Everyone else is an influencer by default
+    return "Influencer";
   };
 
   return (

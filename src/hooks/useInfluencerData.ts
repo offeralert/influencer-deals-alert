@@ -30,11 +30,13 @@ export const useInfluencerData = (username: string | undefined) => {
     try {
       setLoading(true);
       
+      // Updated query: find users who are not agencies or credit cards (making them influencers by default)
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('username', username)
-        .eq('is_influencer', true)
+        .neq('is_agency', true)
+        .neq('is_creditcard', true)
         .single();
       
       if (profileError) {

@@ -23,7 +23,8 @@ export const useManagedInfluencers = () => {
             full_name,
             username,
             avatar_url,
-            is_influencer
+            is_agency,
+            is_creditcard
           )
         `)
         .eq('agency_id', user.id)

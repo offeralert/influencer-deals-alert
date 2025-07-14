@@ -2,10 +2,7 @@
 import { ProfileType } from "@/contexts/auth/types";
 
 export const getDashboardRoute = (profile: ProfileType | null): string => {
-  if (!profile) return "/influencer-apply";
-  
-  if (profile.is_agency) return "/agency-dashboard";
-  if (profile.is_influencer) return "/influencer-dashboard";
-  
-  return "/influencer-apply";
+  // Ultra-simple logic: Agency goes to agency dashboard, everyone else goes to influencer dashboard
+  if (profile?.is_agency) return "/agency-dashboard";
+  return "/influencer-dashboard";
 };

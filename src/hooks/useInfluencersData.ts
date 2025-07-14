@@ -40,11 +40,12 @@ export const useInfluencersData = (
         }
 
         // Now fetch only those influencers who have promo codes
+        // Updated query: exclude agencies and credit cards instead of checking is_influencer
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
-          .eq('is_influencer', true)
-          .eq('is_creditcard', false)
+          .neq('is_agency', true)
+          .neq('is_creditcard', true)
           .in('id', influencerIds)
           .order(sortOption === 'alphabetical' ? 'full_name' : 'created_at', 
                  { ascending: sortOption === 'alphabetical' });

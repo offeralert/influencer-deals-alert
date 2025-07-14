@@ -30,8 +30,8 @@ const InfluencerDashboard = () => {
     );
   }
 
-  // Redirect if not authenticated or not an influencer
-  if (!user || !isInfluencer) {
+  // Redirect if not authenticated (simplified - no longer checking isInfluencer since everyone is by default)
+  if (!user) {
     navigate("/login");
     return null;
   }

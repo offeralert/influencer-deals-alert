@@ -29,7 +29,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchProfile
   });
 
-  const isInfluencer = profile?.is_influencer === true;
+  // Ultra-simple logic: Everyone is an influencer unless they're an agency or credit card
+  const isInfluencer = profile ? !profile.is_agency && !profile.is_creditcard : true;
   const isAgency = profile?.is_agency === true;
   const isAuthenticated = !!user;
   
