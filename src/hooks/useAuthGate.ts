@@ -16,7 +16,7 @@ export const useAuthGate = ({
   requireAgency = false,
   redirectTo = "/login"
 }: UseAuthGateOptions = {}) => {
-  const { user, profile, isReady } = useAuth();
+  const { user, profile, isReady, isInfluencer, isAgency } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,17 +30,17 @@ export const useAuthGate = ({
     }
 
     // Check if influencer status is required
-    if (requireInfluencer && (!user || !profile?.is_influencer)) {
+    if (requireInfluencer && (!user || !isInfluencer)) {
       navigate(redirectTo);
       return;
     }
 
     // Check if agency status is required
-    if (requireAgency && (!user || !profile?.is_agency)) {
+    if (requireAgency && (!user || !isAgency)) {
       navigate(redirectTo);
       return;
     }
-  }, [user, profile, isReady, requireAuth, requireInfluencer, requireAgency, redirectTo, navigate]);
+  }, [user, profile, isReady, requireAuth, requireInfluencer, requireAgency, redirectTo, navigate, isInfluencer, isAgency]);
 
   return {
     user,
@@ -49,7 +49,7 @@ export const useAuthGate = ({
     isLoading: !isReady,
     isAuthenticated: !!user,
     isAuthorized: true,
-    isInfluencer: !!profile?.is_influencer,
-    isAgency: !!profile?.is_agency,
+    isInfluencer,
+    isAgency,
   };
 };

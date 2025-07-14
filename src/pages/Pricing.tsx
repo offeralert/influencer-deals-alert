@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,7 +12,7 @@ import { createSubscriptionPayload, getPlanValue } from "@/utils/metaTrackingHel
 
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isInfluencer } = useAuth();
   const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { track } = useMetaTracking();
@@ -149,7 +150,7 @@ const PricingPage = () => {
       return;
     }
     
-    if (!profile?.is_influencer) {
+    if (!isInfluencer) {
       toast.info("You need to be an influencer to subscribe");
       navigate('/influencer-apply');
       return;

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +23,7 @@ interface SubscriptionData {
 }
 
 export const useSubscription = (): SubscriptionData => {
-  const { user, profile, isReady } = useAuth();
+  const { user, profile, isReady, isInfluencer } = useAuth();
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export const useSubscription = (): SubscriptionData => {
   const bypassOfferLimits = BYPASS_OFFER_LIMITS || isFakeAccount;
 
   const refresh = useCallback(async () => {
-    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${profile?.is_influencer}`);
+    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${isInfluencer}`);
     
     // Don't proceed if we don't have a user or if auth is not ready
     if (!user) {
@@ -68,7 +69,7 @@ export const useSubscription = (): SubscriptionData => {
     }
 
     // Check if user is an influencer
-    if (!profile?.is_influencer) {
+    if (!isInfluencer) {
       console.log(`[SUBSCRIPTION] User is not an influencer, skipping subscription check`);
       setIsLoading(false);
       return;
@@ -130,7 +131,7 @@ export const useSubscription = (): SubscriptionData => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, profile, isReady]);
+  }, [user, profile, isReady, isInfluencer]);
 
   const createCheckoutSession = async (
     planType: SubscriptionTier, 
@@ -204,7 +205,7 @@ export const useSubscription = (): SubscriptionData => {
       console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
       refresh();
     }
-  }, [user, isReady, profile?.is_influencer, profile?.is_fake, refresh]);
+  }, [user, isReady, isInfluencer, profile?.is_fake, refresh]);
 
   return {
     subscribed,

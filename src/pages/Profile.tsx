@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -35,7 +36,7 @@ interface PromoCode {
 }
 
 const Profile = () => {
-  const { user, profile, isLoading, signOut } = useAuth();
+  const { user, profile, isLoading, signOut, isInfluencer } = useAuth();
   const navigate = useNavigate();
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [loadingPromoCodes, setLoadingPromoCodes] = useState(false);
@@ -52,10 +53,10 @@ const Profile = () => {
   }, [user, isLoading, navigate]);
 
   useEffect(() => {
-    if (user && profile?.is_influencer) {
+    if (user && isInfluencer) {
       fetchPromoCodes();
     }
-  }, [user, profile]);
+  }, [user, isInfluencer]);
 
   const fetchPromoCodes = async () => {
     if (!user) return;
@@ -163,14 +164,14 @@ Best regards`;
               <CardTitle className="text-2xl">{profile?.full_name || 'User'}</CardTitle>
               <div className="text-sm text-muted-foreground">@{profile?.username || user.email?.split('@')[0]}</div>
               <div className="text-sm">{user.email}</div>
-              {profile?.is_influencer && (
+              {isInfluencer && (
                 <div className="text-brand-green font-medium">Influencer Account</div>
               )}
             </div>
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {profile?.is_influencer ? (
+            {isInfluencer ? (
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="grid w-full grid-cols-3 mb-6">
                   <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -192,7 +193,7 @@ Best regards`;
                         </div>
                         <div>
                           <span className="font-medium">Account type:</span>{" "}
-                          {profile?.is_influencer ? "Influencer" : "User"}
+                          {isInfluencer ? "Influencer" : "User"}
                         </div>
                         {subscribed && (
                           <div>

@@ -1,4 +1,3 @@
-
 import { Link, useNavigate } from "react-router-dom";
 import { UserPlus, Instagram, Mail, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,9 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 
 const MobileFooter = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isInfluencer } = useAuth();
   const navigate = useNavigate();
-  const isInfluencer = profile?.is_influencer === true;
   
   const { 
     subscribed, 

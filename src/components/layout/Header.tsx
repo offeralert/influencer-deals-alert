@@ -17,7 +17,7 @@ import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 const Header = () => {
   const isMobile = useIsMobile();
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, isInfluencer, isAgency } = useAuth();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -25,12 +25,6 @@ const Header = () => {
     setIsSheetOpen(false);
     navigate(path);
   };
-
-  // Helper to determine if the user is an influencer
-  const isInfluencer = profile?.is_influencer === true;
-  
-  // Helper to determine if the user is an agency
-  const isAgency = profile?.is_agency === true;
   
   // Get avatar URL
   const avatarUrl = user ? getAvatarUrl(profile?.avatar_url) : null;
