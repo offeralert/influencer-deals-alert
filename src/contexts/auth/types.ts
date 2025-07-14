@@ -10,6 +10,7 @@ export type ProfileType = {
   is_featured?: boolean;
   is_agency?: boolean;
   is_creditcard?: boolean;
+  is_fake?: boolean;
   category?: string;
 };
 
