@@ -12,7 +12,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { PROMO_CODE_CATEGORIES } from "@/constants/promoCodeConstants";
-import { Info } from "lucide-react";
+import { Info, Loader } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -128,6 +128,25 @@ const PromoCodeFormFields = ({
           />
         </div>
         
+        <div className="space-y-2">
+          <Label htmlFor="category">Category*</Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value) => handleSelectChange("category", value)}
+            disabled={isLoading || disabled}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {PROMO_CODE_CATEGORIES.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
         <div className="space-y-2">
           <Label htmlFor="expirationDate">Expiration Date</Label>
@@ -167,27 +186,40 @@ const PromoCodeFormFields = ({
         </div>
       </div>
       
-        <div className="space-y-2">
-          <Label htmlFor="description">Offer Details*</Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            placeholder="10% off"
-            required
-            disabled={isLoading || disabled}
-            className="min-h-[60px]"
-          />
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="description">Offer Details*</Label>
+        <Textarea
+          id="description"
+          name="description"
+          value={formData.description}
+          onChange={handleChange}
+          placeholder="10% off"
+          required
+          disabled={isLoading || disabled}
+          className="min-h-[60px]"
+        />
+      </div>
       
       <Button
         type="submit"
         className="w-full bg-brand-green hover:bg-brand-green/90"
         disabled={isLoading || disabled}
       >
-        {isLoading ? "Adding Promo Code..." : "Add Promo Code"}
+        {isLoading ? (
+          <>
+            <Loader className="mr-2 h-4 w-4 animate-spin" />
+            Adding Promo Code...
+          </>
+        ) : (
+          "Add Promo Code"
+        )}
       </Button>
+      
+      {disabled && (
+        <div className="text-sm text-center text-muted-foreground">
+          You've reached your current plan's limit. Upgrade to add more offers.
+        </div>
+      )}
     </form>
   );
 };

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { extractDomain } from "@/utils/supabaseQueries";
-import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
+import { useSubscription } from "@/hooks/useSubscription";
 import { SUBSCRIPTION_TIERS } from "@/constants/promoCodeConstants";
 
 interface PromoCodeFormData {
@@ -54,9 +54,12 @@ const clearStoredFormData = () => {
 };
 
 export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { subscriptionTier, maxOffers, bypassOfferLimits, refresh } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Check if this is a fake account
+  const isFakeAccount = profile?.is_fake === true;
   
   // Initialize form data with stored values if available
   const [formData, setFormData] = useState<PromoCodeFormData>(() => {
@@ -108,23 +111,32 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       if (!user) return;
       
       try {
+        console.log(`[PROMO_FORM] Fetching offer count for user: ${user.id}, Fake account: ${isFakeAccount}`);
+        
         const { count, error } = await supabase
           .from('promo_codes')
           .select('*', { count: 'exact', head: true })
           .eq('influencer_id', user.id);
         
-        if (error) throw error;
-        setCurrentOfferCount(count || 0);
-        console.log(`[PROMO_FORM] Current offer count: ${count || 0}, Max offers: ${maxOffers}`);
+        if (error) {
+          console.error("[PROMO_FORM] Error fetching offer count:", error);
+          throw error;
+        }
+        
+        const currentCount = count || 0;
+        setCurrentOfferCount(currentCount);
+        
+        console.log(`[PROMO_FORM] Current offer count: ${currentCount}, Max offers: ${maxOffers}, Fake account: ${isFakeAccount}, Bypass limits: ${bypassOfferLimits}`);
       } catch (err) {
         console.error("Error fetching offer count:", err);
+        toast.error("Failed to fetch current offer count");
       } finally {
         setIsLoadingCount(false);
       }
     };
 
     fetchOfferCount();
-  }, [user, maxOffers]);
+  }, [user, maxOffers, isFakeAccount, bypassOfferLimits]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -192,11 +204,15 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     if (!user) {
       toast.error("You must be logged in to add promo codes");
       return;
     }
 
+    console.log(`[PROMO_FORM] Form submission started - User: ${user.id}, Fake account: ${isFakeAccount}, Current count: ${currentOfferCount}, Max offers: ${maxOffers}, Bypass limits: ${bypassOfferLimits}`);
+
+    // Validate required fields
     if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.brandInstagramHandle.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
       toast.error("Please fill in all required fields");
       return;
@@ -214,8 +230,10 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       return;
     }
 
-    // Check subscription limits only if not bypassing
-    if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
+    // Check subscription limits for real accounts only
+    if (!isFakeAccount && !bypassOfferLimits && currentOfferCount >= maxOffers) {
+      console.log(`[PROMO_FORM] Subscription limit reached - Current: ${currentOfferCount}, Max: ${maxOffers}, Tier: ${subscriptionTier}`);
+      
       // Find the next subscription tier that would accommodate more offers
       let requiredTier = "Boost";
       
@@ -228,6 +246,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       }
       
       toast.error(`You've reached your limit of ${maxOffers} offers with the ${subscriptionTier} plan.`, {
+        description: `Upgrade to ${requiredTier} for more offer slots.`,
         action: {
           label: `Upgrade to ${requiredTier}`,
           onClick: () => window.location.href = "/pricing"
@@ -239,6 +258,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     setIsLoading(true);
 
     try {
+      console.log(`[PROMO_FORM] Attempting to insert promo code for user: ${user.id}`);
+      
       const { error, data } = await supabase.from("promo_codes").insert({
         influencer_id: user.id,
         brand_name: formData.brandName,
@@ -252,12 +273,14 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       }).select();
 
       if (error) {
-        console.error("Error adding promo code:", error);
+        console.error("[PROMO_FORM] Error adding promo code:", error);
         toast.error(`Failed to add promo code: ${error.message}`);
         return;
       }
 
       if (data && data.length > 0) {
+        console.log(`[PROMO_FORM] Successfully added promo code: ${data[0].id}`);
+        
         // Update domain mappings for all followers with brand_url as the ONLY source
         await updateFollowerDomains(user.id, formData.brandUrl);
 
@@ -284,8 +307,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         // Refresh subscription data to ensure we have the latest limits
         await refresh();
         
-        // Show upgrade suggestions if approaching the limit
-        if (!bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
+        // Show upgrade suggestions if approaching the limit (only for real accounts)
+        if (!isFakeAccount && !bypassOfferLimits && currentOfferCount + 1 >= maxOffers - 1 && nextTier) {
           toast("Running out of offer slots!", {
             description: `You have ${maxOffers - (currentOfferCount + 1)} slots left. Consider upgrading to ${nextTier.name} for ${nextTier.maxOffers} offers.`,
             action: {
@@ -298,12 +321,12 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         // Notify parent component
         onPromoCodeAdded();
       } else {
-        console.error("No data returned from promo code insert");
+        console.error("[PROMO_FORM] No data returned from promo code insert");
         toast.error("Failed to add promo code: No data returned");
       }
     } catch (error) {
-      console.error("Unexpected error adding promo code:", error);
-      toast.error("An unexpected error occurred");
+      console.error("[PROMO_FORM] Unexpected error adding promo code:", error);
+      toast.error("An unexpected error occurred while adding the promo code");
     } finally {
       setIsLoading(false);
     }
