@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,11 +27,13 @@ export const useSubscription = (): SubscriptionData => {
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFakeAccount, setIsFakeAccount] = useState(false);
 
-  // Calculate max offers based on subscription tier
+  // Calculate max offers based on subscription tier and fake account status
   const maxOffers = useCallback(() => {
-    // If bypassing limits, return unlimited
-    if (BYPASS_OFFER_LIMITS) {
+    // If bypassing limits globally or if this is a fake account, return unlimited
+    if (BYPASS_OFFER_LIMITS || isFakeAccount) {
+      console.log(`[SUBSCRIPTION] Bypassing limits - Global bypass: ${BYPASS_OFFER_LIMITS}, Fake account: ${isFakeAccount}`);
       return Infinity;
     }
     
@@ -44,7 +45,10 @@ export const useSubscription = (): SubscriptionData => {
       case "Elite": return Infinity; // Effectively unlimited
       default: return 1; // Starter tier
     }
-  }, [subscriptionTier]);
+  }, [subscriptionTier, isFakeAccount]);
+
+  // Determine if we should bypass offer limits
+  const bypassOfferLimits = BYPASS_OFFER_LIMITS || isFakeAccount;
 
   const refresh = useCallback(async () => {
     if (!user || !profile?.is_influencer) {
@@ -54,7 +58,21 @@ export const useSubscription = (): SubscriptionData => {
 
     setIsLoading(true);
     setError(null);
+    
     try {
+      // Check if this is a fake account from the profile
+      const isFake = profile?.is_fake || false;
+      setIsFakeAccount(isFake);
+      
+      if (isFake) {
+        console.log("[SUBSCRIPTION] Fake account detected - bypassing subscription check");
+        setSubscribed(false);
+        setSubscriptionTier("Starter");
+        setSubscriptionEnd(null);
+        setIsLoading(false);
+        return;
+      }
+
       console.log("[SUBSCRIPTION] Checking subscription status for user:", user.id);
       
       const { data, error: funcError } = await supabase.functions.invoke('check-subscription');
@@ -164,7 +182,7 @@ export const useSubscription = (): SubscriptionData => {
     subscriptionEnd,
     maxOffers: maxOffers(),
     isLoading,
-    bypassOfferLimits: BYPASS_OFFER_LIMITS,
+    bypassOfferLimits,
     refresh,
     createCheckoutSession,
     openCustomerPortal

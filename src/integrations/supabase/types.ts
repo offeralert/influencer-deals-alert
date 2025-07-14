@@ -85,6 +85,7 @@ export type Database = {
           id: string
           is_agency: boolean | null
           is_creditcard: boolean | null
+          is_fake: boolean
           is_featured: boolean | null
           is_influencer: boolean | null
           updated_at: string | null
@@ -97,6 +98,7 @@ export type Database = {
           id: string
           is_agency?: boolean | null
           is_creditcard?: boolean | null
+          is_fake?: boolean
           is_featured?: boolean | null
           is_influencer?: boolean | null
           updated_at?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           id?: string
           is_agency?: boolean | null
           is_creditcard?: boolean | null
+          is_fake?: boolean
           is_featured?: boolean | null
           is_influencer?: boolean | null
           updated_at?: string | null

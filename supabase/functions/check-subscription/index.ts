@@ -46,15 +46,39 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if the user is an influencer
+    // Check if the user is an influencer and if they're a fake account
     const { data: profileData, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("is_influencer")
+      .select("is_influencer, is_fake")
       .eq("id", user.id)
       .single();
     
     if (profileError) throw new Error(`Profile error: ${profileError.message}`);
     if (!profileData?.is_influencer) throw new Error("User is not an influencer");
+    
+    // If this is a fake account, skip Stripe checks and return default values
+    if (profileData?.is_fake) {
+      logStep("Fake account detected - skipping Stripe checks");
+      await supabaseClient.from("subscribers").upsert({
+        email: user.email,
+        influencer_id: user.id,
+        stripe_customer_id: null,
+        subscribed: false,
+        subscription_tier: "Starter",
+        subscription_end: null,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'email' });
+      
+      return new Response(JSON.stringify({ 
+        subscribed: false,
+        subscription_tier: "Starter",
+        subscription_end: null
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     logStep("Verified user is an influencer");
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
