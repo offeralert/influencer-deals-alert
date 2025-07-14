@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { CATEGORIES } from "@/constants/promoCodeConstants";
+import { PROMO_CODE_CATEGORIES } from "@/constants/promoCodeConstants";
 import { usePromoCodeForm } from "@/hooks/usePromoCodeForm";
 import SubscriptionStatus from "@/components/promo-codes/SubscriptionStatus";
 import UpgradePlanSection from "@/components/promo-codes/UpgradePlanSection";
@@ -200,7 +199,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((category) => (
+                      {PROMO_CODE_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
