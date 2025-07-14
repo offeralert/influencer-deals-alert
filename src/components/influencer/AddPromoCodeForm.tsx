@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import SubscriptionStatus from "@/components/promo-codes/SubscriptionStatus";
 import UpgradePlanSection from "@/components/promo-codes/UpgradePlanSection";
 import SubscriptionErrorBoundary from "@/components/SubscriptionErrorBoundary";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface AddPromoCodeFormProps {
   onPromoCodeAdded?: () => void;
@@ -23,6 +26,7 @@ interface AddPromoCodeFormProps {
 
 const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const { user, isAuthenticated } = useAuth();
   
   const {
     formData,
@@ -40,28 +44,102 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
 
   const { error: subscriptionError, refresh: refreshSubscription } = useSubscription();
 
+  // Check authentication state
+  if (!isAuthenticated) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-orange-600">
+            <AlertCircle className="h-5 w-5" />
+            Authentication Required
+          </CardTitle>
+          <CardDescription>
+            You must be logged in to add promo codes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Please log in to your account to add promo codes.
+          </p>
+          <Button onClick={() => window.location.href = '/login'}>
+            Go to Login
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Update the expiration date in form data
-    const formWithDate = {
-      ...formData,
-      expirationDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
-    };
+    console.log("[ADD_PROMO] Form submitted", { user: user?.id, formData });
     
-    // Create a new event with updated form data
-    const updatedEvent = {
-      ...e,
-      target: {
-        ...e.target,
-        elements: Object.keys(formWithDate).map(key => ({
-          name: key,
-          value: formWithDate[key as keyof typeof formWithDate],
-        })),
-      },
-    };
+    // Validate required fields
+    if (!formData.brandName.trim()) {
+      toast.error("Brand name is required");
+      return;
+    }
     
-    handleSubmit(updatedEvent as React.FormEvent<HTMLFormElement>);
+    if (!formData.brandUrl.trim()) {
+      toast.error("Brand URL is required");
+      return;
+    }
+    
+    if (!formData.brandInstagramHandle.trim()) {
+      toast.error("Brand Instagram handle is required");
+      return;
+    }
+    
+    if (!formData.promoCode.trim()) {
+      toast.error("Promo code is required");
+      return;
+    }
+    
+    if (!formData.affiliateLink.trim()) {
+      toast.error("Affiliate link is required");
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      toast.error("Description is required");
+      return;
+    }
+    
+    if (!formData.category) {
+      toast.error("Category is required");
+      return;
+    }
+
+    try {
+      // Create a new form data object with the date
+      const formDataWithDate = {
+        ...formData,
+        expirationDate: selectedDate ? format(selectedDate, "yyyy-MM-dd") : "",
+      };
+      
+      // Update form data in usePromoCodeForm hook
+      Object.keys(formDataWithDate).forEach(key => {
+        if (key === 'category') {
+          handleSelectChange(key, formDataWithDate[key as keyof typeof formDataWithDate] as string);
+        } else {
+          // Create a synthetic event for other fields
+          const syntheticEvent = {
+            target: {
+              name: key,
+              value: formDataWithDate[key as keyof typeof formDataWithDate]
+            }
+          } as React.ChangeEvent<HTMLInputElement>;
+          handleChange(syntheticEvent);
+        }
+      });
+      
+      // Call the submit handler directly
+      handleSubmit(e);
+      
+    } catch (error) {
+      console.error("[ADD_PROMO] Error in form submission:", error);
+      toast.error("Failed to submit form. Please try again.");
+    }
   };
 
   // Show subscription error if there's one
@@ -132,6 +210,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g., Nike, Sephora"
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -144,6 +223,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g., https://nike.com"
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -158,6 +238,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="@brandname"
                     required
+                    disabled={isLoading}
                   />
                 </div>
 
@@ -170,6 +251,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     onChange={handleChange}
                     placeholder="e.g., SAVE20, NEWUSER"
                     required
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -181,6 +263,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     value={formData.category}
                     onValueChange={(value) => handleSelectChange("category", value)}
                     required
+                    disabled={isLoading}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a category" />
@@ -205,6 +288,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                           "w-full justify-start text-left font-normal",
                           !selectedDate && "text-muted-foreground"
                         )}
+                        disabled={isLoading}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
@@ -232,6 +316,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                   onChange={handleChange}
                   placeholder="https://..."
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -245,13 +330,14 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                   placeholder="Describe the offer, discount, or product..."
                   className="min-h-[100px]"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full" 
-                disabled={isLoading}
+                disabled={isLoading || isLoadingCount}
               >
                 {isLoading ? (
                   <>

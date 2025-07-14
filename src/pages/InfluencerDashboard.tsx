@@ -9,14 +9,22 @@ import {
   Settings,
   Plus,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
 
 const InfluencerDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("promo-codes");
+  const [refreshKey, setRefreshKey] = useState(0);
 
+  const handlePromoCodeAdded = () => {
+    console.log("[DASHBOARD] Promo code added, refreshing lists");
+    // Refresh the promo codes list
+    setRefreshKey(prev => prev + 1);
+    // Switch to the promo codes tab to show the new code
+    setActiveTab("promo-codes");
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -44,11 +52,11 @@ const InfluencerDashboard = () => {
         </TabsList>
 
         <TabsContent value="promo-codes">
-          <PromoCodesList />
+          <PromoCodesList key={refreshKey} />
         </TabsContent>
 
         <TabsContent value="add-promo-code">
-          <AddPromoCodeForm />
+          <AddPromoCodeForm onPromoCodeAdded={handlePromoCodeAdded} />
         </TabsContent>
 
         <TabsContent value="settings">

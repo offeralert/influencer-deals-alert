@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -147,7 +148,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     fetchOfferCount();
   }, [user, maxOffers, isFakeAccount, bypassOfferLimits]);
 
-  const handleChange = (
+  const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
@@ -162,11 +163,11 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-  };
+  }, []);
 
-  const handleSelectChange = (name: string, value: string) => {
+  const handleSelectChange = useCallback((name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
   // Update domain mappings for all followers with brand_url as the ONLY source
   const updateFollowerDomains = async (influencerId: string, brandUrl: string | null) => {
@@ -214,28 +215,17 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    console.log(`[PROMO_FORM] Form submission started - User: ${user?.id}, Data:`, formData);
+    
     if (!user) {
+      console.error("[PROMO_FORM] No user found");
       toast.error("You must be logged in to add promo codes");
       return;
     }
 
-    console.log(`[PROMO_FORM] Form submission started - User: ${user.id}, Fake account: ${isFakeAccount}, Current count: ${currentOfferCount}, Max offers: ${maxOffers}, Bypass limits: ${bypassOfferLimits}`);
-
-    // Validate required fields
-    if (!formData.brandName.trim() || !formData.brandUrl.trim() || !formData.brandInstagramHandle.trim() || !formData.promoCode.trim() || !formData.description.trim() || !formData.affiliateLink.trim()) {
+    // Basic validation - form component should handle detailed validation
+    if (!formData.brandName || !formData.brandUrl || !formData.promoCode || !formData.description) {
       toast.error("Please fill in all required fields");
-      return;
-    }
-
-    // Validate the brand URL format
-    if (!formData.brandUrl.match(/^(https?:\/\/)?(www\.)?[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+([/?#].*)?$/i)) {
-      toast.error("Please enter a valid brand URL");
-      return;
-    }
-
-    // Validate Instagram handle format
-    if (!formData.brandInstagramHandle.match(/^@[a-zA-Z0-9._]+$/)) {
-      toast.error("Please enter a valid Instagram handle (e.g., @brandname)");
       return;
     }
 
@@ -278,7 +268,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         influencer_id: user.id,
         brand_name: formData.brandName,
         brand_url: formData.brandUrl,
-        brand_instagram_handle: formData.brandInstagramHandle,
+        brand_instagram_handle: formData.brandInstagramHandle || '',
         promo_code: formData.promoCode,
         description: formData.description,
         expiration_date: formData.expirationDate || null,
