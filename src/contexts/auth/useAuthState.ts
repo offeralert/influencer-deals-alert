@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { ProfileType } from "./types";
 import { supabase } from "@/integrations/supabase/client";
