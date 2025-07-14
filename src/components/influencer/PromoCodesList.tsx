@@ -26,7 +26,7 @@ interface PromoCodesListProps {
 }
 
 const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
-  const { user, isReady } = useAuth();
+  const { user } = useAuth();
   const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -35,14 +35,11 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
   const fetchPromoCodes = async () => {
     if (!user) return;
     
-    console.log("[PROMO CODES LIST] Fetching promo codes for user:", user.id);
     setLoading(true);
     try {
       const { data, error } = await getPromoCodes()
         .eq('influencer_id', user.id)
         .order('created_at', { ascending: false });
-      
-      console.log("[PROMO CODES LIST] Query result:", { data, error });
       
       if (error) {
         console.error("Error fetching promo codes:", error);
@@ -50,7 +47,6 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
         return;
       }
       
-      console.log("[PROMO CODES LIST] Fetched", data?.length || 0, "promo codes");
       setPromoCodes(data || []);
     } catch (error) {
       console.error("Error in fetchPromoCodes:", error);
@@ -61,10 +57,10 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
   };
 
   useEffect(() => {
-    if (isReady && user) {
+    if (user) {
       fetchPromoCodes();
     }
-  }, [user, isReady]);
+  }, [user?.id]);
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
@@ -92,24 +88,6 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
     }
   };
 
-  if (!isReady) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Promo Codes</CardTitle>
-          <CardDescription>
-            Loading your promotional codes...
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-green mx-auto mb-4"></div>
-            Loading...
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   if (loading) {
     return (

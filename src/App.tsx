@@ -33,6 +33,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -54,8 +55,16 @@ const AppContent = () => {
         <Route path="credit-cards" element={<CreditCards />} />
         <Route path="influencer/:username" element={<InfluencerProfile />} />
         <Route path="brand/:brandName" element={<BrandProfile />} />
-        <Route path="influencer-dashboard" element={<InfluencerDashboard />} />
-        <Route path="agency-dashboard" element={<AgencyDashboard />} />
+        <Route path="influencer-dashboard" element={
+          <ProtectedRoute requireAuth={true}>
+            <InfluencerDashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="agency-dashboard" element={
+          <ProtectedRoute requireAuth={true} requireAgency={true}>
+            <AgencyDashboard />
+          </ProtectedRoute>
+        } />
         <Route path="manage-influencer-codes/:influencerId" element={<ManageInfluencerCodes />} />
         <Route path="categories" element={<Categories />} />
         <Route path="contact" element={<Contact />} />
