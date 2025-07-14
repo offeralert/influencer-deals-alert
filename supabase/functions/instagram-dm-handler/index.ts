@@ -225,12 +225,20 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
   console.log(`Shared URL from payload: ${sharedUrl}`);
 
   try {
+    // Validate access token format
+    if (!accessToken.includes('|')) {
+      console.error("❌ Access token appears to be in wrong format (missing |)");
+      await sendInstagramMessage(senderId, "error_token_invalid", []);
+      return null;
+    }
+
     // Extract clean Instagram URL from the shared URL
     const instagramUrl = extractInstagramUrl(sharedUrl);
     
     if (!instagramUrl) {
       console.log("❌ Could not extract valid Instagram URL from shared content");
-      await sendInstagramMessage(senderId, "error_processing", []);
+      console.log(`Original URL: ${sharedUrl}`);
+      await sendInstagramMessage(senderId, "error_url_extraction", []);
       return null;
     }
 
@@ -238,10 +246,18 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
 
     // Use Instagram oEmbed API to get post information
     const oembedUrl = `https://graph.facebook.com/v23.0/instagram_oembed?url=${encodeURIComponent(instagramUrl)}&access_token=${accessToken}`;
-    console.log(`Making oEmbed API call: ${oembedUrl.replace(accessToken, '[REDACTED]')}`);
+    console.log(`Making oEmbed API call to: ${oembedUrl.replace(accessToken, '[REDACTED]')}`);
     
-    const response = await fetch(oembedUrl);
+    const response = await fetch(oembedUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'OfferAlert/1.0'
+      }
+    });
+    
     console.log(`oEmbed API Response status: ${response.status}`);
+    console.log(`oEmbed API Response headers:`, Object.fromEntries(response.headers.entries()));
     
     if (response.ok) {
       const oembedData: InstagramOEmbedResponse = await response.json();
@@ -257,21 +273,39 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
         return brandHandle;
       } else {
         console.log("❌ No author_name found in oEmbed response");
-        await sendInstagramMessage(senderId, "error_processing", []);
+        await sendInstagramMessage(senderId, "error_no_author", []);
         return null;
       }
     } else {
       const errorText = await response.text();
       console.log(`❌ oEmbed API call failed (${response.status}): ${errorText}`);
       
-      // Handle specific error cases
+      // Enhanced error handling with specific error codes
       if (response.status === 400) {
-        console.log("Sending 'media not found' error message to user");
-        await sendInstagramMessage(senderId, "error_media_not_found", []);
+        if (errorText.includes('Invalid media URL') || errorText.includes('URL not found')) {
+          console.log("Error: Invalid or not found media URL");
+          await sendInstagramMessage(senderId, "error_media_not_found", []);
+        } else if (errorText.includes('Unsupported URL')) {
+          console.log("Error: Unsupported URL format");
+          await sendInstagramMessage(senderId, "error_unsupported_url", []);
+        } else {
+          console.log("Error: Bad request - general");
+          await sendInstagramMessage(senderId, "error_bad_request", []);
+        }
+      } else if (response.status === 401) {
+        console.log("Error: Unauthorized - token issue");
+        await sendInstagramMessage(senderId, "error_unauthorized", []);
       } else if (response.status === 403) {
-        console.log("Sending 'private media' error message to user");
+        console.log("Error: Forbidden - private media or permissions");
         await sendInstagramMessage(senderId, "error_private_media", []);
+      } else if (response.status === 404) {
+        console.log("Error: Media not found");
+        await sendInstagramMessage(senderId, "error_media_not_found", []);
+      } else if (response.status === 429) {
+        console.log("Error: Rate limit exceeded");
+        await sendInstagramMessage(senderId, "error_rate_limit", []);
       } else {
+        console.log("Error: General processing error");
         await sendInstagramMessage(senderId, "error_processing", []);
       }
       return null;
@@ -280,6 +314,8 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
   } catch (error) {
     console.error("❌ Error processing shared media with oEmbed:", error);
     console.error("Error stack:", error.stack);
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
     await sendInstagramMessage(senderId, "error_processing", []);
     return null;
   }
@@ -290,32 +326,56 @@ function extractInstagramUrl(url: string): string | null {
   console.log(`Input URL: ${url}`);
   
   try {
-    // Handle various Instagram URL formats
+    // Handle various Instagram URL formats with improved regex patterns
     const instagramPatterns = [
-      // Standard post URLs
-      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/p\/([A-Za-z0-9_-]+)/,
-      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/reel\/([A-Za-z0-9_-]+)/,
-      // Handle URLs that might be encoded or have additional parameters
-      /instagram\.com\/(?:p|reel)\/([A-Za-z0-9_-]+)/,
+      // Standard post URLs (various formats)
+      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/p\/([A-Za-z0-9_-]+)/i,
+      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/reel\/([A-Za-z0-9_-]+)/i,
+      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/tv\/([A-Za-z0-9_-]+)/i,
+      // Handle URLs with additional parameters
+      /instagram\.com\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/i,
     ];
     
+    // Try each pattern
     for (const pattern of instagramPatterns) {
       const match = url.match(pattern);
       if (match) {
         const postId = match[1];
         const cleanUrl = `https://www.instagram.com/p/${postId}/`;
         console.log(`✓ Extracted clean Instagram URL: ${cleanUrl}`);
+        console.log(`✓ Post ID: ${postId}`);
         return cleanUrl;
       }
     }
     
-    // If it's already a clean Instagram URL, return as is
-    if (url.includes('instagram.com') && (url.includes('/p/') || url.includes('/reel/'))) {
-      console.log(`✓ URL is already a clean Instagram URL: ${url}`);
+    // Check if it's already a clean Instagram URL
+    if (url.includes('instagram.com') && (url.includes('/p/') || url.includes('/reel/') || url.includes('/tv/'))) {
+      // Normalize the URL
+      try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname === 'instagram.com' || urlObj.hostname === 'www.instagram.com') {
+          const pathMatch = urlObj.pathname.match(/^\/(p|reel|tv)\/([A-Za-z0-9_-]+)/);
+          if (pathMatch) {
+            const postId = pathMatch[2];
+            const normalizedUrl = `https://www.instagram.com/p/${postId}/`;
+            console.log(`✓ Normalized Instagram URL: ${normalizedUrl}`);
+            return normalizedUrl;
+          }
+        }
+      } catch (e) {
+        console.log("Failed to parse URL with URL constructor:", e.message);
+      }
+      
+      console.log(`✓ Using URL as is: ${url}`);
       return url;
     }
     
     console.log("❌ No valid Instagram URL pattern found");
+    console.log("URL analysis:");
+    console.log("- Contains 'instagram.com':", url.includes('instagram.com'));
+    console.log("- Contains '/p/':", url.includes('/p/'));
+    console.log("- Contains '/reel/':", url.includes('/reel/'));
+    console.log("- Contains '/tv/':", url.includes('/tv/'));
     return null;
     
   } catch (error) {
@@ -371,10 +431,24 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
 
   if (requestedHandle === "error_token_missing") {
     messageText = "Sorry, I'm having configuration issues. Please try again later or contact support.";
+  } else if (requestedHandle === "error_token_invalid") {
+    messageText = "I'm having trouble with my authentication. Please try again later or contact support.";
+  } else if (requestedHandle === "error_url_extraction") {
+    messageText = "I couldn't extract a valid Instagram URL from what you shared. Please make sure you're sharing an Instagram post or reel, or send me a brand's handle directly (like @nike).";
   } else if (requestedHandle === "error_media_not_found") {
     messageText = "I couldn't access that post. It might be deleted, private, or from a restricted account. Try sharing a different post or send me a brand's Instagram handle directly!";
   } else if (requestedHandle === "error_private_media") {
     messageText = "That post appears to be private or restricted. Please share a post from a public account, or send me the brand's Instagram handle directly (like @nike).";
+  } else if (requestedHandle === "error_unsupported_url") {
+    messageText = "That URL format isn't supported. Please share an Instagram post or reel directly, or send me the brand's handle (like @nike).";
+  } else if (requestedHandle === "error_bad_request") {
+    messageText = "I had trouble processing that request. Please try sharing the post again, or send me the brand's Instagram handle directly (like @nike).";
+  } else if (requestedHandle === "error_unauthorized") {
+    messageText = "I'm having authentication issues. Please try again later or contact support.";
+  } else if (requestedHandle === "error_rate_limit") {
+    messageText = "I'm getting too many requests right now. Please wait a moment and try again.";
+  } else if (requestedHandle === "error_no_author") {
+    messageText = "I couldn't identify the brand from that post. Please try sharing a different post or send me the brand's handle directly (like @nike).";
   } else if (requestedHandle === "error_processing") {
     messageText = "I had trouble processing that shared post. Please try sharing the post again, or send me the brand's Instagram handle directly (like @nike).";
   } else if (requestedHandle === "error_database") {
