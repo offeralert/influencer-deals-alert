@@ -38,8 +38,8 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  // Enable automatic update checking
-  useUpdateManager(true);
+  // Only enable update manager after component mounts properly
+  const updateManager = useUpdateManager(true);
 
   return (
     <Routes>

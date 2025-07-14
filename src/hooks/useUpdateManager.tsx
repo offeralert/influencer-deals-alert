@@ -4,6 +4,7 @@ import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
 export const useUpdateManager = (enabled: boolean = true) => {
+  // Add safety checks to prevent hook violations
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
 
@@ -11,11 +12,14 @@ export const useUpdateManager = (enabled: boolean = true) => {
     if (!enabled) return;
 
     let interval: NodeJS.Timeout;
+    let mounted = true;
 
     const checkUpdates = async () => {
+      if (!mounted) return;
+      
       try {
         const hasUpdate = await checkForUpdates();
-        if (hasUpdate && !updateAvailable) {
+        if (hasUpdate && !updateAvailable && mounted) {
           setUpdateAvailable(true);
           showUpdateNotification();
         }
@@ -25,14 +29,18 @@ export const useUpdateManager = (enabled: boolean = true) => {
     };
 
     // Check for updates every 2 minutes
-    interval = setInterval(checkUpdates, 2 * 60 * 1000);
+    interval = setInterval(() => {
+      if (mounted) checkUpdates();
+    }, 2 * 60 * 1000);
     
     // Initial check after 10 seconds for faster startup
-    const initialTimeout = setTimeout(checkUpdates, 10000);
+    const initialTimeout = setTimeout(() => {
+      if (mounted) checkUpdates();
+    }, 10000);
 
     // Check for updates when user returns to the app
     const handleVisibilityChange = () => {
-      if (!document.hidden && enabled) {
+      if (!document.hidden && enabled && mounted) {
         checkUpdates();
       }
     };
@@ -40,6 +48,7 @@ export const useUpdateManager = (enabled: boolean = true) => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
+      mounted = false;
       clearInterval(interval);
       clearTimeout(initialTimeout);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
