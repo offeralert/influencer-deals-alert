@@ -1,25 +1,25 @@
 
-import { Session, User } from "@supabase/supabase-js";
+import { User, Session } from "@supabase/supabase-js";
 
-export type ProfileType = {
+export interface ProfileType {
   id: string;
   username?: string;
   full_name?: string;
   avatar_url?: string;
   is_influencer?: boolean;
-  is_featured?: boolean;
   is_agency?: boolean;
-  is_creditcard?: boolean;
   is_fake?: boolean;
-  category?: string;
-};
+  created_at?: string;
+  updated_at?: string;
+}
 
-export type AuthContextType = {
+export interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: ProfileType | null;
   loading: boolean;
   isLoading: boolean;
+  isReady: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   isInfluencer: boolean;
@@ -29,4 +29,4 @@ export type AuthContextType = {
   justSignedUp: boolean;
   setJustSignedUp: (value: boolean) => void;
   error: string | null;
-};
+}

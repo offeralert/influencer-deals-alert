@@ -41,16 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAgency = profile?.is_agency === true;
   const isAuthenticated = !!user;
   
-  // Overall loading includes both auth loading and profile loading for authenticated users
-  const overallLoading = loading || (user && profileLoading);
-
+  // Simple ready state - both auth and profile are loaded
+  const isReady = !loading && (!user || !profileLoading);
+  
   return (
     <AuthContext.Provider value={{ 
       session, 
       user, 
       profile, 
-      loading: overallLoading,
-      isLoading: overallLoading,
+      loading,
+      isLoading: loading,
+      isReady,
       signOut, 
       refreshProfile,
       isInfluencer,

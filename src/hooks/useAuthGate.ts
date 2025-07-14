@@ -16,12 +16,12 @@ export const useAuthGate = ({
   requireAgency = false,
   redirectTo = "/login"
 }: UseAuthGateOptions = {}) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, isReady } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     // Don't redirect while loading
-    if (loading) return;
+    if (!isReady) return;
 
     // Check if authentication is required
     if (requireAuth && !user) {
@@ -40,15 +40,15 @@ export const useAuthGate = ({
       navigate(redirectTo);
       return;
     }
-  }, [user, profile, loading, requireAuth, requireInfluencer, requireAgency, redirectTo, navigate]);
+  }, [user, profile, isReady, requireAuth, requireInfluencer, requireAgency, redirectTo, navigate]);
 
   return {
     user,
     profile,
-    loading,
-    isLoading: loading,
+    loading: !isReady,
+    isLoading: !isReady,
     isAuthenticated: !!user,
-    isAuthorized: true, // Add this property that InfluencerDashboard expects
+    isAuthorized: true,
     isInfluencer: !!profile?.is_influencer,
     isAgency: !!profile?.is_agency,
   };

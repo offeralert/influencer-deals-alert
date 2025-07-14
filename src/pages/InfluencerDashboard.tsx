@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthGate } from "@/hooks/useAuthGate";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,23 +9,18 @@ import {
   Settings,
   Plus,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
 import SubscriptionErrorBoundary from "@/components/SubscriptionErrorBoundary";
 
 const InfluencerDashboard = () => {
-  const { user } = useAuth();
+  const { user, profile, isReady, isInfluencer } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("promo-codes");
 
-  // Check authentication and influencer status
-  const { isLoading } = useAuthGate({
-    requireAuth: true,
-    requireInfluencer: true,
-    redirectTo: "/login"
-  });
-
-  if (isLoading) {
+  // Show loading while auth is initializing
+  if (!isReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -35,6 +29,18 @@ const InfluencerDashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // Redirect if not authenticated
+  if (!user) {
+    navigate("/login");
+    return null;
+  }
+
+  // Redirect if not an influencer
+  if (!isInfluencer) {
+    navigate("/login");
+    return null;
   }
 
   return (
