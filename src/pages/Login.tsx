@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { getDashboardRoute } from "@/utils/authRedirectUtils";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { user, profile, loading, isReady } = useAuth();
+  const { user, profile, isReady } = useAuth();
   const [formLoading, setFormLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,14 +23,14 @@ const Login = () => {
   });
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Redirect if already logged in - wait for isReady to ensure profile is loaded
+  // Redirect if already logged in - simplified logic
   useEffect(() => {
     if (user && isReady) {
       console.log("User already logged in, redirecting to dashboard");
       const dashboardRoute = getDashboardRoute(profile);
-      navigate(dashboardRoute);
+      navigate(dashboardRoute, { replace: true });
     }
-  }, [user, profile, isReady, navigate]);
+  }, [user, isReady, profile, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -47,12 +48,15 @@ const Login = () => {
     setLoginError(null);
     
     try {
+      console.log("Attempting login for:", formData.email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
 
       if (error) {
+        console.error("Login error:", error);
         if (error.message.includes("Invalid login credentials")) {
           setLoginError("The email or password you entered is incorrect. Please try again.");
         } else if (error.message.includes("Email not confirmed")) {
@@ -60,15 +64,17 @@ const Login = () => {
         } else {
           setLoginError(error.message);
         }
-        console.error("Login error:", error);
         return;
       }
 
-      toast({
-        title: "Successfully logged in!",
-      });
-      
-      // Navigation will be handled by the useEffect hook based on user type
+      if (data.user) {
+        console.log("Login successful for user:", data.user.email);
+        toast({
+          title: "Successfully logged in!",
+        });
+        
+        // Navigation will be handled by the useEffect hook
+      }
     } catch (error) {
       console.error("Unexpected error during login:", error);
       setLoginError("An unexpected error occurred. Please try again.");
@@ -77,13 +83,13 @@ const Login = () => {
     }
   };
 
-  // Show loading state while checking authentication
-  if (loading) {
+  // Show minimal loading state while checking authentication
+  if (!isReady) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-12 px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-green mx-auto mb-4"></div>
-          <p>Checking authentication...</p>
+          <p>Loading...</p>
         </div>
       </div>
     );

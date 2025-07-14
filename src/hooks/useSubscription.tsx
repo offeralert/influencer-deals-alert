@@ -59,9 +59,9 @@ export const useSubscription = (): SubscriptionData => {
   const refresh = useCallback(async () => {
     console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${isInfluencer}, Is fake: ${isFakeAccount}`);
     
-    // Don't proceed if we don't have a user or if auth is not ready
-    if (!user || !isReady) {
-      console.log(`[SUBSCRIPTION] Not ready for refresh - User: ${!!user}, Ready: ${isReady}`);
+    // Don't proceed if we don't have the basic requirements
+    if (!user || !isReady || isInfluencer === undefined) {
+      console.log(`[SUBSCRIPTION] Not ready for refresh - User: ${!!user}, Ready: ${isReady}, Influencer defined: ${isInfluencer !== undefined}`);
       return;
     }
 
@@ -123,9 +123,9 @@ export const useSubscription = (): SubscriptionData => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Removed user object and profile from dependencies
+  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Stable dependencies only
 
-  const createCheckoutSession = async (
+  const createCheckoutSession = useCallback(async (
     planType: SubscriptionTier, 
     productId: string | null = null
   ): Promise<string | null> => {
@@ -156,9 +156,9 @@ export const useSubscription = (): SubscriptionData => {
       toast.error("Failed to create checkout session");
       return null;
     }
-  };
+  }, [user]);
 
-  const openCustomerPortal = async (): Promise<string | null> => {
+  const openCustomerPortal = useCallback(async (): Promise<string | null> => {
     if (!user) {
       toast.error("You must be logged in to manage your subscription");
       return null;
@@ -188,16 +188,16 @@ export const useSubscription = (): SubscriptionData => {
       toast.error(`Failed to open customer portal: ${errorMessage}`);
       return null;
     }
-  };
+  }, [user]);
 
   // Effect to trigger refresh when dependencies change
   useEffect(() => {
-    // Only refresh when we have the minimum required state
+    // Only refresh when we have all the required state and it's stable
     if (user && isReady && isInfluencer !== undefined) {
       console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
       refresh();
     }
-  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Stable dependencies only
+  }, [user?.id, isReady, isInfluencer, isFakeAccount, refresh]);
 
   return {
     subscribed,
