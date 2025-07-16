@@ -1,15 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { getPromoCodes, type PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isExpired, isExpiringSoon } from "@/utils/dateUtils";
+import { usePromoCodesRealtime } from "@/hooks/usePromoCodesRealtime";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,41 +26,11 @@ interface PromoCodesListProps {
 }
 
 const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
-  const { user } = useAuth();
-  const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchPromoCodes = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await getPromoCodes()
-        .eq('influencer_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error("Error fetching promo codes:", error);
-        toast.error("Failed to load promo codes");
-        return;
-      }
-      
-      setPromoCodes(data || []);
-    } catch (error) {
-      console.error("Error in fetchPromoCodes:", error);
-      toast.error("Failed to load promo codes");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchPromoCodes();
-    }
-  }, [user?.id]);
+  // Use real-time hook instead of manual state management
+  const { promoCodes, loading } = usePromoCodesRealtime();
 
   const handleDelete = async (id: string) => {
     setDeleting(true);
@@ -76,8 +46,7 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
         return;
       }
 
-      toast.success("Promo code deleted successfully");
-      fetchPromoCodes();
+      // Real-time hook will automatically update the list
       onPromoCodeUpdated?.();
     } catch (error) {
       console.error("Error in handleDelete:", error);

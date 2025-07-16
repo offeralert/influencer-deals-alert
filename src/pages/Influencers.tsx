@@ -10,7 +10,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { SortOption } from "@/types/explore";
-import { useInfluencersData } from "@/hooks/useInfluencersData";
+import { useInfluencersRealtime } from "@/hooks/useInfluencersRealtime";
 import InfluencersView from "@/components/explore/InfluencersView";
 import SearchBar from "@/components/ui/search-bar";
 import { useScrollToTop } from "@/hooks/useScrollToTop";
@@ -23,7 +23,7 @@ const Influencers = () => {
   
   useScrollToTop();
 
-  const { influencers, loading } = useInfluencersData(
+  const { influencers, loading } = useInfluencersRealtime(
     sortOption,
     searchQuery
   );
