@@ -28,7 +28,8 @@ interface PromoCodeFormData {
   expirationDate: string;
   affiliateLink: string;
   description: string;
-  category: string;
+  promoType: string;
+  promoValue: string;
 }
 
 interface PromoCodeFormFieldsProps {
@@ -128,25 +129,6 @@ const PromoCodeFormFields = ({
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="category">Category*</Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => handleSelectChange("category", value)}
-            disabled={isLoading || disabled}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent>
-              {PROMO_CODE_CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
         
         <div className="space-y-2">
           <Label htmlFor="expirationDate">Expiration Date</Label>
@@ -187,17 +169,31 @@ const PromoCodeFormFields = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="description">Offer Details*</Label>
-        <Textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="10% off"
-          required
-          disabled={isLoading || disabled}
-          className="min-h-[60px]"
-        />
+        <Label>Promo Details*</Label>
+        <div className="flex gap-2">
+          <Input
+            name="promoValue"
+            value={formData.promoValue}
+            onChange={handleChange}
+            placeholder="20"
+            className="w-20"
+            required
+            disabled={isLoading || disabled}
+          />
+          <Select
+            value={formData.promoType}
+            onValueChange={(value) => handleSelectChange("promoType", value)}
+            disabled={isLoading || disabled}
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="$ off">$ off</SelectItem>
+              <SelectItem value="% off">% off</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <Button

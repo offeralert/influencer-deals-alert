@@ -112,12 +112,13 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Brand</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Expires</TableHead>
+                  <TableHead>Brand Name</TableHead>
+                  <TableHead>Brand Website</TableHead>
+                  <TableHead>Brand Instagram</TableHead>
+                  <TableHead>Promo Code</TableHead>
+                  <TableHead>Expiration Date</TableHead>
                   <TableHead>Affiliate Link</TableHead>
+                  <TableHead>Promo Details</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -134,13 +135,27 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
                     }
                   >
                     <TableCell className="font-medium">{code.brand_name}</TableCell>
-                    <TableCell className="font-mono">{code.promo_code}</TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 bg-brand-light dark:bg-brand-dark rounded-full text-xs">
-                        {code.category}
-                      </span>
+                      {code.brand_url ? (
+                        <a 
+                          href={code.brand_url.startsWith('http') ? code.brand_url : `https://${code.brand_url}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline truncate max-w-[150px] inline-block"
+                        >
+                          {code.brand_url.replace(/^https?:\/\//, '').replace(/^www\./, '')}
+                        </a>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">{code.description}</TableCell>
+                    <TableCell className="font-mono">
+                      {code.brand_instagram_handle?.startsWith('@') 
+                        ? code.brand_instagram_handle 
+                        : `@${code.brand_instagram_handle || ''}`
+                      }
+                    </TableCell>
+                    <TableCell className="font-mono font-semibold">{code.promo_code}</TableCell>
                     <TableCell>
                       {code.expiration_date ? (
                         <div className="flex items-center gap-2">
@@ -164,7 +179,7 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
                           href={code.affiliate_link} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-brand-green hover:underline truncate max-w-[150px] inline-block"
+                          className="text-primary hover:underline truncate max-w-[150px] inline-block"
                         >
                           Link
                         </a>
@@ -172,6 +187,7 @@ const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
                         "—"
                       )}
                     </TableCell>
+                    <TableCell className="max-w-[200px] truncate">{code.description}</TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button 

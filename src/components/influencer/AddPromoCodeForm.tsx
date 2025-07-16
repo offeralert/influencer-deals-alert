@@ -100,13 +100,9 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
       return;
     }
     
-    if (!formData.description.trim()) {
-      toast.error("Description is required");
-      return;
-    }
     
-    if (!formData.category) {
-      toast.error("Category is required");
+    if (!formData.promoValue) {
+      toast.error("Promo value is required");
       return;
     }
 
@@ -119,7 +115,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
       
       // Update form data in usePromoCodeForm hook
       Object.keys(formDataWithDate).forEach(key => {
-        if (key === 'category') {
+        if (key === 'promoType') {
           handleSelectChange(key, formDataWithDate[key as keyof typeof formDataWithDate] as string);
         } else {
           // Create a synthetic event for other fields
@@ -256,55 +252,32 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => handleSelectChange("category", value)}
-                    required
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROMO_CODE_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Expiration Date (Optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                        disabled={isLoading}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={setSelectedDate}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+              <div className="space-y-2">
+                <Label>Expiration Date (Optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                      disabled={isLoading}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
@@ -321,17 +294,31 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Describe the offer, discount, or product..."
-                  className="min-h-[100px]"
-                  required
-                  disabled={isLoading}
-                />
+                <Label>Promo Details *</Label>
+                <div className="flex gap-2">
+                  <Input
+                    name="promoValue"
+                    value={formData.promoValue}
+                    onChange={handleChange}
+                    placeholder="20"
+                    className="w-20"
+                    required
+                    disabled={isLoading}
+                  />
+                  <Select
+                    value={formData.promoType}
+                    onValueChange={(value) => handleSelectChange("promoType", value)}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="$ off">$ off</SelectItem>
+                      <SelectItem value="% off">% off</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <Button 

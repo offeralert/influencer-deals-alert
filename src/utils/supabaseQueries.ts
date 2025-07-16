@@ -5,6 +5,8 @@ import { PostgrestFilterBuilder } from "@supabase/postgrest-js";
 export interface PromoCode {
   id: string;
   brand_name: string;
+  brand_url: string;
+  brand_instagram_handle: string;
   promo_code: string;
   description: string;
   expiration_date?: string;

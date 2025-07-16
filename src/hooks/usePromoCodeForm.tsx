@@ -15,7 +15,8 @@ interface PromoCodeFormData {
   expirationDate: string;
   affiliateLink: string;
   description: string;
-  category: string;
+  promoType: string;
+  promoValue: string;
 }
 
 interface UsePromoCodeFormProps {
@@ -72,7 +73,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       expirationDate: "",
       affiliateLink: "",
       description: "",
-      category: "Fashion", // Default category
+      promoType: "$ off",
+      promoValue: "",
     };
     
     // Merge stored data with defaults
@@ -85,7 +87,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   // Save form data to localStorage whenever it changes
   useEffect(() => {
     // Only save if form has any meaningful data
-    const hasData = Object.values(formData).some(value => value.trim() !== "" && value !== "Fashion");
+    const hasData = Object.values(formData).some(value => value.trim() !== "" && value !== "$ off");
     
     if (hasData) {
       saveFormData(formData);
@@ -224,10 +226,15 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     }
 
     // Basic validation - form component should handle detailed validation
-    if (!formData.brandName || !formData.brandUrl || !formData.promoCode || !formData.description) {
+    if (!formData.brandName || !formData.brandUrl || !formData.promoCode || !formData.promoValue) {
       toast.error("Please fill in all required fields");
       return;
     }
+
+    // Combine promo type and value into description
+    const promoDescription = `${formData.promoValue} ${formData.promoType}`;
+
+    console.log(`[PROMO_FORM] Combined promo description: ${promoDescription}`);
 
     // For fake accounts, completely bypass subscription checks
     if (isFakeAccount) {
@@ -270,10 +277,10 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         brand_url: formData.brandUrl,
         brand_instagram_handle: formData.brandInstagramHandle || '',
         promo_code: formData.promoCode,
-        description: formData.description,
+        description: promoDescription,
         expiration_date: formData.expirationDate || null,
         affiliate_link: formData.affiliateLink,
-        category: formData.category,
+        category: "General", // Default category since removed from form
       }).select();
 
       if (error) {
@@ -302,7 +309,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
           expirationDate: "",
           affiliateLink: "",
           description: "",
-          category: "Fashion",
+          promoType: "$ off",
+          promoValue: "",
         });
         
         // Update the current offer count only for real accounts
