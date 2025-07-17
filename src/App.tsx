@@ -86,16 +86,9 @@ const AppContent = () => {
 const AppWithUpdateManager = () => {
   return (
     <AuthProvider>
-      <AppContentWithUpdates />
+      <AppContent />
     </AuthProvider>
   );
-};
-
-const AppContentWithUpdates = () => {
-  // Only enable update manager in production or when specifically needed
-  const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
-  
-  return <AppContent />;
 };
 
 const App = () => (
