@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
@@ -14,6 +13,67 @@ interface PromoCode {
   affiliate_link: string;
   brand_url: string;
   category: string; 
+  brand_instagram_handle?: string;
+}
+
+// Helper function to extract domain from URL with international domain support
+function extractDomain(url: string): string | null {
+  try {
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      return null;
+    }
+    
+    // Check if URL has a scheme, if not add https://
+    let parsedUrl: URL;
+    if (url.match(/^https?:\/\//i)) {
+      parsedUrl = new URL(url);
+    } else {
+      // Add https:// as a fallback scheme
+      parsedUrl = new URL(`https://${url}`);
+    }
+    
+    // Get the hostname and remove www. prefix if present
+    let hostname = parsedUrl.hostname;
+    if (hostname.startsWith('www.')) {
+      hostname = hostname.substring(4);
+    }
+    
+    // Split domain into parts
+    const parts = hostname.split('.');
+    const partsCount = parts.length;
+    
+    // Handle special cases for country-specific TLDs
+    if (partsCount >= 2) {
+      // Get the top level domain (last part)
+      const topLevelDomain = parts[partsCount - 1];
+      
+      // Special handling for known country-specific domains
+      if (topLevelDomain === 'uk' && partsCount >= 3 && parts[partsCount - 2] === 'co') {
+        // Handle .co.uk format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.co.uk`;
+      } else if (topLevelDomain === 'au' && partsCount >= 3 && parts[partsCount - 2] === 'com') {
+        // Handle .com.au format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.com.au`;
+      } else if (topLevelDomain === 'in' && partsCount >= 3 && parts[partsCount - 2] === 'co') {
+        // Handle .co.in format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.co.in`;
+      } else if (topLevelDomain === 'ca' && partsCount >= 3 && 
+                (parts[partsCount - 2] === 'co' || parts[partsCount - 2] === 'com')) {
+        // Handle .co.ca and .com.ca formats
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.${parts[partsCount - 2]}.ca`;
+      }
+    }
+    
+    // Default case: return the domain as is for regular domains or unknown formats
+    return hostname;
+  } catch (e) {
+    console.error("Error parsing URL:", e);
+    return null;
+  }
 }
 
 serve(async (req) => {
@@ -120,12 +180,47 @@ serve(async (req) => {
       }
     }
 
+    // Extract domains from brand URLs for promo_domains table
+    const domains = new Set<string>();
+    promoCodes.forEach(promoCode => {
+      if (promoCode.brand_url) {
+        const domain = extractDomain(promoCode.brand_url);
+        if (domain) {
+          domains.add(domain);
+          console.log(`[UPLOAD] Extracted domain: ${domain} from brand URL: ${promoCode.brand_url}`);
+        }
+      }
+    });
+
+    // Insert domains into promo_domains table
+    if (domains.size > 0) {
+      const domainsArray = Array.from(domains).map(domain => ({
+        domain,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+
+      const { error: domainError } = await supabaseClient
+        .from('promo_domains')
+        .upsert(domainsArray, { 
+          onConflict: 'domain',
+          ignoreDuplicates: true 
+        });
+      
+      if (domainError) {
+        console.error("[UPLOAD] Error inserting domains:", domainError);
+      } else {
+        console.log(`[UPLOAD] Successfully inserted ${domains.size} domains into promo_domains table`);
+      }
+    }
+
     const { data, error } = await supabaseClient
       .from("promo_codes")
       .insert(
         promoCodes.map((promoCode) => ({
           ...promoCode,
           influencer_id: user.user.id, // Make sure to use influencer_id field
+          brand_instagram_handle: promoCode.brand_instagram_handle || ''
         }))
       )
       .select();

@@ -131,7 +131,7 @@ export const createManagedInfluencer = async (
 };
 
 // Helper function to extract and clean domain from URL with improved robustness
-// Handles special international TLDs (.com.au, .co.uk, .in, .ca)
+// Handles special international TLDs (.com.au, .co.uk, .co.in, .ca, .com.ca)
 export const extractDomain = (url: string): string | null => {
   try {
     if (!url || typeof url !== 'string' || url.trim() === '') {
@@ -153,20 +153,37 @@ export const extractDomain = (url: string): string | null => {
       hostname = hostname.substring(4);
     }
     
-    // Handle special country-specific TLDs
+    // Split domain into parts
     const parts = hostname.split('.');
-    if (parts.length >= 3) {
-      // Check for specific country TLDs patterns
-      const lastTwoParts = `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+    const partsCount = parts.length;
+    
+    // Handle special cases for country-specific TLDs
+    if (partsCount >= 2) {
+      // Get the top level domain (last part)
+      const topLevelDomain = parts[partsCount - 1];
       
-      // Handle special country cases: .com.au, .co.uk, .in, .ca
-      if (['com.au', 'co.uk', 'co.in', 'com.ca', 'co.ca'].includes(lastTwoParts)) {
-        // For these special TLDs, return the base domain + country TLD
-        // e.g., for 'example.com.au' return 'example.com.au'
-        return `${parts[parts.length - 3]}.${lastTwoParts}`;
+      // Special handling for known country-specific domains
+      if (topLevelDomain === 'uk' && partsCount >= 3 && parts[partsCount - 2] === 'co') {
+        // Handle .co.uk format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.co.uk`;
+      } else if (topLevelDomain === 'au' && partsCount >= 3 && parts[partsCount - 2] === 'com') {
+        // Handle .com.au format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.com.au`;
+      } else if (topLevelDomain === 'in' && partsCount >= 3 && parts[partsCount - 2] === 'co') {
+        // Handle .co.in format
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.co.in`;
+      } else if (topLevelDomain === 'ca' && partsCount >= 3 && 
+                (parts[partsCount - 2] === 'co' || parts[partsCount - 2] === 'com')) {
+        // Handle .co.ca and .com.ca formats
+        const secondLevelDomain = parts[partsCount - 3];
+        return `${secondLevelDomain}.${parts[partsCount - 2]}.ca`;
       }
     }
     
+    // Default case: return the domain as is for regular domains or unknown formats
     return hostname;
   } catch (e) {
     console.error("Error parsing URL:", url, e);
