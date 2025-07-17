@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { useUpdateManager } from "@/hooks/useUpdateManager";
 import MainLayout from "@/components/layout/MainLayout";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -98,6 +99,7 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppWithUpdateManager />
+        <SpeedInsights />
       </BrowserRouter>
     </QueryClientProvider>
   </ErrorBoundary>
