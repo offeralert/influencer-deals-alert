@@ -7,10 +7,6 @@ import { useAuthInitialization } from "./auth/useAuthInitialization";
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Add guard to ensure we're in a proper React context
-  if (typeof React === 'undefined' || !React.useState) {
-    throw new Error('AuthProvider must be used within a valid React application');
-  }
 
   const {
     session,
