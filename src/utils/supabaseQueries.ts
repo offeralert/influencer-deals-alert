@@ -131,6 +131,7 @@ export const createManagedInfluencer = async (
 };
 
 // Helper function to extract and clean domain from URL with improved robustness
+// Handles special international TLDs (.com.au, .co.uk, .in, .ca)
 export const extractDomain = (url: string): string | null => {
   try {
     if (!url || typeof url !== 'string' || url.trim() === '') {
@@ -146,13 +147,27 @@ export const extractDomain = (url: string): string | null => {
       parsedUrl = new URL(`https://${url}`);
     }
     
-    // Return the hostname (domain) without www. prefix
-    let domain = parsedUrl.hostname;
-    if (domain.startsWith('www.')) {
-      domain = domain.substring(4);
+    // Get the hostname and remove www. prefix if present
+    let hostname = parsedUrl.hostname;
+    if (hostname.startsWith('www.')) {
+      hostname = hostname.substring(4);
     }
     
-    return domain;
+    // Handle special country-specific TLDs
+    const parts = hostname.split('.');
+    if (parts.length >= 3) {
+      // Check for specific country TLDs patterns
+      const lastTwoParts = `${parts[parts.length - 2]}.${parts[parts.length - 1]}`;
+      
+      // Handle special country cases: .com.au, .co.uk, .in, .ca
+      if (['com.au', 'co.uk', 'co.in', 'com.ca', 'co.ca'].includes(lastTwoParts)) {
+        // For these special TLDs, return the base domain + country TLD
+        // e.g., for 'example.com.au' return 'example.com.au'
+        return `${parts[parts.length - 3]}.${lastTwoParts}`;
+      }
+    }
+    
+    return hostname;
   } catch (e) {
     console.error("Error parsing URL:", url, e);
     return null;
