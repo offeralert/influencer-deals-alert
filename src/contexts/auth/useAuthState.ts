@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { ProfileType } from "./types";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 export const useAuthState = () => {
   // Add guard to ensure React hooks are available
-  if (typeof useState !== 'function') {
+  if (typeof React === 'undefined' || typeof React.useState !== 'function') {
     throw new Error('React useState is undefined. Check your imports and render tree.');
   }
 

@@ -1,4 +1,5 @@
 
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -91,14 +92,16 @@ const AppWithUpdateManager = () => {
 };
 
 const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppWithUpdateManager />
-        <SpeedInsights />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </ErrorBoundary>
+  <React.StrictMode>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppWithUpdateManager />
+          <SpeedInsights />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
 );
 
 export default App;
