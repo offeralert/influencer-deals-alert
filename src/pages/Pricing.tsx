@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription, BYPASS_OFFER_LIMITS } from "@/hooks/useSubscription";
+import { useAgencySubscription } from "@/hooks/useAgencySubscription";
 import { useEffect, useState } from "react";
 import { PricingTiersGrid, PricingTier } from "@/components/pricing/PricingTiersGrid";
 import { RefundGuarantee } from "@/components/pricing/RefundGuarantee";
@@ -12,24 +13,93 @@ import { createSubscriptionPayload, getPlanValue } from "@/utils/metaTrackingHel
 
 const PricingPage = () => {
   const navigate = useNavigate();
-  const { user, profile, isInfluencer } = useAuth();
-  const { createCheckoutSession, subscriptionTier, isLoading } = useSubscription();
+  const { user, profile, isInfluencer, isAgency } = useAuth();
+  
+  // Use appropriate subscription hook based on user type
+  const influencerSubscription = useSubscription();
+  const agencySubscription = useAgencySubscription();
+  
+  // Determine which subscription data to use
+  const isUserAgency = isAgency && !isInfluencer;
+  const {
+    createCheckoutSession,
+    subscriptionTier,
+    isLoading
+  } = isUserAgency ? agencySubscription : influencerSubscription;
+  
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { track } = useMetaTracking();
   
-  // Update the pricing tiers based on the bypass flag
+  // Update the pricing tiers based on the bypass flag and user type
+  const getDescription = (baseTier: string) => {
+    if (isUserAgency) {
+      switch (baseTier) {
+        case "starter":
+          return "Perfect for agencies getting started";
+        case "boost":
+          return "For agencies managing small influencer networks";
+        case "growth":
+          return "Ideal for agencies scaling their operations";
+        case "pro":
+          return "Best for full-service agencies";
+        case "elite":
+          return "Custom solutions for enterprise agencies";
+        default:
+          return "Perfect for getting started with Offer Alert";
+      }
+    }
+    return {
+      starter: "Perfect for trying out Offer Alert",
+      boost: "For new influencers growing their audience",
+      growth: "Ideal for influencers scaling their business",
+      pro: "Best for full-time influencers",
+      elite: "For agencies and high-volume partners"
+    }[baseTier] || "Perfect for getting started with Offer Alert";
+  };
+
+  const getFeatures = (tierId: string, maxOffers: number) => {
+    const baseFeatures = {
+      starter: [
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : `Upload ${maxOffers} offer${maxOffers > 1 ? 's' : ''}`,
+        isUserAgency ? "Manage influencer network" : "Appear in user search results",
+        isUserAgency ? "Agency dashboard & analytics" : "Feature in AI deal notifications",
+        "Cancel anytime"
+      ],
+      boost: [
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : `Upload up to ${maxOffers} offers`,
+        isUserAgency ? "Enhanced network management" : "Improve earning potential",
+        isUserAgency ? "Bulk operations for influencers" : "Enhanced search exposure", 
+        "Cancel anytime"
+      ],
+      growth: [
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : `Upload up to ${maxOffers} offers`,
+        isUserAgency ? "Advanced analytics & reporting" : "Increased exposure across Offer Alert",
+        isUserAgency ? "Priority support" : "Priority in search results",
+        "Cancel anytime"
+      ],
+      pro: [
+        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : `Upload up to ${maxOffers} offers`,
+        isUserAgency ? "White-label solutions" : "Featured exposure and alert prioritization",
+        isUserAgency ? "Custom integrations" : "Expand reach outside of your network",
+        "Cancel anytime"
+      ],
+      elite: [
+        "Upload unlimited offers",
+        isUserAgency ? "Enterprise-grade solutions" : "Custom user journey development",
+        isUserAgency ? "Dedicated account manager" : "Direct support from the Offer Alert team",
+        isUserAgency ? "Custom SLA and support" : "Tailored solutions for your needs"
+      ]
+    };
+    return baseFeatures[tierId] || baseFeatures.starter;
+  };
+
   const pricingTiers: PricingTier[] = [
     {
       id: "starter",
-      name: "Starter",
+      name: "Starter", 
       price: "Free",
-      description: "Perfect for trying out Offer Alert",
-      features: [
-        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload 1 offer",
-        "Appear in user search results", 
-        "Feature in AI deal notifications",
-        "Cancel anytime"
-      ],
+      description: getDescription("starter"),
+      features: getFeatures("starter", BYPASS_OFFER_LIMITS ? Infinity : 1),
       ctaText: "Get Started",
       highlighted: false,
       badge: BYPASS_OFFER_LIMITS ? "Promo" : null,
@@ -39,13 +109,8 @@ const PricingPage = () => {
       id: "boost",
       name: "Boost",
       price: "$5",
-      description: "For new influencers growing their audience",
-      features: [
-        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 3 offers",
-        "Improve earning potential",
-        "Enhanced search exposure",
-        "Cancel anytime"
-      ],
+      description: getDescription("boost"),
+      features: getFeatures("boost", BYPASS_OFFER_LIMITS ? Infinity : 3),
       costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.67/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
@@ -56,13 +121,8 @@ const PricingPage = () => {
       id: "growth",
       name: "Growth",
       price: "$12",
-      description: "Ideal for influencers scaling their business",
-      features: [
-        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 10 offers",
-        "Increased exposure across Offer Alert",
-        "Priority in search results",
-        "Cancel anytime"
-      ],
+      description: getDescription("growth"),
+      features: getFeatures("growth", BYPASS_OFFER_LIMITS ? Infinity : 10),
       costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.20/offer",
       ctaText: "Upgrade Now",
       highlighted: true,
@@ -73,13 +133,8 @@ const PricingPage = () => {
       id: "pro",
       name: "Pro",
       price: "$20",
-      description: "Best for full-time influencers",
-      features: [
-        BYPASS_OFFER_LIMITS ? "Upload unlimited offers (limited time)" : "Upload up to 20 offers",
-        "Featured exposure and alert prioritization",
-        "Expand reach outside of your network",
-        "Cancel anytime"
-      ],
+      description: getDescription("pro"),
+      features: getFeatures("pro", BYPASS_OFFER_LIMITS ? Infinity : 20),
       costPerOffer: BYPASS_OFFER_LIMITS ? "~$0/offer (limited time)" : "~$1.00/offer",
       ctaText: "Upgrade Now",
       highlighted: false,
@@ -90,13 +145,8 @@ const PricingPage = () => {
       id: "elite",
       name: "Elite",
       price: "Custom",
-      description: "For agencies and high-volume partners",
-      features: [
-        "Upload unlimited offers",
-        "Custom user journey development",
-        "Direct support from the Offer Alert team",
-        "Tailored solutions for your needs"
-      ],
+      description: getDescription("elite"),
+      features: getFeatures("elite", Infinity),
       ctaText: "Contact Us",
       highlighted: false,
       badge: null,
@@ -145,13 +195,15 @@ const PricingPage = () => {
 
   const handleSubscribe = async (tier) => {
     if (!user) {
-      toast.info(`Please sign up as an influencer to select the ${tier.name} plan`);
-      navigate('/signup?tab=influencer');
+      const userType = isUserAgency ? "agency" : "influencer";
+      toast.info(`Please sign up to select the ${tier.name} plan`);
+      navigate(`/signup?tab=${userType}`);
       return;
     }
     
-    if (!isInfluencer) {
-      toast.info("You need to be an influencer to subscribe");
+    // Check if user is eligible (either influencer or agency)
+    if (!isInfluencer && !isAgency) {
+      toast.info("Please complete your profile to subscribe");
       navigate('/influencer-apply');
       return;
     }
@@ -167,16 +219,18 @@ const PricingPage = () => {
     
     track('SubscriptionInitiated', subscriptionPayload);
 
-    // If user is already on this plan, navigate to dashboard
+    // If user is already on this plan, navigate to appropriate dashboard
     if (subscriptionTier === tier.name) {
       toast.info(`You are already on the ${tier.name} plan`);
-      navigate('/influencer-dashboard');
+      const dashboardRoute = isUserAgency ? '/agency-dashboard' : '/influencer-dashboard';
+      navigate(dashboardRoute);
       return;
     }
     
-    // For free tier, just navigate to dashboard
+    // For free tier, just navigate to appropriate dashboard
     if (tier.id === "starter") {
-      navigate('/influencer-dashboard');
+      const dashboardRoute = isUserAgency ? '/agency-dashboard' : '/influencer-dashboard';
+      navigate(dashboardRoute);
       return;
     }
     
@@ -214,9 +268,14 @@ const PricingPage = () => {
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Influencer Pricing Plans</h1>
+        <h1 className="text-4xl font-bold mb-4">
+          {isUserAgency ? "Agency Pricing Plans" : "Influencer Pricing Plans"}
+        </h1>
         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Choose the perfect plan for your creator journey. All plans are monthly with no long-term contracts.
+          {isUserAgency 
+            ? "Choose the perfect plan for your agency's growth. Manage unlimited influencers with flexible pricing." 
+            : "Choose the perfect plan for your creator journey. All plans are monthly with no long-term contracts."
+          }
         </p>
       </div>
 
