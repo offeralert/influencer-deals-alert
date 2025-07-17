@@ -4,6 +4,17 @@ import { checkForUpdates, applyUpdate } from '@/utils/cacheUtils';
 import { toast } from '@/hooks/use-toast';
 
 export const useUpdateManager = (enabled: boolean = true) => {
+  // Safety check to ensure we're in a React component context
+  if (typeof useState === 'undefined' || useState === null) {
+    console.warn('useUpdateManager called outside of React component context');
+    return {
+      updateAvailable: false,
+      isApplyingUpdate: false,
+      applyUpdate: () => Promise.resolve(),
+      checkForUpdates: () => Promise.resolve(false)
+    };
+  }
+
   // Add safety checks to prevent hook violations
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isApplyingUpdate, setIsApplyingUpdate] = useState(false);
