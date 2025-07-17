@@ -44,17 +44,17 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Verify the user is an influencer
+    // Verify the user is an influencer or agency
     const { data: profileData, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("is_influencer")
+      .select("is_influencer, is_agency")
       .eq("id", user.id)
       .single();
     
-    if (profileError || !profileData?.is_influencer) {
-      throw new Error("User is not an influencer");
+    if (profileError || (!profileData?.is_influencer && !profileData?.is_agency)) {
+      throw new Error("User is not eligible for subscriptions");
     }
-    logStep("Verified user is an influencer");
+    logStep("Verified user is eligible for subscriptions", { isInfluencer: profileData?.is_influencer, isAgency: profileData?.is_agency });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -63,7 +63,11 @@ serve(async (req) => {
       // Create a new customer if one doesn't exist
       const newCustomer = await stripe.customers.create({
         email: user.email,
-        metadata: { user_id: user.id }
+        metadata: { 
+          user_id: user.id,
+          is_influencer: profileData?.is_influencer ? "true" : "false",
+          is_agency: profileData?.is_agency ? "true" : "false",
+        }
       });
       logStep("Created new Stripe customer", { customerId: newCustomer.id });
       
@@ -88,10 +92,12 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
     
-    // Create portal session without configuration to avoid 400 errors
+    // Create portal session with appropriate return URL based on user type
+    const returnUrl = profileData?.is_agency ? `${origin}/agency-dashboard` : `${origin}/influencer-dashboard`;
+    
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${origin}/influencer-dashboard`,
+      return_url: returnUrl,
     });
     
     logStep("Customer portal session created", { sessionId: portalSession.id, url: portalSession.url });

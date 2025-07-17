@@ -106,7 +106,7 @@ serve(async (req) => {
       });
     }
 
-    logStep("Verified user is an influencer");
+    logStep("Verified user is eligible for subscriptions", { isInfluencer: profileData?.is_influencer, isAgency: profileData?.is_agency });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
