@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { DealCard } from "@/components/ui/deal-card";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { getAvatarUrl } from "@/utils/avatarUtils";
+import { useGlobalPromoCodes } from "@/hooks/useGlobalPromoCodes";
+import { isExpired } from "@/utils/dateUtils";
 
 interface Deal {
   id: string;
@@ -21,60 +22,30 @@ interface Deal {
 }
 
 const TrendingDealsSection = () => {
-  const [trendingDeals, setTrendingDeals] = useState<Deal[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { promoCodes, loading } = useGlobalPromoCodes();
 
-  useEffect(() => {
-    fetchTrendingDeals();
-  }, []);
+  const trendingDeals: Deal[] = useMemo(() => {
+    // Filter valid promo codes
+    const validPromoCodes = promoCodes.filter(pc => {
+      const hasRequiredFields = pc.id && pc.brand_name && pc.promo_code && pc.profiles?.username;
+      const notExpired = !pc.expiration_date || !isExpired(pc.expiration_date);
+      return hasRequiredFields && notExpired;
+    });
 
-  const fetchTrendingDeals = async () => {
-    try {
-      setLoading(true);
-      
-      // First try to get trending promo codes
-      const { data: trendingData, error: trendingError } = await getPromoCodes()
-        .eq('is_trending', true)
-        .limit(4);
-      
-      if (trendingError) {
-        console.error("Error fetching trending deals:", trendingError);
-        useSampleDeals();
-        return;
-      }
-      
-      // If no trending deals found, get the most recent ones
-      if (!trendingData || trendingData.length === 0) {
-        const { data: recentData, error: recentError } = await getPromoCodes()
-          .order('created_at', { ascending: false })
-          .limit(4);
-        
-        if (recentError) {
-          console.error("Error fetching recent deals:", recentError);
-          useSampleDeals();
-          return;
-        }
-        
-        if (!recentData || recentData.length === 0) {
-          useSampleDeals();
-          return;
-        }
-        
-        transformAndSetDeals(recentData);
-      } else {
-        transformAndSetDeals(trendingData);
-      }
-    } catch (error) {
-      console.error("Error in fetchTrendingDeals:", error);
-      useSampleDeals();
-    } finally {
-      setLoading(false);
+    // First try to get trending promo codes
+    let trending = validPromoCodes.filter(pc => pc.is_trending === true);
+    
+    // If no trending deals, get the most recent ones
+    if (trending.length === 0) {
+      trending = validPromoCodes
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 4);
+    } else {
+      trending = trending.slice(0, 4);
     }
-  };
 
-  const transformAndSetDeals = (data: PromoCodeWithInfluencer[]) => {
-    // Transform to our Deal interface
-    const formattedDeals = data.map(deal => ({
+    // Transform to Deal interface
+    return trending.map(deal => ({
       id: deal.id || "",
       title: deal.description || "",
       brandName: deal.brand_name || "",
@@ -87,66 +58,65 @@ const TrendingDealsSection = () => {
       influencerUsername: deal.profiles?.username || 'unknown',
       category: deal.category || 'Fashion'
     }));
-    
-    setTrendingDeals(formattedDeals);
-  };
+  }, [promoCodes]);
 
-  const useSampleDeals = () => {
-    setTrendingDeals([
-      {
-        id: "1",
-        title: "30% OFF",
-        brandName: "FashionNova",
-        discount: "SUMMER30",
-        promoCode: "SUMMER30",
-        expiryDate: "2025-08-31",
-        affiliateLink: "https://example.com",
-        influencerName: "Sophia Chen",
-        influencerImage: getAvatarUrl(null) || "",
-        influencerUsername: "sophiachen",
-        category: "Fashion"
-      },
-      {
-        id: "2",
-        title: "25% OFF",
-        brandName: "FitGear",
-        discount: "FIT25",
-        promoCode: "FIT25",
-        expiryDate: "2025-07-15",
-        affiliateLink: "https://example.com",
-        influencerName: "Marcus Johnson",
-        influencerImage: getAvatarUrl(null) || "",
-        influencerUsername: "marcusjohnson",
-        category: "Fitness"
-      },
-      {
-        id: "3",
-        title: "20% OFF",
-        brandName: "ChefChoice",
-        discount: "CHEF20",
-        promoCode: "CHEF20",
-        expiryDate: "2025-09-10",
-        affiliateLink: "https://example.com",
-        influencerName: "Emma Wilson",
-        influencerImage: getAvatarUrl(null) || "",
-        influencerUsername: "emmawilson",
-        category: "Food"
-      },
-      {
-        id: "4",
-        title: "15% OFF",
-        brandName: "TechLife",
-        discount: "SMART15",
-        promoCode: "SMART15",
-        expiryDate: "2025-07-30",
-        affiliateLink: "https://example.com",
-        influencerName: "Alex Rivera",
-        influencerImage: getAvatarUrl(null) || "",
-        influencerUsername: "alexrivera",
-        category: "Tech"
-      },
-    ]);
-  };
+  // Sample deals as fallback
+  const sampleDeals: Deal[] = [
+    {
+      id: "1",
+      title: "30% OFF",
+      brandName: "FashionNova",
+      discount: "SUMMER30",
+      promoCode: "SUMMER30",
+      expiryDate: "2025-08-31",
+      affiliateLink: "https://example.com",
+      influencerName: "Sophia Chen",
+      influencerImage: getAvatarUrl(null) || "",
+      influencerUsername: "sophiachen",
+      category: "Fashion"
+    },
+    {
+      id: "2",
+      title: "25% OFF",
+      brandName: "FitGear",
+      discount: "FIT25",
+      promoCode: "FIT25",
+      expiryDate: "2025-07-15",
+      affiliateLink: "https://example.com",
+      influencerName: "Marcus Johnson",
+      influencerImage: getAvatarUrl(null) || "",
+      influencerUsername: "marcusjohnson",
+      category: "Fitness"
+    },
+    {
+      id: "3",
+      title: "20% OFF",
+      brandName: "ChefChoice",
+      discount: "CHEF20",
+      promoCode: "CHEF20",
+      expiryDate: "2025-09-10",
+      affiliateLink: "https://example.com",
+      influencerName: "Emma Wilson",
+      influencerImage: getAvatarUrl(null) || "",
+      influencerUsername: "emmawilson",
+      category: "Food"
+    },
+    {
+      id: "4",
+      title: "15% OFF",
+      brandName: "TechLife",
+      discount: "SMART15",
+      promoCode: "SMART15",
+      expiryDate: "2025-07-30",
+      affiliateLink: "https://example.com",
+      influencerName: "Alex Rivera",
+      influencerImage: getAvatarUrl(null) || "",
+      influencerUsername: "alexrivera",
+      category: "Tech"
+    },
+  ];
+
+  const displayDeals = trendingDeals.length > 0 ? trendingDeals : sampleDeals;
 
   return (
     <section className="py-12 bg-brand-light dark:bg-brand-dark">
@@ -165,7 +135,7 @@ const TrendingDealsSection = () => {
               <p className="text-muted-foreground">Loading deals...</p>
             </div>
           ) : (
-            trendingDeals.map((deal) => (
+            displayDeals.map((deal) => (
               <DealCard key={deal.id} {...deal} />
             ))
           )}

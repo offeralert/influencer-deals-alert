@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { 
@@ -33,31 +32,13 @@ const Deals = () => {
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
   
   useScrollToTop();
 
   const { deals, loading } = useDealsData(
     sortOption,
-    searchQuery,
-    refreshKey
+    searchQuery
   );
-
-  const handleRefresh = useCallback(() => {
-    console.log('[DEALS] Manual refresh triggered');
-    setRefreshKey(prev => prev + 1);
-  }, []);
-
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      console.log('[DEALS] Auto-refresh triggered');
-      handleRefresh();
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [handleRefresh]);
-
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -101,8 +82,7 @@ const Deals = () => {
       ) : (
         <DealsView 
           deals={deals} 
-          sortOption={sortOption} 
-          onRefresh={handleRefresh}
+          sortOption={sortOption}
         />
       )}
     </div>
