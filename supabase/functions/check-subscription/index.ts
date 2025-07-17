@@ -58,10 +58,10 @@ serve(async (req) => {
     }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if the user is an influencer and if they're a fake account
+    // Check if the user is an influencer or agency and if they're a fake account
     const { data: profileData, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("is_influencer, is_fake")
+      .select("is_influencer, is_agency, is_fake")
       .eq("id", user.id)
       .single();
     
@@ -69,9 +69,11 @@ serve(async (req) => {
       logStep("ERROR: Profile fetch failed", { error: profileError.message });
       throw new Error(`Profile error: ${profileError.message}`);
     }
-    if (!profileData?.is_influencer) {
-      logStep("ERROR: User is not an influencer");
-      throw new Error("User is not an influencer");
+    
+    // Check if user is eligible for subscriptions (influencer or agency)
+    if (!profileData?.is_influencer && !profileData?.is_agency) {
+      logStep("ERROR: User is neither an influencer nor agency");
+      throw new Error("User is not eligible for subscriptions");
     }
     
     // If this is a fake account, skip Stripe checks and return default values
@@ -81,7 +83,8 @@ serve(async (req) => {
       // Ensure subscriber record exists for fake accounts
       const { error: upsertError } = await supabaseClient.from("subscribers").upsert({
         email: user.email,
-        influencer_id: user.id,
+        influencer_id: profileData?.is_influencer ? user.id : null,
+        agency_id: profileData?.is_agency ? user.id : null,
         stripe_customer_id: null,
         subscribed: false,
         subscription_tier: "Starter",
@@ -115,7 +118,8 @@ serve(async (req) => {
         
         const { error: upsertError } = await supabaseClient.from("subscribers").upsert({
           email: user.email,
-          influencer_id: user.id,
+          influencer_id: profileData?.is_influencer ? user.id : null,
+          agency_id: profileData?.is_agency ? user.id : null,
           stripe_customer_id: null,
           subscribed: false,
           subscription_tier: "Starter",
@@ -209,7 +213,8 @@ serve(async (req) => {
       // Upsert subscriber record
       const { error: upsertError } = await supabaseClient.from("subscribers").upsert({
         email: user.email,
-        influencer_id: user.id,
+        influencer_id: profileData?.is_influencer ? user.id : null,
+        agency_id: profileData?.is_agency ? user.id : null,
         stripe_customer_id: customerId,
         subscribed: hasActiveSub,
         subscription_tier: subscriptionTier,

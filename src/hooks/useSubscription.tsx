@@ -23,7 +23,7 @@ interface SubscriptionData {
 }
 
 export const useSubscription = (): SubscriptionData => {
-  const { user, profile, isReady, isInfluencer } = useAuth();
+  const { user, profile, isReady, isInfluencer, isAgency } = useAuth();
   const [subscribed, setSubscribed] = useState(false);
   const [subscriptionTier, setSubscriptionTier] = useState<SubscriptionTier>("Starter");
   const [subscriptionEnd, setSubscriptionEnd] = useState<string | null>(null);
@@ -57,17 +57,17 @@ export const useSubscription = (): SubscriptionData => {
   const bypassOfferLimits = BYPASS_OFFER_LIMITS || isFakeAccount;
 
   const refresh = useCallback(async () => {
-    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${isInfluencer}, Is fake: ${isFakeAccount}`);
+    console.log(`[SUBSCRIPTION] Starting refresh - User: ${user?.id}, Auth ready: ${isReady}, Is influencer: ${isInfluencer}, Is agency: ${isAgency}, Is fake: ${isFakeAccount}`);
     
     // Don't proceed if we don't have the basic requirements
-    if (!user || !isReady || isInfluencer === undefined) {
-      console.log(`[SUBSCRIPTION] Not ready for refresh - User: ${!!user}, Ready: ${isReady}, Influencer defined: ${isInfluencer !== undefined}`);
+    if (!user || !isReady || isInfluencer === undefined || isAgency === undefined) {
+      console.log(`[SUBSCRIPTION] Not ready for refresh - User: ${!!user}, Ready: ${isReady}, Influencer defined: ${isInfluencer !== undefined}, Agency defined: ${isAgency !== undefined}`);
       return;
     }
 
-    // Check if user is an influencer
-    if (!isInfluencer) {
-      console.log(`[SUBSCRIPTION] User is not an influencer, skipping subscription check`);
+    // Check if user is an influencer or agency (both can have subscriptions)
+    if (!isInfluencer && !isAgency) {
+      console.log(`[SUBSCRIPTION] User is neither an influencer nor agency, skipping subscription check`);
       return;
     }
 
@@ -123,7 +123,7 @@ export const useSubscription = (): SubscriptionData => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id, isReady, isInfluencer, isFakeAccount]); // Stable dependencies only
+  }, [user?.id, isReady, isInfluencer, isAgency, isFakeAccount]); // Stable dependencies only
 
   const createCheckoutSession = useCallback(async (
     planType: SubscriptionTier, 
@@ -193,11 +193,11 @@ export const useSubscription = (): SubscriptionData => {
   // Effect to trigger refresh when dependencies change
   useEffect(() => {
     // Only refresh when we have all the required state and it's stable
-    if (user && isReady && isInfluencer !== undefined) {
+    if (user && isReady && isInfluencer !== undefined && isAgency !== undefined) {
       console.log("[SUBSCRIPTION] Dependencies changed, triggering refresh");
       refresh();
     }
-  }, [user?.id, isReady, isInfluencer, isFakeAccount, refresh]);
+  }, [user?.id, isReady, isInfluencer, isAgency, isFakeAccount, refresh]);
 
   return {
     subscribed,

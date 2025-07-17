@@ -61,17 +61,17 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Verify the user is an influencer
+    // Verify the user is an influencer or agency
     const { data: profileData, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .select("is_influencer")
+      .select("is_influencer, is_agency")
       .eq("id", user.id)
       .single();
     
-    if (profileError || !profileData?.is_influencer) {
-      throw new Error("User is not an influencer");
+    if (profileError || (!profileData?.is_influencer && !profileData?.is_agency)) {
+      throw new Error("User is not eligible for subscriptions");
     }
-    logStep("Verified user is an influencer");
+    logStep("Verified user is eligible for subscriptions", { isInfluencer: profileData?.is_influencer, isAgency: profileData?.is_agency });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -89,7 +89,8 @@ serve(async (req) => {
         email: user.email,
         metadata: {
           user_id: user.id,
-          is_influencer: "true",
+          is_influencer: profileData?.is_influencer ? "true" : "false",
+          is_agency: profileData?.is_agency ? "true" : "false",
         },
       });
       customerId = newCustomer.id;
@@ -219,7 +220,8 @@ serve(async (req) => {
     // Save subscription information in the database
     await supabaseAdmin.from("subscribers").upsert({
       email: user.email,
-      influencer_id: user.id,
+      influencer_id: profileData?.is_influencer ? user.id : null,
+      agency_id: profileData?.is_agency ? user.id : null,
       stripe_customer_id: customerId,
       updated_at: new Date().toISOString(),
       // We'll update the rest of the fields when the subscription is successful
