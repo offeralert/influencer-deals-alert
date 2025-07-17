@@ -92,8 +92,8 @@ const AppWithUpdateManager = () => {
 };
 
 const AppContentWithUpdates = () => {
-  // Only enable update manager in production or when specifically needed
-  const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
+  // Temporarily disable update manager to resolve React hook issue
+  // const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
   
   return <AppContent />;
 };
