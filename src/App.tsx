@@ -84,18 +84,14 @@ const AppContent = () => {
 };
 
 const AppWithUpdateManager = () => {
+  // Only enable update manager in production or when specifically needed
+  const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
+  
   return (
     <AuthProvider>
-      <AppContentWithUpdates />
+      <AppContent />
     </AuthProvider>
   );
-};
-
-const AppContentWithUpdates = () => {
-  // Temporarily disable update manager to resolve React hook issue
-  // const updateManager = useUpdateManager(process.env.NODE_ENV === 'production');
-  
-  return <AppContent />;
 };
 
 const App = () => (
