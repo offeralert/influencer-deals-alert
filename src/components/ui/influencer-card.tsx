@@ -4,9 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { useInfluencerFollow } from '@/hooks/useInfluencerFollow';
-import { useFollowerCount } from '@/hooks/useFollowerCount';
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from '@/utils/avatarUtils';
-import { formatFollowerCountCompact } from '@/utils/followerUtils';
 
 interface InfluencerCardProps {
   id: string;
@@ -19,35 +17,46 @@ interface InfluencerCardProps {
 
 const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard = false }: InfluencerCardProps) => {
   const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
-  const { followerCount, isLoading: isLoadingFollowerCount } = useFollowerCount(id);
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
-    <Card className="overflow-hidden h-[72px]">
-      <CardContent className="p-2.5 h-full">
-        <div className="flex items-center gap-2.5 h-full">
-          <div className="w-8 h-8 flex-shrink-0">
-            <Avatar className="h-8 w-8">
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <Link to={`/influencer/${username}`} className="block hover:opacity-80 transition-opacity">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="h-12 w-12">
               <AvatarImage 
                 src={avatarUrl} 
                 alt={name}
-                width={40}
-                height={40}
                 className="object-cover"
               />
               <AvatarFallback>
                 <AvatarImage src={DEFAULT_AVATAR_URL} alt={name} />
               </AvatarFallback>
             </Avatar>
-          </div>
-          <div className="flex-1 min-w-0">
-            <Link to={`/influencer/${username}`} className="hover:underline">
-              <h3 className="font-semibold text-sm truncate mb-0.5 leading-tight">{name}</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">{name}</h3>
               {!isCreditCard && (
-                <p className="text-xs text-gray-500 truncate leading-tight">@{username}</p>
+                <p className="text-xs text-muted-foreground truncate">@{username}</p>
               )}
-            </Link>
+            </div>
           </div>
+        </Link>
+        
+        <div className="flex justify-end">
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleFollowToggle();
+            }}
+            variant={isFollowing ? "secondary" : "default"}
+            size="sm"
+            disabled={isProcessing}
+            className="min-w-[80px]"
+          >
+            {isProcessing ? "..." : isFollowing ? "Following" : "Follow"}
+          </Button>
         </div>
       </CardContent>
     </Card>

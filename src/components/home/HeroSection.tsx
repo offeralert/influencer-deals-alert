@@ -1,36 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Download, RefreshCw } from "lucide-react";
+import { Download } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
-import { migrateFollowsToUserDomainMap } from "@/utils/migrateFellowsToUserDomainMap";
-import { toast } from "sonner";
 import { OptimizedImage } from "@/components/ui/optimized-image";
 
 const HeroSection = () => {
   const { user } = useAuth();
-  const [isMigrating, setIsMigrating] = useState(false);
-  
-  const handleMigrateFollows = async () => {
-    if (!user) return;
-    
-    setIsMigrating(true);
-    try {
-      const success = await migrateFollowsToUserDomainMap();
-      
-      if (success) {
-        toast.success("Successfully migrated follows to the new domain-based system");
-      } else {
-        toast.error("There was an issue migrating follows");
-      }
-    } catch (error) {
-      console.error("Error migrating follows:", error);
-      toast.error("Failed to migrate follows");
-    } finally {
-      setIsMigrating(false);
-    }
-  };
   
   return (
     <section className="py-6 md:py-12 bg-brand-light dark:bg-brand-dark">
@@ -59,18 +35,6 @@ const HeroSection = () => {
               <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
                 <Link to="/explore">Explore Deals</Link>
               </Button>
-              {user?.id && (
-                <Button 
-                  size="lg" 
-                  variant="outline" 
-                  className="h-10 md:h-12" 
-                  onClick={handleMigrateFollows}
-                  disabled={isMigrating}
-                >
-                  <RefreshCw className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                  Migrate Follows
-                </Button>
-              )}
             </div>
           </div>
           <div className="hidden lg:block relative">

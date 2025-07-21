@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { useInfluencerData } from "@/hooks/useInfluencerData";
 import { useInfluencerFollow } from "@/hooks/useInfluencerFollow";
-import { useFollowerCount } from "@/hooks/useFollowerCount";
 import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeader";
 import InfluencerPromoCodes from "@/components/profile/InfluencerPromoCodes";
 import NotFound from "./NotFound";
@@ -17,7 +16,6 @@ const InfluencerProfile = () => {
     influencer?.id,
     influencer?.full_name || ""
   );
-  const { followerCount, isLoading: isLoadingFollowerCount } = useFollowerCount(influencer?.id || "");
 
   useEffect(() => {
     if (influencer?.id) {
@@ -68,8 +66,6 @@ const InfluencerProfile = () => {
         onFollowToggle={handleFollowToggle}
         isCreditCard={influencer.is_creditcard}
         influencerId={influencer.id}
-        followerCount={followerCount}
-        isLoadingFollowerCount={isLoadingFollowerCount}
       />
       
       <InfluencerPromoCodes

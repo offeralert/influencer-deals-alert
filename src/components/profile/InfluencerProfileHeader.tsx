@@ -2,9 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Check } from "lucide-react";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
-import { formatFollowerCount } from "@/utils/followerUtils";
 import ShareProfileButton from "@/components/ui/share-profile-button";
 
 interface InfluencerProfileHeaderProps {
@@ -15,8 +13,6 @@ interface InfluencerProfileHeaderProps {
   onFollowToggle: () => void;
   isCreditCard?: boolean;
   influencerId?: string;
-  followerCount?: number;
-  isLoadingFollowerCount?: boolean;
 }
 
 const InfluencerProfileHeader = ({
@@ -26,9 +22,7 @@ const InfluencerProfileHeader = ({
   isFollowing,
   onFollowToggle,
   isCreditCard = false,
-  influencerId,
-  followerCount = 0,
-  isLoadingFollowerCount = false
+  influencerId
 }: InfluencerProfileHeaderProps) => {
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
 

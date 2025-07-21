@@ -1,49 +1,14 @@
 
-import { useState, useEffect } from "react";
+import React from 'react';
 import { Influencer } from "@/types/explore";
 import InfluencerCard from "@/components/ui/influencer-card";
 import { Compass } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 
 interface InfluencersViewProps {
   influencers: Influencer[];
 }
 
 const InfluencersView = ({ influencers }: InfluencersViewProps) => {
-  const { user } = useAuth();
-  const [followedInfluencers, setFollowedInfluencers] = useState<string[]>([]);
-  const [loadingFollowStatus, setLoadingFollowStatus] = useState(false);
-
-  // Check which influencers are already being followed
-  useEffect(() => {
-    const checkFollowStatus = async () => {
-      if (!user || influencers.length === 0) {
-        setFollowedInfluencers([]);
-        return;
-      }
-
-      setLoadingFollowStatus(true);
-      try {
-        const influencerIds = influencers.map(inf => inf.id);
-        const { data, error } = await supabase
-          .from('user_domain_map')
-          .select('influencer_id')
-          .eq('user_id', user.id)
-          .in('influencer_id', influencerIds);
-
-        if (!error && data) {
-          setFollowedInfluencers(data.map(item => item.influencer_id));
-        }
-      } catch (error) {
-        console.error("Error checking follow status:", error);
-      } finally {
-        setLoadingFollowStatus(false);
-      }
-    };
-
-    checkFollowStatus();
-  }, [user, influencers]);
 
   if (influencers.length === 0) {
     return (
