@@ -1,9 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { useInfluencerFollow } from '@/hooks/useInfluencerFollow';
+import { Card, CardContent } from '@/components/ui/card';
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from '@/utils/avatarUtils';
 
 interface InfluencerCardProps {
@@ -16,14 +14,13 @@ interface InfluencerCardProps {
 }
 
 const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard = false }: InfluencerCardProps) => {
-  const { isFollowing, handleFollowToggle, isProcessing } = useInfluencerFollow(id, name);
   const avatarUrl = getAvatarUrl(imageUrl);
 
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4">
         <Link to={`/influencer/${username}`} className="block hover:opacity-80 transition-opacity">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
               <AvatarImage 
                 src={avatarUrl} 
@@ -42,22 +39,6 @@ const InfluencerCard = ({ id, name, username, imageUrl, category, isCreditCard =
             </div>
           </div>
         </Link>
-        
-        <div className="flex justify-end">
-          <Button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleFollowToggle();
-            }}
-            variant={isFollowing ? "secondary" : "default"}
-            size="sm"
-            disabled={isProcessing}
-            className="min-w-[80px]"
-          >
-            {isProcessing ? "..." : isFollowing ? "Following" : "Follow"}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

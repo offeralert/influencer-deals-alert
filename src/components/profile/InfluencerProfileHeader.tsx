@@ -1,5 +1,4 @@
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
@@ -9,8 +8,6 @@ interface InfluencerProfileHeaderProps {
   fullName: string;
   username: string;
   avatarUrl: string;
-  isFollowing: boolean;
-  onFollowToggle: () => void;
   isCreditCard?: boolean;
   influencerId?: string;
 }
@@ -19,8 +16,6 @@ const InfluencerProfileHeader = ({
   fullName,
   username,
   avatarUrl,
-  isFollowing,
-  onFollowToggle,
   isCreditCard = false,
   influencerId
 }: InfluencerProfileHeaderProps) => {

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { getPromoCodes, PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { useInfluencerData } from "@/hooks/useInfluencerData";
-import { useInfluencerFollow } from "@/hooks/useInfluencerFollow";
 import InfluencerProfileHeader from "@/components/profile/InfluencerProfileHeader";
 import InfluencerPromoCodes from "@/components/profile/InfluencerPromoCodes";
 import NotFound from "./NotFound";
@@ -12,10 +11,6 @@ const InfluencerProfile = () => {
   const { username } = useParams<{ username: string }>();
   const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const { influencer, loading } = useInfluencerData(username);
-  const { isFollowing, handleFollowToggle } = useInfluencerFollow(
-    influencer?.id,
-    influencer?.full_name || ""
-  );
 
   useEffect(() => {
     if (influencer?.id) {
@@ -62,8 +57,6 @@ const InfluencerProfile = () => {
         fullName={influencer.full_name}
         username={influencer.username}
         avatarUrl={influencer.avatar_url}
-        isFollowing={isFollowing}
-        onFollowToggle={handleFollowToggle}
         isCreditCard={influencer.is_creditcard}
         influencerId={influencer.id}
       />
