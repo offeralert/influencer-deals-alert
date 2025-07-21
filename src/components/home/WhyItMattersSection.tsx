@@ -77,6 +77,9 @@ const WhyItMattersSection = () => {
                     src={brand.logoUrl} 
                     alt={`${brand.name} logo`}
                     className="object-cover"
+                    width={64}
+                    height={64}
+                    loading="lazy"
                   />
                   <AvatarFallback className="bg-gray-100 text-gray-600 font-semibold">
                     {brand.name.charAt(0)}
@@ -95,6 +98,9 @@ const WhyItMattersSection = () => {
                     src={brand.logoUrl} 
                     alt={`${brand.name} logo`}
                     className="object-cover"
+                    width={80}
+                    height={80}
+                    loading="lazy"
                   />
                   <AvatarFallback className="bg-gray-100 text-gray-600 font-semibold">
                     {brand.name.charAt(0)}
