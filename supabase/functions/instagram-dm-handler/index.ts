@@ -249,19 +249,25 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
 
     console.log(`✅ Extracted Instagram URL: ${instagramUrl}`);
 
-    // Build the exact API call format that works
-    const oembedUrl = `https://graph.facebook.com/v23.0/instagram_oembed?url=${encodeURIComponent(instagramUrl)}&access_token=${accessToken}`;
+    // Test with the exact URL format from your example
+    // Use the newer v21.0 API endpoint which is more stable
+    const oembedUrl = `https://graph.facebook.com/v21.0/instagram_oembed?url=${encodeURIComponent(instagramUrl)}&access_token=${accessToken}`;
     console.log(`🔗 Making oEmbed API call to: ${oembedUrl.replace(accessToken, '[REDACTED_TOKEN]')}`);
     
-    // Enhanced API call with proper headers
+    // Enhanced API call with proper headers and timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const response = await fetch(oembedUrl, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'OfferAlert/1.0',
-        'Content-Type': 'application/json'
-      }
+        'User-Agent': 'OfferAlert/1.0'
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     console.log(`📊 oEmbed API Response status: ${response.status}`);
     console.log(`📋 oEmbed API Response headers:`, Object.fromEntries(response.headers.entries()));
@@ -273,6 +279,8 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
 
       if (oembedData.author_name) {
         let brandHandle = oembedData.author_name.toLowerCase().trim();
+        // Remove any spaces or special characters
+        brandHandle = brandHandle.replace(/[^a-z0-9_.]/g, '');
         if (!brandHandle.startsWith('@')) {
           brandHandle = '@' + brandHandle;
         }
@@ -326,7 +334,14 @@ async function processSharedMediaWithOEmbed(sharedUrl: string, senderId: string)
     console.error("📚 Error stack:", error.stack);
     console.error("🏷️ Error name:", error.name);
     console.error("💬 Error message:", error.message);
-    await sendInstagramMessage(senderId, "error_processing", []);
+    
+    // Check if it's a timeout error
+    if (error.name === 'AbortError') {
+      console.error("⏰ Request timed out");
+      await sendInstagramMessage(senderId, "error_timeout", []);
+    } else {
+      await sendInstagramMessage(senderId, "error_processing", []);
+    }
     return null;
   }
 }
