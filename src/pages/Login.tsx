@@ -23,12 +23,19 @@ const Login = () => {
   });
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Redirect if already logged in - simplified logic
+  // Redirect if already logged in - wait for profile to load
   useEffect(() => {
     if (user && isReady) {
-      console.log("User already logged in, redirecting to dashboard");
-      const dashboardRoute = getDashboardRoute(profile);
-      navigate(dashboardRoute, { replace: true });
+      console.log("User logged in, checking profile for redirect...");
+      
+      // Wait a moment for profile to load, then redirect
+      const timer = setTimeout(() => {
+        console.log("Redirecting to dashboard, profile:", profile);
+        const dashboardRoute = getDashboardRoute(profile);
+        navigate(dashboardRoute, { replace: true });
+      }, 500); // Small delay to allow profile to load
+      
+      return () => clearTimeout(timer);
     }
   }, [user, isReady, profile, navigate]);
 
