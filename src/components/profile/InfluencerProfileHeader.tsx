@@ -3,6 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 import ShareProfileButton from "@/components/ui/share-profile-button";
+import SocialMediaIcons from "./SocialMediaIcons";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 interface InfluencerProfileHeaderProps {
   fullName: string;
@@ -10,6 +13,14 @@ interface InfluencerProfileHeaderProps {
   avatarUrl: string;
   isCreditCard?: boolean;
   influencerId?: string;
+}
+
+interface SocialMediaData {
+  instagram_url?: string;
+  tiktok_url?: string;
+  x_url?: string;
+  youtube_url?: string;
+  linkedin_url?: string;
 }
 
 const InfluencerProfileHeader = ({
@@ -20,6 +31,34 @@ const InfluencerProfileHeader = ({
   influencerId
 }: InfluencerProfileHeaderProps) => {
   const displayAvatarUrl = getAvatarUrl(avatarUrl);
+  const [socialMediaData, setSocialMediaData] = useState<SocialMediaData>({});
+
+  useEffect(() => {
+    if (influencerId) {
+      fetchSocialMediaData();
+    }
+  }, [influencerId]);
+
+  const fetchSocialMediaData = async () => {
+    if (!influencerId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('instagram_url, tiktok_url, x_url, youtube_url, linkedin_url')
+        .eq('id', influencerId)
+        .single();
+      
+      if (error) {
+        console.error("Error fetching social media data:", error);
+        return;
+      }
+      
+      setSocialMediaData(data || {});
+    } catch (error) {
+      console.error("Error in fetchSocialMediaData:", error);
+    }
+  };
 
   return (
     <Card className="mb-8">
@@ -40,6 +79,13 @@ const InfluencerProfileHeader = ({
                   {!isCreditCard && (
                     <p className="text-muted-foreground">@{username}</p>
                   )}
+                  <SocialMediaIcons
+                    instagramUrl={socialMediaData.instagram_url}
+                    tiktokUrl={socialMediaData.tiktok_url}
+                    xUrl={socialMediaData.x_url}
+                    youtubeUrl={socialMediaData.youtube_url}
+                    linkedinUrl={socialMediaData.linkedin_url}
+                  />
                 </div>
               </div>
               

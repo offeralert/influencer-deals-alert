@@ -110,9 +110,9 @@ const InfluencerCard = ({ relationship, promoCount, onEdit }: InfluencerCardProp
             
             <div className="flex gap-2 mt-3">
               <Button size="sm" variant="outline" asChild>
-                <Link to={`/manage-influencer-codes/${influencer?.id}`}>
+                <Link to={`/influencer-dashboard?influencer=${influencer?.id}`}>
                   <Plus className="h-3 w-3 mr-1" />
-                  Manage Codes
+                  Manage Influencer
                 </Link>
               </Button>
               <Button 

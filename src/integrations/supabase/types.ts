@@ -62,39 +62,54 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          instagram_url: string | null
           is_agency: boolean | null
           is_creditcard: boolean | null
           is_fake: boolean
           is_featured: boolean | null
           is_influencer: boolean | null
+          linkedin_url: string | null
+          tiktok_url: string | null
           updated_at: string | null
           username: string | null
+          x_url: string | null
+          youtube_url: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
+          instagram_url?: string | null
           is_agency?: boolean | null
           is_creditcard?: boolean | null
           is_fake?: boolean
           is_featured?: boolean | null
           is_influencer?: boolean | null
+          linkedin_url?: string | null
+          tiktok_url?: string | null
           updated_at?: string | null
           username?: string | null
+          x_url?: string | null
+          youtube_url?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
+          instagram_url?: string | null
           is_agency?: boolean | null
           is_creditcard?: boolean | null
           is_fake?: boolean
           is_featured?: boolean | null
           is_influencer?: boolean | null
+          linkedin_url?: string | null
+          tiktok_url?: string | null
           updated_at?: string | null
           username?: string | null
+          x_url?: string | null
+          youtube_url?: string | null
         }
         Relationships: []
       }
