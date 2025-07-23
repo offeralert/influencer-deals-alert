@@ -12,6 +12,11 @@ export interface ProfileType {
   created_at?: string;
   updated_at?: string;
   is_creditcard?: boolean;
+  instagram_url?: string;
+  tiktok_url?: string;
+  x_url?: string;
+  youtube_url?: string;
+  linkedin_url?: string;
 }
 
 export interface AuthContextType {

@@ -29,13 +29,12 @@ const SocialMediaLinksForm = () => {
 
   useEffect(() => {
     if (profile) {
-      const profileWithSocial = profile as any;
       setFormData({
-        instagram_url: profileWithSocial.instagram_url || "",
-        tiktok_url: profileWithSocial.tiktok_url || "",
-        x_url: profileWithSocial.x_url || "",
-        youtube_url: profileWithSocial.youtube_url || "",
-        linkedin_url: profileWithSocial.linkedin_url || "",
+        instagram_url: profile.instagram_url || "",
+        tiktok_url: profile.tiktok_url || "",
+        x_url: profile.x_url || "",
+        youtube_url: profile.youtube_url || "",
+        linkedin_url: profile.linkedin_url || "",
       });
     }
   }, [profile]);
