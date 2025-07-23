@@ -49,7 +49,7 @@ const InfluencerDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-auto lg:grid-cols-4">
           <TabsTrigger value="promo-codes" className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
             Promo Codes

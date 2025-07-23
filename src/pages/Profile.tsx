@@ -173,7 +173,7 @@ Best regards`;
           <CardContent className="space-y-6">
             {isInfluencer ? (
               <Tabs defaultValue="profile" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 mb-6">
                   <TabsTrigger value="profile">Profile</TabsTrigger>
                   <TabsTrigger value="edit">Edit Profile</TabsTrigger>
                   <TabsTrigger value="influencer">Influencer Dashboard</TabsTrigger>
