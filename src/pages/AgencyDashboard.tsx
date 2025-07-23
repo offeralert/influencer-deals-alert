@@ -337,7 +337,18 @@ const AgencyDashboard = () => {
           <ManagedInfluencersList />
         </TabsContent>
 
-        <TabsContent value="add-influencer">
+        <TabsContent value="add-influencer" className="space-y-6">
+          <Card className="mb-4 border-green-200 bg-green-50">
+            <CardContent className="pt-4">
+              <div className="flex items-center gap-2 text-green-800">
+                <Users className="h-5 w-5" />
+                <p className="font-medium">Adding influencers is always free!</p>
+              </div>
+              <p className="text-sm text-green-700 mt-1">
+                You can add unlimited influencers to your agency account. Subscription limits only apply when creating promo codes for your influencers.
+              </p>
+            </CardContent>
+          </Card>
           <AddInfluencerForm onSuccess={() => setActiveTab("influencers")} />
         </TabsContent>
       </Tabs>
