@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ManagedInfluencersList from "@/components/agency/ManagedInfluencersList";
 import AddInfluencerForm from "@/components/agency/AddInfluencerForm";
+import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
 
 const AgencyDashboard = () => {
   const { user, profile } = useAuth();
@@ -111,7 +112,7 @@ const AgencyDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -119,6 +120,10 @@ const AgencyDashboard = () => {
           <TabsTrigger value="subscription" className="flex items-center gap-2">
             <Crown className="h-4 w-4" />
             Subscription
+          </TabsTrigger>
+          <TabsTrigger value="promo-codes" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Promo Code
           </TabsTrigger>
           <TabsTrigger value="influencers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
@@ -335,6 +340,13 @@ const AgencyDashboard = () => {
 
         <TabsContent value="influencers">
           <ManagedInfluencersList />
+        </TabsContent>
+
+        <TabsContent value="promo-codes" className="space-y-6">
+          <AddPromoCodeForm onPromoCodeAdded={() => {
+            // Optionally refresh data or show success message
+            toast.success("Promo code added successfully!");
+          }} />
         </TabsContent>
 
         <TabsContent value="add-influencer" className="space-y-6">
