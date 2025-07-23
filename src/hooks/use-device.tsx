@@ -1,13 +1,13 @@
 
-import * as React from "react"
+import React, { useState, useEffect } from "react"
 
 const MOBILE_BREAKPOINT = 768
 const TABLET_BREAKPOINT = 1024
 
 export function useDevice() {
-  const [device, setDevice] = React.useState<'mobile' | 'tablet' | 'desktop'>('mobile')
+  const [device, setDevice] = useState<'mobile' | 'tablet' | 'desktop'>('mobile')
 
-  React.useEffect(() => {
+  useEffect(() => {
     const updateDevice = () => {
       const width = window.innerWidth
       if (width < MOBILE_BREAKPOINT) {
