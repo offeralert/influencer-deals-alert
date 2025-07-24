@@ -184,14 +184,14 @@ serve(async (req) => {
                 console.log("📭 No attachments found in message");
               }
 
-              // Only send help message if no handles found and no valid content processed
+              // Only send a message if no valid content was processed at all
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
                 console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
-                console.log("💬 Sending help message to user");
-                await sendInstagramMessage(senderId, null, []);
+                console.log("💬 Sending sorry message to user");
+                await sendInstagramMessage(senderId, "no_valid_content", []);
               } else {
-                console.log(`✅ Message processed successfully - no help message needed`);
+                console.log(`✅ Message processed successfully - promo details should have been sent`);
               }
             } else {
               console.log("❌ No message object found in messaging event");
@@ -594,8 +594,10 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     messageText = "I had trouble processing that shared post. Please try sharing the post again, or send me the brand's Instagram handle directly (like @nike).";
   } else if (requestedHandle === "error_database") {
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
+  } else if (requestedHandle === "no_valid_content") {
+    messageText = "Sorry, I couldn't understand that. Please share an Instagram profile URL or send me a brand's handle (like @instacart).";
   } else if (!requestedHandle) {
-    // Don't send help message - just a brief sorry message
+    // This shouldn't happen anymore but keeping as fallback
     messageText = "Sorry, I couldn't understand that. Please share an Instagram profile URL or send me a brand's handle (like @instacart).";
   } else if (promoCodes.length === 0) {
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a post from another brand or searching for a different handle! 🔍`;
