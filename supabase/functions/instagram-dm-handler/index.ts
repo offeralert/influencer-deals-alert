@@ -184,14 +184,14 @@ serve(async (req) => {
                 console.log("📭 No attachments found in message");
               }
 
-              // If no handles found in text or attachments, send help message
+              // Only send help message if no handles found and no valid content processed
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
                 console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
                 console.log("💬 Sending help message to user");
                 await sendInstagramMessage(senderId, null, []);
               } else {
-                console.log(`✅ Message processed successfully`);
+                console.log(`✅ Message processed successfully - no help message needed`);
               }
             } else {
               console.log("❌ No message object found in messaging event");
