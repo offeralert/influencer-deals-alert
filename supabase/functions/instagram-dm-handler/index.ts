@@ -599,7 +599,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     // This shouldn't happen anymore but keeping as fallback
     messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
   } else if (promoCodes.length === 0) {
-    messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a post from another brand or searching for a different handle! 🔍`;
+    messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a profile from another brand or searching for a different handle! 🔍`;
   } else {
     // Format response with all available promo codes
     const brandName = promoCodes[0].brand_name;
