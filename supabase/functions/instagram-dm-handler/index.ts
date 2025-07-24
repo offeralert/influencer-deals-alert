@@ -606,17 +606,20 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     messageText = `🎉 Found ${promoCodes.length} promo code${promoCodes.length > 1 ? 's' : ''} for ${brandName} (${requestedHandle}):\n\n`;
     
     promoCodes.forEach((code, index) => {
-      messageText += `${index + 1}. Code: ${code.promo_code}\n`;
-      messageText += `   ${code.description}\n`;
-      messageText += `   Link: ${code.affiliate_link}\n`;
+      if (promoCodes.length > 1) {
+        messageText += `${index + 1}.\n`;
+      }
+      messageText += `Code: ${code.promo_code}\n`;
+      messageText += `Amount: ${code.description}\n`;
+      messageText += `Link: ${code.affiliate_link}\n`;
+      
+      if (code.profiles && code.profiles.username) {
+        messageText += `From: ${code.profiles.username}\n`;
+      }
       
       if (code.expiration_date) {
         const expDate = new Date(code.expiration_date).toLocaleDateString();
-        messageText += `   Expires: ${expDate}\n`;
-      }
-      
-      if (code.profiles && code.profiles.full_name) {
-        messageText += `   By: ${code.profiles.full_name}\n`;
+        messageText += `Expires: ${expDate}\n`;
       }
       
       messageText += "\n";
