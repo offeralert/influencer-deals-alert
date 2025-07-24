@@ -138,7 +138,7 @@ serve(async (req) => {
                 }
               }
 
-              // Process shared posts/attachments using oEmbed API
+              // Process shared Instagram profile URLs
               if (messagingEvent.message.attachments) {
                 console.log(`=== 📎 ATTACHMENTS PROCESSING ===`);
                 console.log(`📊 Found ${messagingEvent.message.attachments.length} attachment(s)`);
@@ -149,16 +149,16 @@ serve(async (req) => {
                   console.log(`🏷️ Type: ${attachment.type}`);
                   console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
-                  // Process shared Instagram posts
+                  // Process shared Instagram profile URLs
                   if (attachment.type === "share" && attachment.payload?.url) {
-                    console.log("✅ This is a SHARE attachment - processing with oEmbed API...");
-                    const brandHandle = await processSharedMediaWithOEmbed(attachment.payload.url, senderId);
-                    if (brandHandle) {
-                      console.log(`🎉 Successfully extracted brand handle: ${brandHandle}`);
-                      await processPromoCodeRequest(senderId, brandHandle, supabaseClient);
+                    console.log("✅ This is a SHARE attachment - extracting username from Instagram profile URL...");
+                    const brandUsername = extractInstagramUsername(attachment.payload.url);
+                    if (brandUsername) {
+                      console.log(`🎉 Successfully extracted brand username: ${brandUsername}`);
+                      await processPromoCodeRequest(senderId, brandUsername, supabaseClient);
                       processedMessage = true;
                     } else {
-                      console.log("❌ Failed to extract brand handle from shared media");
+                      console.log("❌ Failed to extract brand username from shared URL");
                     }
                   } else {
                     console.log(`⚠️ Not a share attachment or no URL (type: ${attachment.type}) - skipping`);
@@ -424,6 +424,91 @@ function extractInstagramUrl(url: string): string | null {
   }
 }
 
+function extractInstagramUsername(url: string): string | null {
+  console.log(`=== 🔍 EXTRACTING INSTAGRAM USERNAME ===`);
+  console.log(`📥 Input URL: ${url}`);
+  
+  try {
+    // First try to decode if URL is encoded
+    let decodedUrl = url;
+    try {
+      decodedUrl = decodeURIComponent(url);
+      console.log(`🔓 Decoded URL: ${decodedUrl}`);
+    } catch (e) {
+      console.log("⚠️ URL not encoded or failed to decode, using original");
+    }
+    
+    // Instagram profile URL patterns
+    const instagramProfilePatterns = [
+      // Standard profile URLs: https://www.instagram.com/username or https://instagram.com/username
+      /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)(?:\/.*)?/i,
+      // Handle encoded URLs
+      /instagram%2Ecom%2F([a-zA-Z0-9._]+)/i,
+    ];
+    
+    // Try each pattern on both original and decoded URLs
+    const urlsToTest = [decodedUrl, url];
+    
+    for (const testUrl of urlsToTest) {
+      for (const pattern of instagramProfilePatterns) {
+        const match = testUrl.match(pattern);
+        if (match) {
+          let username = match[1];
+          
+          // Clean up the username - remove any trailing parameters or paths
+          username = username.split('?')[0].split('/')[0].split('#')[0];
+          
+          // Validate username format (alphanumeric, dots, underscores only)
+          if (/^[a-zA-Z0-9._]+$/.test(username)) {
+            // Add @ prefix if not present
+            if (!username.startsWith('@')) {
+              username = '@' + username;
+            }
+            console.log(`✅ Successfully extracted username: ${username}`);
+            return username;
+          }
+        }
+      }
+    }
+    
+    // Try URL constructor approach for better parsing
+    try {
+      const urlObj = new URL(decodedUrl.startsWith('http') ? decodedUrl : 'https://' + decodedUrl);
+      if (urlObj.hostname === 'instagram.com' || urlObj.hostname === 'www.instagram.com') {
+        const pathParts = urlObj.pathname.split('/').filter(part => part.length > 0);
+        if (pathParts.length > 0) {
+          let username = pathParts[0];
+          
+          // Skip if it's a known Instagram path that's not a username
+          const skipPaths = ['p', 'reel', 'tv', 'stories', 'explore', 'accounts', 'direct'];
+          if (!skipPaths.includes(username.toLowerCase())) {
+            // Validate username format
+            if (/^[a-zA-Z0-9._]+$/.test(username)) {
+              if (!username.startsWith('@')) {
+                username = '@' + username;
+              }
+              console.log(`✅ Successfully extracted username via URL constructor: ${username}`);
+              return username;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.log("⚠️ Failed to parse URL with URL constructor:", e.message);
+    }
+    
+    console.log("❌ No valid Instagram username found in URL");
+    console.log("🔍 URL analysis:");
+    console.log("- Contains 'instagram.com':", decodedUrl.includes('instagram.com'));
+    console.log("- Decoded URL:", decodedUrl);
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting Instagram username:", error);
+    return null;
+  }
+}
+
 async function processPromoCodeRequest(senderId: string, requestedHandle: string, supabaseClient: any) {
   console.log(`Processing promo code request for handle: ${requestedHandle}`);
   
@@ -494,7 +579,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (requestedHandle === "error_database") {
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
   } else if (!requestedHandle) {
-    messageText = "👋 Hi! You can:\n\n• Share an Instagram post from a brand and I'll find promo codes\n• Send me an Instagram handle (like @nike) to search manually\n\nI'll help you find the best deals! 🎁";
+    messageText = "👋 Hi! You can:\n\n• Share an Instagram profile URL (like instagram.com/instacart) and I'll find promo codes\n• Send me an Instagram handle (like @instacart) to search manually\n\nI'll help you find the best deals! 🎁";
   } else if (promoCodes.length === 0) {
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a post from another brand or searching for a different handle! 🔍`;
   } else {
