@@ -150,7 +150,7 @@ serve(async (req) => {
                 }
               }
 
-              // Process shared Instagram profile URLs
+              // Process shared Instagram profile URLs (only text-based shares)
               if (messagingEvent.message.attachments) {
                 console.log(`=== 📎 ATTACHMENTS PROCESSING ===`);
                 console.log(`📊 Found ${messagingEvent.message.attachments.length} attachment(s)`);
@@ -161,9 +161,11 @@ serve(async (req) => {
                   console.log(`🏷️ Type: ${attachment.type}`);
                   console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
-                  // Process shared Instagram profile URLs
-                  if (attachment.type === "share" && attachment.payload?.url) {
-                    console.log("✅ This is a SHARE attachment - extracting username from Instagram profile URL...");
+                  // Only process text-based shared links, not image attachments
+                  if (attachment.type === "share" && 
+                      attachment.payload?.url && 
+                      attachment.payload?.template_type !== "media") {
+                    console.log("✅ This is a text-based SHARE attachment - extracting username from Instagram profile URL...");
                     const brandUsername = extractInstagramUsername(attachment.payload.url);
                     if (brandUsername) {
                       console.log(`🎉 Successfully extracted brand username: ${brandUsername}`);
@@ -172,8 +174,10 @@ serve(async (req) => {
                     } else {
                       console.log("❌ Failed to extract brand username from shared URL");
                     }
+                  } else if (attachment.type === "share" && attachment.payload?.template_type === "media") {
+                    console.log(`⚠️ Skipping media attachment (image/video share) - only processing text links`);
                   } else {
-                    console.log(`⚠️ Not a share attachment or no URL (type: ${attachment.type}) - skipping`);
+                    console.log(`⚠️ Not a text-based share attachment (type: ${attachment.type}, template_type: ${attachment.payload?.template_type}) - skipping`);
                   }
                 }
               } else {
