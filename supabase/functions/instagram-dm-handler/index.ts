@@ -184,12 +184,11 @@ serve(async (req) => {
                 console.log("📭 No attachments found in message");
               }
 
-              // Only send a message if no valid content was processed at all
+              // Don't send any message if no valid content was processed
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
                 console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
-                console.log("💬 Sending sorry message to user");
-                await sendInstagramMessage(senderId, "no_valid_content", []);
+                console.log("🤐 No message will be sent - staying silent");
               } else {
                 console.log(`✅ Message processed successfully - promo details should have been sent`);
               }
