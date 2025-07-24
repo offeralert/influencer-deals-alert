@@ -116,25 +116,37 @@ serve(async (req) => {
               console.log(`📎 Has attachments: ${!!messagingEvent.message.attachments}`);
               console.log(`🔍 Full message object:`, JSON.stringify(messagingEvent.message, null, 2));
 
-              // Process text messages (existing functionality)
+              // Process text messages for Instagram handles and URLs
               if (messagingEvent.message.text) {
                 const messageText = messagingEvent.message.text;
                 console.log(`=== 📝 TEXT MESSAGE PROCESSING ===`);
                 console.log(`💬 Text content: "${messageText}"`);
 
-                // Extract Instagram handles from the message using regex
-                const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
-                const matches = messageText.match(instagramHandleRegex);
-
-                if (matches && matches.length > 0) {
-                  console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
-                  for (const handle of matches) {
-                    console.log(`🔄 Processing handle: ${handle}`);
-                    await processPromoCodeRequest(senderId, handle, supabaseClient);
-                    processedMessage = true;
+                // First try to extract username from Instagram URLs in text
+                const instagramUrl = messageText.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+                if (instagramUrl) {
+                  let username = instagramUrl[1];
+                  if (!username.startsWith('@')) {
+                    username = '@' + username;
                   }
+                  console.log(`✅ Found Instagram URL in text, extracted username: ${username}`);
+                  await processPromoCodeRequest(senderId, username, supabaseClient);
+                  processedMessage = true;
                 } else {
-                  console.log("❌ No Instagram handles found in text message");
+                  // Extract Instagram handles from the message using regex
+                  const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
+                  const matches = messageText.match(instagramHandleRegex);
+
+                  if (matches && matches.length > 0) {
+                    console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
+                    for (const handle of matches) {
+                      console.log(`🔄 Processing handle: ${handle}`);
+                      await processPromoCodeRequest(senderId, handle, supabaseClient);
+                      processedMessage = true;
+                    }
+                  } else {
+                    console.log("❌ No Instagram handles or URLs found in text message");
+                  }
                 }
               }
 
