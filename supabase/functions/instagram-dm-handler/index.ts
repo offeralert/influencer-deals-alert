@@ -595,7 +595,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (requestedHandle === "error_database") {
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
   } else if (!requestedHandle) {
-    messageText = "👋 Hi! You can:\n\n• Share an Instagram profile URL (like instagram.com/instacart) and I'll find promo codes\n• Send me an Instagram handle (like @instacart) to search manually\n\nI'll help you find the best deals! 🎁";
+    // Don't send help message - just a brief sorry message
+    messageText = "Sorry, I couldn't understand that. Please share an Instagram profile URL or send me a brand's handle (like @instacart).";
   } else if (promoCodes.length === 0) {
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a post from another brand or searching for a different handle! 🔍`;
   } else {
