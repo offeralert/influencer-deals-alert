@@ -1,24 +1,21 @@
 
-import React, { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { ProfileType } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-// Ensure React hooks are available
-const { useState: useStateHook, useRef: useRefHook, useCallback: useCallbackHook } = React;
-
 export const useAuthState = () => {
-  const [session, setSession] = useStateHook<Session | null>(null);
-  const [user, setUser] = useStateHook<User | null>(null);
-  const [profile, setProfile] = useStateHook<ProfileType | null>(null);
-  const [loading, setLoading] = useStateHook(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<ProfileType | null>(null);
+  const [loading, setLoading] = useState(true);
   
   // Track profile fetch attempts to prevent loops
-  const profileFetchAttempted = useRefHook<string | null>(null);
-  const profileFetchTimeout = useRefHook<NodeJS.Timeout | null>(null);
+  const profileFetchAttempted = useRef<string | null>(null);
+  const profileFetchTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const fetchProfile = useCallbackHook(async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     if (!userId) {
       console.log("No userId provided to fetchProfile");
       return;
@@ -83,7 +80,7 @@ export const useAuthState = () => {
     }
   }, []); // Stable function with no dependencies
 
-  const refreshProfile = useCallbackHook(async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) {
       console.log("🔄 Refreshing profile for user:", user.id);
       // Reset the fetch attempt flag to allow refresh
@@ -93,7 +90,7 @@ export const useAuthState = () => {
     }
   }, [user?.id, fetchProfile]);
 
-  const signOut = useCallbackHook(async () => {
+  const signOut = useCallback(async () => {
     try {
       console.log("Signing out user");
       
