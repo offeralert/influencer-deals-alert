@@ -614,7 +614,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       messageText += `Link: ${code.affiliate_link}\n`;
       
       if (code.profiles && code.profiles.username) {
-        messageText += `From: ${code.profiles.username}\n`;
+        messageText += `From: @${code.profiles.username}\n`;
       }
       
       if (code.expiration_date) {
