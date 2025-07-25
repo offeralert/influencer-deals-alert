@@ -24,12 +24,26 @@ export function OptimizedImage({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
 
+  // Calculate aspect ratio to prevent layout shift
+  const aspectRatio = width && height ? (height / width) * 100 : undefined;
+
   return (
-    <div className={cn("relative overflow-hidden", className)}>
+    <div 
+      className={cn("relative overflow-hidden", className)}
+      style={{
+        width: width || '100%',
+        height: height || 'auto',
+        aspectRatio: width && height ? `${width} / ${height}` : undefined,
+        ...(aspectRatio && !height && { paddingBottom: `${aspectRatio}%` })
+      }}
+    >
       {!isLoaded && !hasError && (
         <div 
           className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg"
-          style={{ width, height }}
+          style={{ 
+            width: '100%', 
+            height: '100%'
+          }}
         />
       )}
       <img
@@ -44,16 +58,18 @@ export function OptimizedImage({
         onLoad={() => setIsLoaded(true)}
         onError={() => setHasError(true)}
         className={cn(
-          "transition-opacity duration-300",
+          "absolute inset-0 w-full h-full object-cover transition-opacity duration-300",
           isLoaded ? "opacity-100" : "opacity-0",
-          hasError && "hidden",
-          className
+          hasError && "hidden"
         )}
+        style={{
+          width: '100%',
+          height: '100%'
+        }}
       />
       {hasError && (
         <div 
-          className="flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg"
-          style={{ width, height }}
+          className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg"
         >
           Failed to load image
         </div>
