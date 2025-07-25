@@ -171,29 +171,46 @@ const PromoCodeFormFields = ({
       <div className="space-y-2">
         <Label>Promo Details*</Label>
         <div className="flex gap-2">
-          <Input
-            name="promoValue"
-            value={formData.promoValue}
-            onChange={handleChange}
-            placeholder="20"
-            className="w-20"
-            required
-            disabled={isLoading || disabled}
-          />
+          {formData.promoType !== "other" && (
+            <Input
+              name="promoValue"
+              value={formData.promoValue}
+              onChange={handleChange}
+              placeholder="20"
+              className="w-20"
+              required
+              disabled={isLoading || disabled}
+            />
+          )}
           <Select
             value={formData.promoType}
             onValueChange={(value) => handleSelectChange("promoType", value)}
             disabled={isLoading || disabled}
           >
-            <SelectTrigger className="w-32">
+            <SelectTrigger className={formData.promoType === "other" ? "flex-1" : "w-32"}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="$ off">$ off</SelectItem>
               <SelectItem value="% off">% off</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        {formData.promoType === "other" && (
+          <div className="space-y-2">
+            <Label htmlFor="otherPromoDetails">Describe the offer*</Label>
+            <Input
+              id="otherPromoDetails"
+              name="promoValue"
+              value={formData.promoValue}
+              onChange={handleChange}
+              placeholder="e.g. Buy 2 Get 1 Free, Free Shipping"
+              required
+              disabled={isLoading || disabled}
+            />
+          </div>
+        )}
       </div>
       
       <Button
