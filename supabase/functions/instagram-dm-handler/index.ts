@@ -541,6 +541,7 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
       expiration_date,
       category,
       influencer_id,
+      actual_influencer_id,
       profiles:influencer_id (
         full_name,
         username,
@@ -559,40 +560,102 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
 
   console.log(`Found ${promoCodes?.length || 0} promo codes for ${requestedHandle}`);
 
-  // For agency-created promo codes, find the specific influencer
+  // For each promo code, determine the correct influencer to show
   if (promoCodes && promoCodes.length > 0) {
     for (let i = 0; i < promoCodes.length; i++) {
       const code = promoCodes[i];
       
-      // If this promo code was created by an agency, find the specific influencer it's for
+      // If this promo code was created by an agency, find the specific influencer
       if (code.profiles && code.profiles.is_agency) {
         console.log(`Promo code ${code.id} was created by agency ${code.profiles.username}, finding specific influencer`);
         
-        // For agency-created promo codes, we need to show a specific influencer
-        // Let's check if there's a pattern in the brand handle or use the first managed influencer
+        // First, check if actual_influencer_id is set
+        if (code.actual_influencer_id) {
+          console.log(`Using actual_influencer_id: ${code.actual_influencer_id}`);
+          
+          // Get the actual influencer's profile
+          const { data: actualInfluencer } = await supabaseClient
+            .from('profiles')
+            .select('username, full_name')
+            .eq('id', code.actual_influencer_id)
+            .single();
+          
+          if (actualInfluencer) {
+            code.actualInfluencer = {
+              username: actualInfluencer.username,
+              full_name: actualInfluencer.full_name
+            };
+            console.log(`Found actual influencer: ${actualInfluencer.username}`);
+            continue; // Move to next promo code
+          }
+        }
+        
+        // If no actual_influencer_id or it didn't resolve, try to find the influencer
+        // by matching the brand handle pattern with managed influencers
         const { data: managedInfluencers } = await supabaseClient
           .from('agency_influencers')
           .select(`
             profiles:influencer_id (
+              id,
               username,
-              full_name
+              full_name,
+              instagram_url
             )
           `)
           .eq('agency_id', code.influencer_id)
           .eq('managed_by_agency', true);
         
         if (managedInfluencers && managedInfluencers.length > 0) {
-          // For now, use the first managed influencer
-          // In a real scenario, you'd want to track which specific influencer each promo code is for
-          const influencer = managedInfluencers[0].profiles;
-          if (influencer) {
+          console.log(`Found ${managedInfluencers.length} managed influencers for agency`);
+          
+          // Try to match the brand handle with an influencer's Instagram
+          let matchedInfluencer = null;
+          
+          for (const managedInfluencer of managedInfluencers) {
+            const influencer = managedInfluencer.profiles;
+            if (influencer && influencer.instagram_url) {
+              // Extract username from Instagram URL
+              const instagramUsername = extractInstagramUsername(influencer.instagram_url);
+              console.log(`Checking influencer ${influencer.username} with Instagram handle ${instagramUsername}`);
+              
+              // Check if this influencer's Instagram handle matches the requested brand handle
+              if (instagramUsername && instagramUsername.toLowerCase() === requestedHandle.toLowerCase()) {
+                matchedInfluencer = influencer;
+                console.log(`Found matching influencer: ${influencer.username} for brand ${requestedHandle}`);
+                break;
+              }
+            }
+          }
+          
+          // If we found a match, use it; otherwise fall back to first managed influencer
+          if (matchedInfluencer) {
             code.actualInfluencer = {
-              username: influencer.username,
-              full_name: influencer.full_name
+              username: matchedInfluencer.username,
+              full_name: matchedInfluencer.full_name
             };
-            console.log(`Found managed influencer: ${influencer.username}`);
+            
+            // Update the actual_influencer_id in the database for future use
+            await supabaseClient
+              .from('promo_codes')
+              .update({ actual_influencer_id: matchedInfluencer.id })
+              .eq('id', code.id);
+            
+            console.log(`Updated promo code ${code.id} with actual_influencer_id: ${matchedInfluencer.id}`);
+          } else {
+            // Fallback to first managed influencer if no match found
+            const firstInfluencer = managedInfluencers[0].profiles;
+            if (firstInfluencer) {
+              code.actualInfluencer = {
+                username: firstInfluencer.username,
+                full_name: firstInfluencer.full_name
+              };
+              console.log(`No exact match found, using first managed influencer: ${firstInfluencer.username}`);
+            }
           }
         }
+      } else if (code.profiles && code.profiles.is_influencer) {
+        // This is a regular influencer-created promo code, use their info directly
+        console.log(`Promo code ${code.id} was created by influencer ${code.profiles.username}`);
       }
     }
   }
