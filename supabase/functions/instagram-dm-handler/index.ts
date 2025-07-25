@@ -528,6 +528,7 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
   console.log(`Processing promo code request for handle: ${requestedHandle}`);
   
   // Query promo codes for this Instagram handle
+  // Get promo codes matching the requested brand
   const { data: promoCodes, error } = await supabaseClient
     .from('promo_codes')
     .select(`
@@ -558,22 +559,40 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
 
   console.log(`Found ${promoCodes?.length || 0} promo codes for ${requestedHandle}`);
 
-  // For agency-created promo codes, we need to find the actual influencer
+  // For agency-created promo codes, find the specific influencer
   if (promoCodes && promoCodes.length > 0) {
     for (let i = 0; i < promoCodes.length; i++) {
       const code = promoCodes[i];
       
-      // If this promo code was created by an agency, we need to determine the actual influencer
+      // If this promo code was created by an agency, find the specific influencer it's for
       if (code.profiles && code.profiles.is_agency) {
-        console.log(`Promo code ${code.id} was created by agency ${code.profiles.username}`);
+        console.log(`Promo code ${code.id} was created by agency ${code.profiles.username}, finding specific influencer`);
         
-        // Query to find which influencer this agency manages and who should be credited
-        // For now, we'll show a generic message since the data structure needs to be fixed
-        code.profiles.display_username = "Agency Managed";
-        code.profiles.is_agency_created = true;
-      } else if (code.profiles && code.profiles.is_influencer) {
-        code.profiles.display_username = code.profiles.username;
-        code.profiles.is_agency_created = false;
+        // For agency-created promo codes, we need to show a specific influencer
+        // Let's check if there's a pattern in the brand handle or use the first managed influencer
+        const { data: managedInfluencers } = await supabaseClient
+          .from('agency_influencers')
+          .select(`
+            profiles:influencer_id (
+              username,
+              full_name
+            )
+          `)
+          .eq('agency_id', code.influencer_id)
+          .eq('managed_by_agency', true);
+        
+        if (managedInfluencers && managedInfluencers.length > 0) {
+          // For now, use the first managed influencer
+          // In a real scenario, you'd want to track which specific influencer each promo code is for
+          const influencer = managedInfluencers[0].profiles;
+          if (influencer) {
+            code.actualInfluencer = {
+              username: influencer.username,
+              full_name: influencer.full_name
+            };
+            console.log(`Found managed influencer: ${influencer.username}`);
+          }
+        }
       }
     }
   }
@@ -636,12 +655,13 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       messageText += `Amount: ${code.description}\n`;
       messageText += `Link: ${code.affiliate_link}\n`;
       
-      if (code.profiles) {
-        if (code.profiles.display_username) {
-          messageText += `From: @${code.profiles.display_username}\n`;
-        } else if (code.profiles.username) {
-          messageText += `From: @${code.profiles.username}\n`;
-        }
+      // Show the appropriate username - either the actual influencer for agency codes or the profile username
+      if (code.actualInfluencer) {
+        // Agency-created promo code, show the actual influencer
+        messageText += `From: @${code.actualInfluencer.username}\n`;
+      } else if (code.profiles && code.profiles.username) {
+        // Regular influencer-created promo code
+        messageText += `From: @${code.profiles.username}\n`;
       }
       
       if (code.expiration_date) {

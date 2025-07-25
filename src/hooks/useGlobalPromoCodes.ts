@@ -14,8 +14,21 @@ export const useGlobalPromoCodes = () => {
         const { data, error } = await supabase
           .from('promo_codes')
           .select(`
-            *,
-            profiles:influencer_id (
+            id,
+            influencer_id,
+            brand_name,
+            brand_url,
+            brand_instagram_handle,
+            promo_code,
+            description,
+            affiliate_link,
+            created_at,
+            updated_at,
+            expiration_date,
+            is_trending,
+            is_featured,
+            category,
+            profiles!influencer_id (
               full_name,
               username,
               avatar_url
@@ -60,8 +73,21 @@ export const useGlobalPromoCodes = () => {
               const { data: newRecord } = await supabase
                 .from('promo_codes')
                 .select(`
-                  *,
-                  profiles:influencer_id (
+                  id,
+                  influencer_id,
+                  brand_name,
+                  brand_url,
+                  brand_instagram_handle,
+                  promo_code,
+                  description,
+                  affiliate_link,
+                  created_at,
+                  updated_at,
+                  expiration_date,
+                  is_trending,
+                  is_featured,
+                  category,
+                  profiles!influencer_id (
                     full_name,
                     username,
                     avatar_url
@@ -81,8 +107,21 @@ export const useGlobalPromoCodes = () => {
               const { data: updatedRecord } = await supabase
                 .from('promo_codes')
                 .select(`
-                  *,
-                  profiles:influencer_id (
+                  id,
+                  influencer_id,
+                  brand_name,
+                  brand_url,
+                  brand_instagram_handle,
+                  promo_code,
+                  description,
+                  affiliate_link,
+                  created_at,
+                  updated_at,
+                  expiration_date,
+                  is_trending,
+                  is_featured,
+                  category,
+                  profiles!influencer_id (
                     full_name,
                     username,
                     avatar_url

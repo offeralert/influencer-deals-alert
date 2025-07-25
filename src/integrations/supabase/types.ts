@@ -115,6 +115,7 @@ export type Database = {
       }
       promo_codes: {
         Row: {
+          actual_influencer_id: string | null
           affiliate_link: string
           brand_instagram_handle: string
           brand_name: string
@@ -131,6 +132,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          actual_influencer_id?: string | null
           affiliate_link: string
           brand_instagram_handle?: string
           brand_name: string
@@ -147,6 +149,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          actual_influencer_id?: string | null
           affiliate_link?: string
           brand_instagram_handle?: string
           brand_name?: string
@@ -163,6 +166,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "promo_codes_actual_influencer_id_fkey"
+            columns: ["actual_influencer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "promo_codes_user_id_fkey"
             columns: ["influencer_id"]
@@ -265,6 +275,10 @@ export type Database = {
       extract_domain: {
         Args: { url: string }
         Returns: string
+      }
+      fix_agency_promo_codes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       is_agency: {
         Args: { user_id: string }

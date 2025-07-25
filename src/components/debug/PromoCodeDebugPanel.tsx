@@ -40,7 +40,7 @@ const PromoCodeDebugPanel = ({ displayedDealsCount, onRefresh }: PromoCodeDebugP
           brand_name,
           promo_code,
           influencer_id,
-          profiles:influencer_id (
+          profiles!influencer_id (
             id,
             full_name,
             username,
