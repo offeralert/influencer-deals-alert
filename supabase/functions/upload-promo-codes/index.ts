@@ -14,6 +14,7 @@ interface PromoCode {
   brand_url: string;
   category: string; 
   brand_instagram_handle?: string;
+  agency_id?: string; // Optional agency ID for agency-created codes
 }
 
 // Helper function to extract domain from URL with international domain support
@@ -150,11 +151,18 @@ serve(async (req) => {
         
         console.log(`[UPLOAD] User subscription: ${subscription_tier}, subscribed: ${subscribed}`);
         
-        // Get current offer count
+        // Determine which user ID to use for counting offers
+        // If agency_id is provided in the first promo code, this is an agency upload
+        const isAgencyUpload = promoCodes[0]?.agency_id;
+        const countUserId = isAgencyUpload ? promoCodes[0].agency_id : user.user.id;
+        
+        console.log(`[UPLOAD] ${isAgencyUpload ? 'Agency' : 'Individual'} upload detected. Counting offers for user:`, countUserId);
+        
+        // Get current offer count for the appropriate user (agency or individual)
         const { count: currentCount } = await supabaseClient
           .from('promo_codes')
           .select('*', { count: 'exact', head: true })
-          .eq('influencer_id', user.user.id);
+          .eq(isAgencyUpload ? 'agency_id' : 'influencer_id', countUserId);
         
         // Calculate max offers based on tier
         let maxOffers = 1; // Starter tier default
@@ -220,6 +228,7 @@ serve(async (req) => {
         promoCodes.map((promoCode) => ({
           ...promoCode,
           influencer_id: promoCode.user_id, // Use the user_id from the promo code data (which should be the actual influencer ID)
+          agency_id: promoCode.agency_id || null, // Set agency_id if provided, otherwise null for individual influencers
           brand_instagram_handle: promoCode.brand_instagram_handle || ''
         }))
       )

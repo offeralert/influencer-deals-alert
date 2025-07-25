@@ -117,6 +117,7 @@ export type Database = {
         Row: {
           actual_influencer_id: string | null
           affiliate_link: string
+          agency_id: string | null
           brand_instagram_handle: string
           brand_name: string
           brand_url: string
@@ -134,6 +135,7 @@ export type Database = {
         Insert: {
           actual_influencer_id?: string | null
           affiliate_link: string
+          agency_id?: string | null
           brand_instagram_handle?: string
           brand_name: string
           brand_url?: string
@@ -151,6 +153,7 @@ export type Database = {
         Update: {
           actual_influencer_id?: string | null
           affiliate_link?: string
+          agency_id?: string | null
           brand_instagram_handle?: string
           brand_name?: string
           brand_url?: string
@@ -169,6 +172,13 @@ export type Database = {
           {
             foreignKeyName: "promo_codes_actual_influencer_id_fkey"
             columns: ["actual_influencer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_codes_agency_id_fkey"
+            columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]

@@ -112,6 +112,14 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
     setIsLoading(true);
 
     try {
+      // Get current user (the agency)
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        toast.error("Authentication error");
+        return;
+      }
+
       const { error } = await supabase
         .from("promo_codes")
         .insert({
@@ -123,7 +131,8 @@ const AgencyPromoCodeForm = ({ influencerId, onPromoCodeAdded }: AgencyPromoCode
           expiration_date: formData.expirationDate || null,
           affiliate_link: formData.affiliateLink,
           category: formData.category,
-          influencer_id: influencerId,
+          influencer_id: influencerId, // The actual influencer this code belongs to
+          agency_id: user.id, // The agency creating this code
         });
 
       if (error) {
