@@ -171,14 +171,19 @@ const InfluencerSignupForm = () => {
         />
       </div>
       
-      <UsernameInput
-        id="socialHandle"
-        label="Social Media Handle"
-        placeholder="yourusername"
-        value={formData.socialHandle}
-        onChange={handleSocialHandleChange}
-        disabled={isLoading}
-      />
+      <div className="space-y-2">
+        <UsernameInput
+          id="socialHandle"
+          label="Social Media Handle"
+          placeholder="yourusername"
+          value={formData.socialHandle}
+          onChange={handleSocialHandleChange}
+          disabled={isLoading}
+        />
+        <p className="text-sm text-muted-foreground">
+          💡 Use your Instagram username - this helps with our Instagram DM feature that automatically shares your promo codes when someone shares your Instagram profile!
+        </p>
+      </div>
       
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>

@@ -59,8 +59,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   const { subscriptionTier, maxOffers, bypassOfferLimits, refresh } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Check if this is a fake account
-  const isFakeAccount = profile?.is_fake === true;
+  // Check if this is a fake agency account (both is_fake and is_agency must be true)
+  const isFakeAgency = profile?.is_fake === true && profile?.is_agency === true;
   
   // Initialize form data with stored values if available
   const [formData, setFormData] = useState<PromoCodeFormData>(() => {
@@ -112,9 +112,9 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     const fetchOfferCount = async () => {
       if (!user) return;
       
-      // For fake accounts, skip the count check entirely
-      if (isFakeAccount) {
-        console.log(`[PROMO_FORM] Fake account detected - skipping offer count check`);
+      // For fake agency accounts, skip the count check entirely
+      if (isFakeAgency) {
+        console.log(`[PROMO_FORM] Fake agency account detected - skipping offer count check`);
         setCurrentOfferCount(0);
         setIsLoadingCount(false);
         return;
@@ -138,7 +138,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         const currentCount = count || 0;
         setCurrentOfferCount(currentCount);
         
-        console.log(`[PROMO_FORM] Current offer count: ${currentCount}, Max offers: ${maxOffers}, Fake account: ${isFakeAccount}, Bypass limits: ${bypassOfferLimits}`);
+        console.log(`[PROMO_FORM] Current offer count: ${currentCount}, Max offers: ${maxOffers}, Fake agency: ${isFakeAgency}, Bypass limits: ${bypassOfferLimits}`);
       } catch (err) {
         console.error("Error fetching offer count:", err);
         toast.error("Failed to fetch current offer count");
@@ -148,7 +148,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     };
 
     fetchOfferCount();
-  }, [user, maxOffers, isFakeAccount, bypassOfferLimits]);
+  }, [user, maxOffers, isFakeAgency, bypassOfferLimits]);
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -236,9 +236,9 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
 
     console.log(`[PROMO_FORM] Combined promo description: ${promoDescription}`);
 
-    // For fake accounts, completely bypass subscription checks
-    if (isFakeAccount) {
-      console.log(`[PROMO_FORM] Fake account - bypassing all subscription checks`);
+    // For fake agency accounts, completely bypass subscription checks
+    if (isFakeAgency) {
+      console.log(`[PROMO_FORM] Fake agency account - bypassing all subscription checks`);
     } else {
       // Check subscription limits for real accounts only
       if (!bypassOfferLimits && currentOfferCount >= maxOffers) {
@@ -313,8 +313,8 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
           promoValue: "",
         });
         
-        // Update the current offer count only for real accounts
-        if (!isFakeAccount) {
+        // Update the current offer count only for real accounts (not fake agencies)
+        if (!isFakeAgency) {
           setCurrentOfferCount(prev => prev + 1);
           
           // Refresh subscription data to ensure we have the latest limits
