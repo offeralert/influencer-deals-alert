@@ -219,7 +219,7 @@ serve(async (req) => {
       .insert(
         promoCodes.map((promoCode) => ({
           ...promoCode,
-          influencer_id: user.user.id, // Make sure to use influencer_id field
+          influencer_id: promoCode.user_id, // Use the user_id from the promo code data (which should be the actual influencer ID)
           brand_instagram_handle: promoCode.brand_instagram_handle || ''
         }))
       )
