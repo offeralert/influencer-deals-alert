@@ -608,20 +608,44 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
         if (managedInfluencers && managedInfluencers.length > 0) {
           console.log(`Found ${managedInfluencers.length} managed influencers for agency`);
           
-          // Try to match the brand handle with an influencer's Instagram
+          // Try to match the brand handle with the promo code's brand_instagram_handle
           let matchedInfluencer = null;
+          
+          // First, look for managed influencers who have their own promo codes for this specific brand
+          console.log(`Looking for managed influencer who has their own promo codes with brand_instagram_handle matching ${requestedHandle}`);
           
           for (const managedInfluencer of managedInfluencers) {
             const influencer = managedInfluencer.profiles;
-            if (influencer && influencer.instagram_url) {
-              // Extract username from Instagram URL
-              const instagramUsername = extractInstagramUsername(influencer.instagram_url);
-              console.log(`Checking influencer ${influencer.username} with Instagram handle ${instagramUsername}`);
+            
+            // Query to see if this specific managed influencer has promo codes for this brand
+            const { data: influencerPromoCodes } = await supabaseClient
+              .from('promo_codes')
+              .select('*')
+              .eq('influencer_id', influencer.id)
+              .ilike('brand_instagram_handle', `%${requestedHandle.replace('@', '')}%`);
+            
+            if (influencerPromoCodes && influencerPromoCodes.length > 0) {
+              matchedInfluencer = influencer;
+              console.log(`Found matching influencer via their own promo codes: ${influencer.username} for brand ${requestedHandle}`);
+              break;
+            }
+          }
+          
+          // If no direct match via promo code mapping, check all managed influencers for this specific promo code
+          if (!matchedInfluencer) {
+            for (const managedInfluencer of managedInfluencers) {
+              const influencer = managedInfluencer.profiles;
               
-              // Check if this influencer's Instagram handle matches the requested brand handle
-              if (instagramUsername && instagramUsername.toLowerCase() === requestedHandle.toLowerCase()) {
+              // Query promo_codes table to see if this influencer has promo codes for this brand
+              const { data: influencerPromoCodes } = await supabaseClient
+                .from('promo_codes')
+                .select('*')
+                .eq('influencer_id', influencer.id)
+                .ilike('brand_instagram_handle', `%${requestedHandle.replace('@', '')}%`);
+              
+              if (influencerPromoCodes && influencerPromoCodes.length > 0) {
                 matchedInfluencer = influencer;
-                console.log(`Found matching influencer: ${influencer.username} for brand ${requestedHandle}`);
+                console.log(`Found matching influencer via database lookup: ${influencer.username} for brand ${requestedHandle}`);
                 break;
               }
             }
