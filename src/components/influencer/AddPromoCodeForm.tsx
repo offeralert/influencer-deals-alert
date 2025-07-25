@@ -22,9 +22,10 @@ import { toast } from "sonner";
 
 interface AddPromoCodeFormProps {
   onPromoCodeAdded?: () => void;
+  targetInfluencerId?: string | null;
 }
 
-const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
+const AddPromoCodeForm = ({ onPromoCodeAdded, targetInfluencerId }: AddPromoCodeFormProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>();
   const { user, isAuthenticated } = useAuth();
   
@@ -40,7 +41,7 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
     handleChange,
     handleSelectChange,
     handleSubmit
-  } = usePromoCodeForm({ onPromoCodeAdded: onPromoCodeAdded || (() => {}) });
+  } = usePromoCodeForm({ onPromoCodeAdded: onPromoCodeAdded || (() => {}), targetInfluencerId });
 
   const { error: subscriptionError, refresh: refreshSubscription } = useSubscription();
 

@@ -23,14 +23,15 @@ import {
 
 interface PromoCodesListProps {
   onPromoCodeUpdated?: () => void;
+  targetInfluencerId?: string | null;
 }
 
-const PromoCodesList = ({ onPromoCodeUpdated }: PromoCodesListProps) => {
+const PromoCodesList = ({ onPromoCodeUpdated, targetInfluencerId }: PromoCodesListProps) => {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   // Use real-time hook instead of manual state management
-  const { promoCodes, loading } = usePromoCodesRealtime();
+  const { promoCodes, loading } = usePromoCodesRealtime(targetInfluencerId);
 
   const handleDelete = async (id: string) => {
     setDeleting(true);

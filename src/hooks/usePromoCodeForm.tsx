@@ -21,6 +21,7 @@ interface PromoCodeFormData {
 
 interface UsePromoCodeFormProps {
   onPromoCodeAdded: () => void;
+  targetInfluencerId?: string | null;
 }
 
 const STORAGE_KEY = "promo_code_form_draft";
@@ -54,10 +55,13 @@ const clearStoredFormData = () => {
   }
 };
 
-export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) => {
+export const usePromoCodeForm = ({ onPromoCodeAdded, targetInfluencerId }: UsePromoCodeFormProps) => {
   const { user, profile } = useAuth();
   const { subscriptionTier, maxOffers, bypassOfferLimits, refresh } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Use targetInfluencerId if provided (for agency managing influencer), otherwise use current user
+  const effectiveInfluencerId = targetInfluencerId || user?.id;
   
   // Check if this is a fake agency account (both is_fake and is_agency must be true)
   const isFakeAgency = profile?.is_fake === true && profile?.is_agency === true;
@@ -110,7 +114,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   // Fetch current offer count only when needed for real accounts
   useEffect(() => {
     const fetchOfferCount = async () => {
-      if (!user) return;
+      if (!effectiveInfluencerId) return;
       
       // For fake agency accounts, skip the count check entirely
       if (isFakeAgency) {
@@ -123,12 +127,12 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
       setIsLoadingCount(true);
       
       try {
-        console.log(`[PROMO_FORM] Fetching offer count for real user: ${user.id}`);
+        console.log(`[PROMO_FORM] Fetching offer count for influencer: ${effectiveInfluencerId}`);
         
         const { count, error } = await supabase
           .from('promo_codes')
           .select('*', { count: 'exact', head: true })
-          .eq('influencer_id', user.id);
+          .eq('influencer_id', effectiveInfluencerId);
         
         if (error) {
           console.error("[PROMO_FORM] Error fetching offer count:", error);
@@ -148,7 +152,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     };
 
     fetchOfferCount();
-  }, [user, maxOffers, isFakeAgency, bypassOfferLimits]);
+  }, [effectiveInfluencerId, maxOffers, isFakeAgency, bypassOfferLimits]);
 
   const handleChange = useCallback((
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -217,10 +221,10 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    console.log(`[PROMO_FORM] Form submission started - User: ${user?.id}, Data:`, formData);
+    console.log(`[PROMO_FORM] Form submission started - User: ${user?.id}, Target: ${effectiveInfluencerId}, Data:`, formData);
     
-    if (!user) {
-      console.error("[PROMO_FORM] No user found");
+    if (!effectiveInfluencerId) {
+      console.error("[PROMO_FORM] No target influencer ID found");
       toast.error("You must be logged in to add promo codes");
       return;
     }
@@ -271,10 +275,10 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     setIsLoading(true);
 
     try {
-      console.log(`[PROMO_FORM] Attempting to insert promo code for user: ${user.id}`);
+      console.log(`[PROMO_FORM] Attempting to insert promo code for influencer: ${effectiveInfluencerId}`);
       
       const { error, data } = await supabase.from("promo_codes").insert({
-        influencer_id: user.id,
+        influencer_id: effectiveInfluencerId,
         brand_name: formData.brandName,
         brand_url: formData.brandUrl,
         brand_instagram_handle: formData.brandInstagramHandle || '',
@@ -295,7 +299,7 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
         console.log(`[PROMO_FORM] Successfully added promo code: ${data[0].id}`);
         
         // Update domain mappings for all followers with brand_url as the ONLY source
-        await updateFollowerDomains(user.id, formData.brandUrl);
+        await updateFollowerDomains(effectiveInfluencerId, formData.brandUrl);
 
         toast.success("Promo code added successfully!");
         

@@ -5,16 +5,20 @@ import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DollarSign,
   Settings,
   Plus,
   Share2,
+  User,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import PromoCodesList from "@/components/influencer/PromoCodesList";
 import AddPromoCodeForm from "@/components/influencer/AddPromoCodeForm";
 import SocialMediaLinksForm from "@/components/influencer/SocialMediaLinksForm";
+import { useInfluencerProfileById } from "@/hooks/useInfluencerProfileById";
+import { getAvatarUrl, DEFAULT_AVATAR_URL } from "@/utils/avatarUtils";
 
 const InfluencerDashboard = () => {
   const { user } = useAuth();
@@ -25,6 +29,9 @@ const InfluencerDashboard = () => {
   
   // If this is an agency managing a specific influencer, show that context
   const isManagingInfluencer = !!managedInfluencerId;
+  
+  // Fetch managed influencer profile data
+  const { influencer: managedInfluencer, loading: influencerLoading } = useInfluencerProfileById(managedInfluencerId);
 
   const handlePromoCodeAdded = () => {
     console.log("[DASHBOARD] Promo code added, refreshing lists");
@@ -37,15 +44,43 @@ const InfluencerDashboard = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">
-          {isManagingInfluencer ? "Managing Influencer" : "Influencer Dashboard"}
-        </h1>
-        <p className="text-muted-foreground">
-          {isManagingInfluencer 
-            ? "Manage this influencer's profile and promo codes."
-            : "Manage your profile and add promo codes."
-          }
-        </p>
+        {isManagingInfluencer && managedInfluencer ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16">
+                <AvatarImage 
+                  src={getAvatarUrl(managedInfluencer.avatar_url)} 
+                  alt={managedInfluencer.full_name}
+                />
+                <AvatarFallback>
+                  <AvatarImage src={DEFAULT_AVATAR_URL} alt="User" />
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-3xl font-bold">
+                  Managing {managedInfluencer.full_name}
+                </h1>
+                <p className="text-muted-foreground">
+                  @{managedInfluencer.username} • Manage this influencer's profile and promo codes
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <h1 className="text-3xl font-bold mb-2">
+              {isManagingInfluencer ? (
+                influencerLoading ? "Loading Influencer..." : "Managing Influencer"
+              ) : "Influencer Dashboard"}
+            </h1>
+            <p className="text-muted-foreground">
+              {isManagingInfluencer 
+                ? "Manage this influencer's profile and promo codes."
+                : "Manage your profile and add promo codes."
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
@@ -69,11 +104,17 @@ const InfluencerDashboard = () => {
         </TabsList>
 
         <TabsContent value="promo-codes">
-          <PromoCodesList key={refreshKey} />
+          <PromoCodesList 
+            key={refreshKey} 
+            targetInfluencerId={managedInfluencerId}
+          />
         </TabsContent>
 
         <TabsContent value="add-promo-code">
-          <AddPromoCodeForm onPromoCodeAdded={handlePromoCodeAdded} />
+          <AddPromoCodeForm 
+            onPromoCodeAdded={handlePromoCodeAdded} 
+            targetInfluencerId={managedInfluencerId}
+          />
         </TabsContent>
 
         <TabsContent value="social-media">

@@ -4,17 +4,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { getPromoCodes, type PromoCodeWithInfluencer } from "@/utils/supabaseQueries";
 import { toast } from "sonner";
 
-export const usePromoCodesRealtime = () => {
+export const usePromoCodesRealtime = (targetInfluencerId?: string | null) => {
   const { user } = useAuth();
   const [promoCodes, setPromoCodes] = useState<PromoCodeWithInfluencer[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Use targetInfluencerId if provided (for agency managing influencer), otherwise use current user
+  const influencerId = targetInfluencerId || user?.id;
+
   const fetchPromoCodes = async () => {
-    if (!user) return;
+    if (!influencerId) return;
     
     try {
       const { data, error } = await getPromoCodes()
-        .eq('influencer_id', user.id)
+        .eq('influencer_id', influencerId)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -33,7 +36,7 @@ export const usePromoCodesRealtime = () => {
   };
 
   useEffect(() => {
-    if (!user) {
+    if (!influencerId) {
       setLoading(false);
       return;
     }
@@ -50,7 +53,7 @@ export const usePromoCodesRealtime = () => {
           event: '*',
           schema: 'public',
           table: 'promo_codes',
-          filter: `influencer_id=eq.${user.id}`
+          filter: `influencer_id=eq.${influencerId}`
         },
         (payload) => {
           console.log('Promo code change received:', payload);
@@ -82,7 +85,7 @@ export const usePromoCodesRealtime = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id]);
+  }, [influencerId]);
 
   return { promoCodes, loading, refetch: fetchPromoCodes };
 };
