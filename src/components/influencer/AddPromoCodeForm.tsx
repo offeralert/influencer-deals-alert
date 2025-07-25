@@ -296,15 +296,17 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
               <div className="space-y-2">
                 <Label>Promo Details *</Label>
                 <div className="flex gap-2">
-                  <Input
-                    name="promoValue"
-                    value={formData.promoValue}
-                    onChange={handleChange}
-                    placeholder="20"
-                    className="w-20"
-                    required
-                    disabled={isLoading}
-                  />
+                  {formData.promoType !== "other" && (
+                    <Input
+                      name="promoValue"
+                      value={formData.promoValue}
+                      onChange={handleChange}
+                      placeholder="20"
+                      className="w-20"
+                      required
+                      disabled={isLoading}
+                    />
+                  )}
                   <Select
                     value={formData.promoType}
                     onValueChange={(value) => handleSelectChange("promoType", value)}
@@ -316,8 +318,20 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                     <SelectContent>
                       <SelectItem value="$ off">$ off</SelectItem>
                       <SelectItem value="% off">% off</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
+                  {formData.promoType === "other" && (
+                    <Input
+                      name="promoValue"
+                      value={formData.promoValue}
+                      onChange={handleChange}
+                      placeholder="e.g. Buy 2 Get 1 Free, Free Shipping"
+                      className="flex-1"
+                      required
+                      disabled={isLoading}
+                    />
+                  )}
                 </div>
               </div>
 
