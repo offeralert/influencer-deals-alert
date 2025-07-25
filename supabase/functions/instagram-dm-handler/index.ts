@@ -539,9 +539,12 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
       affiliate_link,
       expiration_date,
       category,
+      influencer_id,
       profiles:influencer_id (
         full_name,
-        username
+        username,
+        is_agency,
+        is_influencer
       )
     `)
     .ilike('brand_instagram_handle', requestedHandle)
@@ -554,6 +557,26 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
   }
 
   console.log(`Found ${promoCodes?.length || 0} promo codes for ${requestedHandle}`);
+
+  // For agency-created promo codes, we need to find the actual influencer
+  if (promoCodes && promoCodes.length > 0) {
+    for (let i = 0; i < promoCodes.length; i++) {
+      const code = promoCodes[i];
+      
+      // If this promo code was created by an agency, we need to determine the actual influencer
+      if (code.profiles && code.profiles.is_agency) {
+        console.log(`Promo code ${code.id} was created by agency ${code.profiles.username}`);
+        
+        // Query to find which influencer this agency manages and who should be credited
+        // For now, we'll show a generic message since the data structure needs to be fixed
+        code.profiles.display_username = "Agency Managed";
+        code.profiles.is_agency_created = true;
+      } else if (code.profiles && code.profiles.is_influencer) {
+        code.profiles.display_username = code.profiles.username;
+        code.profiles.is_agency_created = false;
+      }
+    }
+  }
 
   // Send response with promo codes
   await sendInstagramMessage(senderId, requestedHandle, promoCodes || []);
@@ -613,13 +636,10 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       messageText += `Amount: ${code.description}\n`;
       messageText += `Link: ${code.affiliate_link}\n`;
       
-      if (code.profiles && code.profiles.username) {
-        // If influencer is managed by an agency, show influencer's username
-        if (code.profiles.agency_influencers && 
-            code.profiles.agency_influencers.length > 0 && 
-            code.profiles.agency_influencers[0].managed_by_agency) {
-          messageText += `From: @${code.profiles.username}\n`;
-        } else {
+      if (code.profiles) {
+        if (code.profiles.display_username) {
+          messageText += `From: @${code.profiles.display_username}\n`;
+        } else if (code.profiles.username) {
           messageText += `From: @${code.profiles.username}\n`;
         }
       }
