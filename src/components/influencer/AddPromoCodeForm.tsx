@@ -296,17 +296,15 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
               <div className="space-y-2">
                 <Label>Promo Details *</Label>
                 <div className="flex gap-2">
-                  {formData.promoType !== "other" && (
-                    <Input
-                      name="promoValue"
-                      value={formData.promoValue}
-                      onChange={handleChange}
-                      placeholder="20"
-                      className="w-20"
-                      required
-                      disabled={isLoading}
-                    />
-                  )}
+                  <Input
+                    name="promoValue"
+                    value={formData.promoValue}
+                    onChange={handleChange}
+                    placeholder={formData.promoType === "other" ? "e.g. Buy 2 Get 1 Free, Free Shipping" : "20"}
+                    className={formData.promoType === "other" ? "flex-1" : "w-20"}
+                    required
+                    disabled={isLoading}
+                  />
                   <Select
                     value={formData.promoType}
                     onValueChange={(value) => handleSelectChange("promoType", value)}
@@ -321,17 +319,6 @@ const AddPromoCodeForm = ({ onPromoCodeAdded }: AddPromoCodeFormProps) => {
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  {formData.promoType === "other" && (
-                    <Input
-                      name="promoValue"
-                      value={formData.promoValue}
-                      onChange={handleChange}
-                      placeholder="e.g. Buy 2 Get 1 Free, Free Shipping"
-                      className="flex-1"
-                      required
-                      disabled={isLoading}
-                    />
-                  )}
                 </div>
               </div>
 

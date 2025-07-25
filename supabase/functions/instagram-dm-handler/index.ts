@@ -614,7 +614,14 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       messageText += `Link: ${code.affiliate_link}\n`;
       
       if (code.profiles && code.profiles.username) {
-        messageText += `From: @${code.profiles.username}\n`;
+        // If influencer is managed by an agency, show influencer's username
+        if (code.profiles.agency_influencers && 
+            code.profiles.agency_influencers.length > 0 && 
+            code.profiles.agency_influencers[0].managed_by_agency) {
+          messageText += `From: @${code.profiles.username}\n`;
+        } else {
+          messageText += `From: @${code.profiles.username}\n`;
+        }
       }
       
       if (code.expiration_date) {

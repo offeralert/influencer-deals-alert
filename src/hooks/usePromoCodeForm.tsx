@@ -232,7 +232,9 @@ export const usePromoCodeForm = ({ onPromoCodeAdded }: UsePromoCodeFormProps) =>
     }
 
     // Combine promo type and value into description
-    const promoDescription = `${formData.promoValue} ${formData.promoType}`;
+    const promoDescription = formData.promoType === 'other' 
+      ? formData.promoValue 
+      : `${formData.promoValue} ${formData.promoType}`;
 
     console.log(`[PROMO_FORM] Combined promo description: ${promoDescription}`);
 
