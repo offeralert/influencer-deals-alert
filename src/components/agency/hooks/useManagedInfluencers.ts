@@ -22,8 +22,8 @@ export const useManagedInfluencers = () => {
           table: 'agency_influencers',
           filter: `agency_id=eq.${user.id}`
         },
-        () => {
-          console.log('Agency influencers changed, invalidating cache...');
+        (payload) => {
+          console.log('Agency influencers changed, invalidating cache...', payload);
           queryClient.invalidateQueries({ queryKey: ['managed-influencers', user.id] });
           queryClient.invalidateQueries({ queryKey: ['influencer-promo-counts'] });
         }
@@ -35,8 +35,8 @@ export const useManagedInfluencers = () => {
           schema: 'public',
           table: 'profiles'
         },
-        () => {
-          console.log('Profiles changed, invalidating managed influencers cache...');
+        (payload) => {
+          console.log('Profiles changed, invalidating managed influencers cache...', payload);
           queryClient.invalidateQueries({ queryKey: ['managed-influencers', user.id] });
         }
       )

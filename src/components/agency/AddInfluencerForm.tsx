@@ -96,8 +96,9 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
       setCredentials(newInfluencer);
       setShowCredentialsModal(true);
       
-      // Refresh the managed influencers list
-      queryClient.invalidateQueries({ queryKey: ['managed-influencers'] });
+      // Refresh the managed influencers list with specific user ID
+      queryClient.invalidateQueries({ queryKey: ['managed-influencers', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['influencer-promo-counts'] });
       
       // Call success callback
       onSuccess?.();
