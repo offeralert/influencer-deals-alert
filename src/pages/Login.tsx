@@ -28,12 +28,13 @@ const Login = () => {
     if (user && isReady) {
       console.log("User logged in, checking profile for redirect...");
       
-      // Wait a moment for profile to load, then redirect
+      // Wait for profile to be properly determined before redirecting
       const timer = setTimeout(() => {
         console.log("Redirecting to dashboard, profile:", profile);
         const dashboardRoute = getDashboardRoute(profile);
+        console.log("Selected dashboard route:", dashboardRoute);
         navigate(dashboardRoute, { replace: true });
-      }, 500); // Small delay to allow profile to load
+      }, 1000); // Increased delay to ensure profile loads properly
       
       return () => clearTimeout(timer);
     }
@@ -80,7 +81,7 @@ const Login = () => {
           title: "Successfully logged in!",
         });
         
-        // Navigation will be handled by the useEffect hook
+        // Navigation will be handled by the useEffect hook after profile loads
       }
     } catch (error) {
       console.error("Unexpected error during login:", error);

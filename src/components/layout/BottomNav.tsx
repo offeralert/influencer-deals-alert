@@ -17,6 +17,7 @@ const BottomNav = () => {
       navigate("/signup");
     } else {
       const dashboardRoute = getDashboardRoute(profile);
+      console.log("Mobile navigation - Profile:", profile, "Dashboard route:", dashboardRoute);
       navigate(dashboardRoute);
     }
   };
