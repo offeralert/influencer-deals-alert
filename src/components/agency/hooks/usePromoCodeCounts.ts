@@ -21,10 +21,11 @@ export const usePromoCodeCounts = (managedInfluencers: any[]) => {
         {
           event: '*',
           schema: 'public',
-          table: 'promo_codes'
+          table: 'promo_codes',
+          filter: `influencer_id=in.(${influencerIds.join(',')})`
         },
         (payload) => {
-          console.log('Promo codes changed, invalidating counts cache...');
+          console.log('Promo codes changed for managed influencers, invalidating counts cache...', payload);
           queryClient.invalidateQueries({ queryKey: ['influencer-promo-counts'] });
         }
       )

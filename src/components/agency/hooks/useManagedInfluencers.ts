@@ -40,6 +40,19 @@ export const useManagedInfluencers = () => {
           queryClient.invalidateQueries({ queryKey: ['managed-influencers', user.id] });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'promo_codes'
+        },
+        (payload) => {
+          console.log('Promo codes changed, invalidating queries...', payload);
+          // Invalidate both promo count queries and managed influencers if needed
+          queryClient.invalidateQueries({ queryKey: ['influencer-promo-counts'] });
+        }
+      )
       .subscribe();
 
     return () => {
