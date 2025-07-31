@@ -26,37 +26,37 @@ const Index = () => {
   // Show the educational flow for all users
   return (
     <div className="min-h-screen">
-      <div className="section-container" style={{ minHeight: '500px' }}>
+      <div className="section-container">
         <StaticOnlyHeroSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
-      <div className="section-container" style={{ minHeight: '400px' }} data-dynamic-content>
+      <div className="section-container" data-dynamic-content>
         <HowItWorksSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
-      <div className="section-container" style={{ minHeight: '300px' }} data-dynamic-content>
+      <div className="section-container" data-dynamic-content>
         <AddToDesktopSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
-      <div className="section-container" style={{ minHeight: '400px' }} data-dynamic-content>
+      <div className="section-container" data-dynamic-content>
         <WhyItMattersSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
-      <div className="section-container" style={{ minHeight: '300px' }} data-dynamic-content>
+      <div className="section-container" data-dynamic-content>
         <OfferAlertAdvantageSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
       
-      <div className="section-container" style={{ minHeight: '200px' }} data-dynamic-content>
+      <div className="section-container" data-dynamic-content>
         <CallToActionSection />
       </div>
     </div>
