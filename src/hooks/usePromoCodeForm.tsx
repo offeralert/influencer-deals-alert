@@ -277,7 +277,10 @@ export const usePromoCodeForm = ({ onPromoCodeAdded, targetInfluencerId }: UsePr
     try {
       console.log(`[PROMO_FORM] Attempting to insert promo code for influencer: ${effectiveInfluencerId}`);
       
-      const { error, data } = await supabase.from("promo_codes").insert({
+      // Determine if we should include agency_id (when agency creates for managed influencer)
+      const isAgencyCreatingForInfluencer = profile?.is_agency === true && targetInfluencerId && targetInfluencerId !== user?.id;
+      
+      const promoCodeData: any = {
         influencer_id: effectiveInfluencerId,
         brand_name: formData.brandName,
         brand_url: formData.brandUrl,
@@ -287,7 +290,15 @@ export const usePromoCodeForm = ({ onPromoCodeAdded, targetInfluencerId }: UsePr
         expiration_date: formData.expirationDate || null,
         affiliate_link: formData.affiliateLink,
         category: "General", // Default category since removed from form
-      }).select();
+      };
+      
+      // Include agency_id when agency is creating for managed influencer
+      if (isAgencyCreatingForInfluencer) {
+        promoCodeData.agency_id = user?.id;
+        console.log(`[PROMO_FORM] Agency ${user?.id} creating promo code for influencer ${effectiveInfluencerId}`);
+      }
+      
+      const { error, data } = await supabase.from("promo_codes").insert(promoCodeData).select();
 
       if (error) {
         console.error("[PROMO_FORM] Error adding promo code:", error);
