@@ -5,7 +5,8 @@ import { useAgencySubscription } from "@/hooks/useAgencySubscription";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Plus, BarChart3, Crown, AlertTriangle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Users, Plus, BarChart3, Crown, AlertTriangle, Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -13,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ManagedInfluencersList from "@/components/agency/ManagedInfluencersList";
 import AddInfluencerForm from "@/components/agency/AddInfluencerForm";
+import AllPromoCodesView from "@/components/agency/AllPromoCodesView";
 
 const AgencyDashboard = () => {
   const { user, profile } = useAuth();
@@ -111,7 +113,7 @@ const AgencyDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -123,6 +125,10 @@ const AgencyDashboard = () => {
           <TabsTrigger value="influencers" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Influencers
+          </TabsTrigger>
+          <TabsTrigger value="promo-codes" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Promo Codes
           </TabsTrigger>
           <TabsTrigger value="add-influencer" className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
@@ -158,8 +164,18 @@ const AgencyDashboard = () => {
             </Card>
           )}
 
+          <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              After adding a promo code, it might not show up immediately as our systems validate it in our dashboard. To speed up the process, clear your browser cache and refresh the page.
+            </AlertDescription>
+          </Alert>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab("influencers")}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Total Influencers
@@ -174,7 +190,10 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab("promo-codes")}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Active Promo Codes
@@ -189,7 +208,10 @@ const AgencyDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab("subscription")}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Current Plan
@@ -335,6 +357,10 @@ const AgencyDashboard = () => {
 
         <TabsContent value="influencers">
           <ManagedInfluencersList />
+        </TabsContent>
+
+        <TabsContent value="promo-codes">
+          <AllPromoCodesView />
         </TabsContent>
 
         <TabsContent value="add-influencer" className="space-y-6">
