@@ -2,7 +2,6 @@
 import { useAuth } from "@/contexts/AuthContext";
 import StaticOnlyHeroSection from "@/components/home/StaticOnlyHeroSection";
 import CallToActionSection from "@/components/home/CallToActionSection";
-import HowItWorksSection from "@/components/home/HowItWorksSection";
 import PromoCodeSolutionsSection from "@/components/home/PromoCodeSolutionsSection";
 import AddToDesktopSection from "@/components/home/AddToDesktopSection";
 import WhyItMattersSection from "@/components/home/WhyItMattersSection";
@@ -29,12 +28,6 @@ const Index = () => {
     <div className="min-h-screen">
       <div className="section-container">
         <StaticOnlyHeroSection />
-      </div>
-      
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container" data-dynamic-content>
-        <HowItWorksSection />
       </div>
       
       <Separator className="h-[1px] bg-gray-100" />
