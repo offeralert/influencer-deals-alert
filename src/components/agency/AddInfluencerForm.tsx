@@ -7,9 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Mail, AtSign, FileText } from "lucide-react";
+import { Loader2, User, Mail, AtSign } from "lucide-react";
 import InfluencerCredentialsModal from "./InfluencerCredentialsModal";
 
 interface AddInfluencerFormProps {
@@ -33,7 +32,6 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
     full_name: '',
     username: '',
     email: '',
-    bio: '',
   });
 
   const [credentials, setCredentials] = useState<InfluencerCredentials | null>(null);
@@ -60,7 +58,6 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
             full_name: data.full_name,
             username: data.username,
             email: data.email,
-            bio: data.bio,
           }),
         }
       );
@@ -89,7 +86,6 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
         full_name: '',
         username: '',
         email: '',
-        bio: '',
       });
       
       // Show credentials modal
@@ -220,19 +216,6 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
               </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="bio" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Bio (Optional)
-              </Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Enter a short bio for the influencer"
-                rows={3}
-              />
-            </div>
 
             <div className="bg-blue-50 p-4 rounded border border-blue-200">
               <p className="text-sm text-blue-800">
@@ -260,7 +243,6 @@ const AddInfluencerForm = ({ onSuccess }: AddInfluencerFormProps) => {
                   full_name: '',
                   username: '',
                   email: '',
-                  bio: '',
                 })}
               >
                 Clear Form
