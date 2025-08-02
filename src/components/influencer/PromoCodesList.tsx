@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Info } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -109,6 +110,12 @@ const PromoCodesList = ({ onPromoCodeUpdated, targetInfluencerId }: PromoCodesLi
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              After adding a promo code, it might not show up immediately as our systems validate it in our dashboard. To speed up the process, clear your browser cache and refresh the page.
+            </AlertDescription>
+          </Alert>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
