@@ -9,8 +9,8 @@ const PromoCodeSolutionsSection = () => {
       title: "Instagram DM Method",
       description: "Get instant promo codes through Instagram direct messages",
       steps: [
-        "Browse Instagram and find an influencer you love",
-        "Share their profile via DM to @offeralert.io",
+        "Browse Instagram and find a brand you love",
+        "Share the brand's profile via DM to @offeralert.io",
         "Instantly receive applicable promo codes and deals"
       ],
       ctaText: "Try DM Method",
