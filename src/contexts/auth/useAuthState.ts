@@ -1,11 +1,14 @@
 
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { ProfileType } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const useAuthState = () => {
+  console.log("useAuthState called - React is:", typeof React !== 'undefined' ? 'available' : 'not available');
+  console.log("useState is:", typeof useState);
+  
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileType | null>(null);
