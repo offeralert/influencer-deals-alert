@@ -181,7 +181,7 @@ const InfluencerSignupForm = () => {
           disabled={isLoading}
         />
         <p className="text-sm text-muted-foreground">
-          💡 Use your Instagram username - this helps with our Instagram DM feature that automatically shares your promo codes when someone shares your Instagram profile!
+          Use your Instagram username - this helps with our Instagram DM feature that automatically shares your promo codes when someone shares your Instagram profile!
         </p>
       </div>
       
