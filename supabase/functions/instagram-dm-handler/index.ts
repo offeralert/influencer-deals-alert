@@ -106,51 +106,61 @@ serve(async (req) => {
             console.log(`🎯 Recipient: ${messagingEvent.recipient.id}`);
             console.log(`⏰ Timestamp: ${messagingEvent.timestamp}`);
             
-            if (messagingEvent.message) {
-              const senderId = messagingEvent.sender.id;
-              let processedMessage = false;
+              if (messagingEvent.message) {
+                const senderId = messagingEvent.sender.id;
+                let processedMessage = false;
 
-              console.log(`=== 📄 MESSAGE DETAILS ===`);
-              console.log(`🆔 Message ID: ${messagingEvent.message.mid}`);
-              console.log(`📝 Has text: ${!!messagingEvent.message.text}`);
-              console.log(`📎 Has attachments: ${!!messagingEvent.message.attachments}`);
-              console.log(`🔍 Full message object:`, JSON.stringify(messagingEvent.message, null, 2));
+                console.log(`=== 📄 MESSAGE DETAILS ===`);
+                console.log(`🆔 Message ID: ${messagingEvent.message.mid}`);
+                console.log(`📝 Has text: ${!!messagingEvent.message.text}`);
+                console.log(`📎 Has attachments: ${!!messagingEvent.message.attachments}`);
+                console.log(`🔗 Has quick_reply: ${!!messagingEvent.message.quick_reply}`);
+                console.log(`📋 Has template: ${!!messagingEvent.message.template}`);
+                console.log(`🔍 Full message object:`, JSON.stringify(messagingEvent.message, null, 2));
 
-              // Process text messages for Instagram handles and URLs
-              if (messagingEvent.message.text) {
-                const messageText = messagingEvent.message.text;
-                console.log(`=== 📝 TEXT MESSAGE PROCESSING ===`);
-                console.log(`💬 Text content: "${messageText}"`);
+                // Process text messages for Instagram handles and URLs
+                if (messagingEvent.message.text) {
+                  const messageText = messagingEvent.message.text;
+                  console.log(`=== 📝 TEXT MESSAGE PROCESSING ===`);
+                  console.log(`💬 Text content: "${messageText}"`);
 
-                // First try to extract username from Instagram URLs in text
-                const instagramUrl = messageText.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
-                if (instagramUrl) {
-                  let username = instagramUrl[1];
-                  if (!username.startsWith('@')) {
-                    username = '@' + username;
-                  }
-                  console.log(`✅ Found Instagram URL in text, extracted username: ${username}`);
-                  await processPromoCodeRequest(senderId, username, supabaseClient);
-                  processedMessage = true;
-                } else {
-                  // Extract Instagram handles from the message using regex
-                  const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
-                  const matches = messageText.match(instagramHandleRegex);
-
-                  if (matches && matches.length > 0) {
-                    console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
-                    for (const handle of matches) {
-                      console.log(`🔄 Processing handle: ${handle}`);
-                      await processPromoCodeRequest(senderId, handle, supabaseClient);
-                      processedMessage = true;
+                  // First try to extract username from Instagram URLs in text
+                  const instagramUrl = messageText.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
+                  if (instagramUrl) {
+                    let username = instagramUrl[1];
+                    if (!username.startsWith('@')) {
+                      username = '@' + username;
                     }
+                    console.log(`✅ Found Instagram URL in text, extracted username: ${username}`);
+                    await processPromoCodeRequest(senderId, username, supabaseClient);
+                    processedMessage = true;
                   } else {
-                    console.log("❌ No Instagram handles or URLs found in text message");
+                    // Check for deep links in text
+                    const deepLinkUsername = extractUsernameFromDeepLink(messageText);
+                    if (deepLinkUsername) {
+                      console.log(`✅ Found Instagram username from deep link in text: ${deepLinkUsername}`);
+                      await processPromoCodeRequest(senderId, deepLinkUsername, supabaseClient);
+                      processedMessage = true;
+                    } else {
+                      // Extract Instagram handles from the message using regex
+                      const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
+                      const matches = messageText.match(instagramHandleRegex);
+
+                      if (matches && matches.length > 0) {
+                        console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
+                        for (const handle of matches) {
+                          console.log(`🔄 Processing handle: ${handle}`);
+                          await processPromoCodeRequest(senderId, handle, supabaseClient);
+                          processedMessage = true;
+                        }
+                      } else {
+                        console.log("❌ No Instagram handles, URLs, or deep links found in text message");
+                      }
+                    }
                   }
                 }
-              }
 
-              // Process shared Instagram profile URLs (only text-based shares)
+              // Process shared Instagram profile URLs and Android-specific formats
               if (messagingEvent.message.attachments) {
                 console.log(`=== 📎 ATTACHMENTS PROCESSING ===`);
                 console.log(`📊 Found ${messagingEvent.message.attachments.length} attachment(s)`);
@@ -161,27 +171,82 @@ serve(async (req) => {
                   console.log(`🏷️ Type: ${attachment.type}`);
                   console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
-                  // Only process text-based shared links, not image attachments
-                  if (attachment.type === "share" && 
-                      attachment.payload?.url && 
-                      attachment.payload?.template_type !== "media") {
-                    console.log("✅ This is a text-based SHARE attachment - extracting username from Instagram profile URL...");
-                    const brandUsername = extractInstagramUsername(attachment.payload.url);
-                    if (brandUsername) {
-                      console.log(`🎉 Successfully extracted brand username: ${brandUsername}`);
-                      await processPromoCodeRequest(senderId, brandUsername, supabaseClient);
-                      processedMessage = true;
-                    } else {
-                      console.log("❌ Failed to extract brand username from shared URL");
+                  if (attachment.type === "share" && attachment.payload) {
+                    // Handle standard URL sharing
+                    if (attachment.payload.url && attachment.payload.template_type !== "media") {
+                      console.log("✅ Processing text-based share attachment...");
+                      const brandUsername = extractInstagramUsername(attachment.payload.url);
+                      if (brandUsername) {
+                        console.log(`🎉 Successfully extracted brand username: ${brandUsername}`);
+                        await processPromoCodeRequest(senderId, brandUsername, supabaseClient);
+                        processedMessage = true;
+                        continue;
+                      }
+
+                      // Check for deep links in shared URL
+                      const deepLinkUsername = extractUsernameFromDeepLink(attachment.payload.url);
+                      if (deepLinkUsername) {
+                        console.log(`🎉 Successfully extracted username from deep link: ${deepLinkUsername}`);
+                        await processPromoCodeRequest(senderId, deepLinkUsername, supabaseClient);
+                        processedMessage = true;
+                        continue;
+                      }
                     }
-                  } else if (attachment.type === "share" && attachment.payload?.template_type === "media") {
-                    console.log(`⚠️ Skipping media attachment (image/video share) - only processing text links`);
+
+                    // Handle structured objects and PODs (Android-specific)
+                    const structuredUsername = extractUsernameFromStructuredData(attachment.payload);
+                    if (structuredUsername) {
+                      console.log(`🎉 Successfully extracted username from structured data: ${structuredUsername}`);
+                      await processPromoCodeRequest(senderId, structuredUsername, supabaseClient);
+                      processedMessage = true;
+                      continue;
+                    }
+
+                    // If nothing worked, log for debugging
+                    if (attachment.payload?.template_type === "media") {
+                      console.log(`⚠️ Skipping media attachment (image/video share)`);
+                    } else {
+                      console.log(`❌ Could not extract username from attachment`);
+                    }
                   } else {
-                    console.log(`⚠️ Not a text-based share attachment (type: ${attachment.type}, template_type: ${attachment.payload?.template_type}) - skipping`);
+                    console.log(`⚠️ Not a share attachment (type: ${attachment.type}) - skipping`);
                   }
                 }
-              } else {
-                console.log("📭 No attachments found in message");
+              }
+
+              // Handle quick replies and generic templates (Android-specific)
+              if (messagingEvent.message.quick_reply) {
+                console.log(`=== 🔗 QUICK REPLY PROCESSING ===`);
+                console.log(`🔍 Quick reply data:`, JSON.stringify(messagingEvent.message.quick_reply, null, 2));
+                const quickReplyUsername = extractUsernameFromQuickReply(messagingEvent.message.quick_reply);
+                if (quickReplyUsername) {
+                  console.log(`🎉 Successfully extracted username from quick reply: ${quickReplyUsername}`);
+                  await processPromoCodeRequest(senderId, quickReplyUsername, supabaseClient);
+                  processedMessage = true;
+                }
+              }
+
+              // Handle generic template messages
+              if (messagingEvent.message.template) {
+                console.log(`=== 📋 TEMPLATE PROCESSING ===`);
+                console.log(`🔍 Template data:`, JSON.stringify(messagingEvent.message.template, null, 2));
+                const templateUsername = extractUsernameFromTemplate(messagingEvent.message.template);
+                if (templateUsername) {
+                  console.log(`🎉 Successfully extracted username from template: ${templateUsername}`);
+                  await processPromoCodeRequest(senderId, templateUsername, supabaseClient);
+                  processedMessage = true;
+                }
+              }
+
+              // Fallback: Check entire message object for any Instagram profile data
+              if (!processedMessage) {
+                console.log(`=== 🔄 FALLBACK PROCESSING ===`);
+                const fallbackUsername = extractUsernameFromMessageFallback(messagingEvent.message);
+                if (fallbackUsername) {
+                  console.log(`🎉 Successfully extracted username from message fallback: ${fallbackUsername}`);
+                  await processPromoCodeRequest(senderId, fallbackUsername, supabaseClient);
+                  processedMessage = true;
+                }
               }
 
               // Don't send any message if no valid content was processed
@@ -697,5 +762,265 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     }
   } catch (error) {
     console.error("❌ Error sending Instagram message:", error);
+  }
+}
+
+// ==== ANDROID-SPECIFIC PARSING FUNCTIONS ====
+
+function extractUsernameFromDeepLink(text: string): string | null {
+  console.log(`=== 📱 EXTRACTING USERNAME FROM DEEP LINK ===`);
+  console.log(`📥 Input text: ${text}`);
+  
+  try {
+    // Instagram deep link patterns
+    const deepLinkPatterns = [
+      // instagram://user?username=brandname
+      /instagram:\/\/user\?username=([a-zA-Z0-9._]+)/i,
+      // instagram://media?user=brandname
+      /instagram:\/\/media\?user=([a-zA-Z0-9._]+)/i,
+      // instagram://profile/brandname
+      /instagram:\/\/profile\/([a-zA-Z0-9._]+)/i,
+      // Intent URLs: intent://user?username=brandname#Intent;...
+      /intent:\/\/[^?]*\?username=([a-zA-Z0-9._]+)/i,
+      // Intent URLs with user parameter
+      /intent:\/\/[^?]*\?user=([a-zA-Z0-9._]+)/i,
+      // Instagram app URLs
+      /instagram:\/\/.*[?&]username=([a-zA-Z0-9._]+)/i,
+      /instagram:\/\/.*[?&]user=([a-zA-Z0-9._]+)/i,
+    ];
+    
+    for (const pattern of deepLinkPatterns) {
+      const match = text.match(pattern);
+      if (match) {
+        let username = match[1];
+        
+        // Validate username format
+        if (/^[a-zA-Z0-9._]+$/.test(username)) {
+          if (!username.startsWith('@')) {
+            username = '@' + username;
+          }
+          console.log(`✅ Successfully extracted username from deep link: ${username}`);
+          return username;
+        }
+      }
+    }
+    
+    console.log("❌ No valid Instagram username found in deep link");
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting username from deep link:", error);
+    return null;
+  }
+}
+
+function extractUsernameFromStructuredData(payload: any): string | null {
+  console.log(`=== 📊 EXTRACTING USERNAME FROM STRUCTURED DATA ===`);
+  console.log(`📥 Payload:`, JSON.stringify(payload, null, 2));
+  
+  try {
+    // Check various possible fields where username might be stored
+    const possibleFields = [
+      'username',
+      'user',
+      'handle',
+      'account',
+      'profile_username',
+      'instagram_username',
+      'brand_username',
+      'user_id',
+      'profile_id'
+    ];
+    
+    // Check direct fields
+    for (const field of possibleFields) {
+      if (payload[field] && typeof payload[field] === 'string') {
+        let username = payload[field];
+        
+        // Clean and validate username
+        username = username.replace(/^@/, '').trim();
+        if (/^[a-zA-Z0-9._]+$/.test(username)) {
+          username = '@' + username;
+          console.log(`✅ Found username in field '${field}': ${username}`);
+          return username;
+        }
+      }
+    }
+    
+    // Check nested objects
+    if (payload.profile && typeof payload.profile === 'object') {
+      for (const field of possibleFields) {
+        if (payload.profile[field] && typeof payload.profile[field] === 'string') {
+          let username = payload.profile[field];
+          username = username.replace(/^@/, '').trim();
+          if (/^[a-zA-Z0-9._]+$/.test(username)) {
+            username = '@' + username;
+            console.log(`✅ Found username in profile.${field}: ${username}`);
+            return username;
+          }
+        }
+      }
+    }
+    
+    // Check for URLs in structured data
+    if (payload.url && typeof payload.url === 'string') {
+      const urlUsername = extractInstagramUsername(payload.url);
+      if (urlUsername) {
+        console.log(`✅ Found username in structured URL: ${urlUsername}`);
+        return urlUsername;
+      }
+    }
+    
+    // Check for deep links in structured data
+    const allStringValues = JSON.stringify(payload);
+    const deepLinkUsername = extractUsernameFromDeepLink(allStringValues);
+    if (deepLinkUsername) {
+      console.log(`✅ Found username in structured deep link: ${deepLinkUsername}`);
+      return deepLinkUsername;
+    }
+    
+    console.log("❌ No valid Instagram username found in structured data");
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting username from structured data:", error);
+    return null;
+  }
+}
+
+function extractUsernameFromQuickReply(quickReply: any): string | null {
+  console.log(`=== ⚡ EXTRACTING USERNAME FROM QUICK REPLY ===`);
+  console.log(`📥 Quick reply:`, JSON.stringify(quickReply, null, 2));
+  
+  try {
+    // Check payload field
+    if (quickReply.payload) {
+      // Try to parse as JSON if it's a string
+      let payload = quickReply.payload;
+      if (typeof payload === 'string') {
+        try {
+          payload = JSON.parse(payload);
+        } catch (e) {
+          // If not JSON, treat as string and check for username patterns
+          const username = extractUsernameFromDeepLink(payload) || extractInstagramUsername(payload);
+          if (username) {
+            console.log(`✅ Found username in quick reply payload string: ${username}`);
+            return username;
+          }
+        }
+      }
+      
+      // If payload is now an object, extract username from structured data
+      if (typeof payload === 'object') {
+        const username = extractUsernameFromStructuredData(payload);
+        if (username) {
+          console.log(`✅ Found username in quick reply payload object: ${username}`);
+          return username;
+        }
+      }
+    }
+    
+    console.log("❌ No valid Instagram username found in quick reply");
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting username from quick reply:", error);
+    return null;
+  }
+}
+
+function extractUsernameFromTemplate(template: any): string | null {
+  console.log(`=== 📄 EXTRACTING USERNAME FROM TEMPLATE ===`);
+  console.log(`📥 Template:`, JSON.stringify(template, null, 2));
+  
+  try {
+    // Check for generic template with elements
+    if (template.elements && Array.isArray(template.elements)) {
+      for (const element of template.elements) {
+        // Check buttons
+        if (element.buttons && Array.isArray(element.buttons)) {
+          for (const button of element.buttons) {
+            if (button.url) {
+              const username = extractInstagramUsername(button.url) || extractUsernameFromDeepLink(button.url);
+              if (username) {
+                console.log(`✅ Found username in template button URL: ${username}`);
+                return username;
+              }
+            }
+          }
+        }
+        
+        // Check for structured data in element
+        const username = extractUsernameFromStructuredData(element);
+        if (username) {
+          console.log(`✅ Found username in template element: ${username}`);
+          return username;
+        }
+      }
+    }
+    
+    // Check template-level structured data
+    const username = extractUsernameFromStructuredData(template);
+    if (username) {
+      console.log(`✅ Found username in template data: ${username}`);
+      return username;
+    }
+    
+    console.log("❌ No valid Instagram username found in template");
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting username from template:", error);
+    return null;
+  }
+}
+
+function extractUsernameFromMessageFallback(message: any): string | null {
+  console.log(`=== 🔄 EXTRACTING USERNAME FROM MESSAGE FALLBACK ===`);
+  console.log(`📥 Message:`, JSON.stringify(message, null, 2));
+  
+  try {
+    // Convert entire message to string and search for patterns
+    const messageString = JSON.stringify(message);
+    
+    // Check for Instagram URLs in the entire message object
+    const urlPattern = /instagram\.com\/([a-zA-Z0-9._]+)/gi;
+    const urlMatches = messageString.match(urlPattern);
+    if (urlMatches) {
+      for (const match of urlMatches) {
+        const username = extractInstagramUsername(`https://${match}`);
+        if (username) {
+          console.log(`✅ Found username in message fallback URL: ${username}`);
+          return username;
+        }
+      }
+    }
+    
+    // Check for deep links in the entire message object
+    const deepLinkUsername = extractUsernameFromDeepLink(messageString);
+    if (deepLinkUsername) {
+      console.log(`✅ Found username in message fallback deep link: ${deepLinkUsername}`);
+      return deepLinkUsername;
+    }
+    
+    // Check for @username patterns
+    const handlePattern = /@([a-zA-Z0-9._]+)/g;
+    const handleMatches = messageString.match(handlePattern);
+    if (handleMatches) {
+      for (const handle of handleMatches) {
+        const username = handle.substring(1); // Remove @
+        if (/^[a-zA-Z0-9._]+$/.test(username)) {
+          console.log(`✅ Found username in message fallback handle: @${username}`);
+          return '@' + username;
+        }
+      }
+    }
+    
+    console.log("❌ No valid Instagram username found in message fallback");
+    return null;
+    
+  } catch (error) {
+    console.error("❌ Error extracting username from message fallback:", error);
+    return null;
   }
 }
