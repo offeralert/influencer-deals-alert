@@ -204,9 +204,40 @@ serve(async (req) => {
 
                     // If nothing worked, log for debugging
                     if (attachment.payload?.template_type === "media") {
-                      console.log(`⚠️ Skipping media attachment (image/video share)`);
-                    } else {
-                      console.log(`❌ Could not extract username from attachment`);
+                      console.log("🎥 Processing media share - attempting oEmbed extraction...");
+                      const oembed = await processSharedMediaWithOEmbed(attachment.payload.url);
+                      if (oembed) {
+                        console.log(`🎉 Successfully extracted brand handle from oEmbed: ${oembed}`);
+                        await processPromoCodeRequest(senderId, oembed, supabaseClient);
+                        processedMessage = true;
+                        continue;
+                      }
+                    }
+                    
+                    console.log("❌ Could not extract username from share attachment");
+                    console.log("📊 Attachment payload summary:");
+                    console.log("- Type:", attachment.type);
+                    console.log("- Has URL:", !!attachment.payload?.url);
+                    console.log("- Template type:", attachment.payload?.template_type);
+                    console.log("- Keys in payload:", attachment.payload ? Object.keys(attachment.payload) : 'none');
+                    
+                    // Enhanced Android debugging
+                    console.log("🤖 ANDROID DEBUGGING - Full attachment structure:");
+                    console.log("- attachment.type:", attachment.type);
+                    if (attachment.payload) {
+                      console.log("- payload keys:", Object.keys(attachment.payload));
+                      console.log("- payload.url:", attachment.payload.url);
+                      console.log("- payload.title:", attachment.payload.title);
+                      console.log("- payload.description:", attachment.payload.description);
+                      console.log("- payload.template_type:", attachment.payload.template_type);
+                      
+                      // Check for any field that might contain Instagram reference
+                      Object.keys(attachment.payload).forEach(key => {
+                        const value = attachment.payload[key];
+                        if (typeof value === 'string' && value.includes('instagram')) {
+                          console.log(`- Found 'instagram' in ${key}:`, value);
+                        }
+                      });
                     }
                   } else {
                     console.log(`⚠️ Not a share attachment (type: ${attachment.type}) - skipping`);
