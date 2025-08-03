@@ -4,8 +4,9 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-// Generate version based on current timestamp
-const version = Date.now().toString();
+// Generate version based on current timestamp and deployment
+const deploymentId = process.env.VERCEL_DEPLOYMENT_ID || process.env.GITHUB_SHA || 'local';
+const version = `${Date.now()}-${deploymentId.slice(0, 8)}`;
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({

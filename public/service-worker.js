@@ -1,6 +1,7 @@
 
-const CACHE_VERSION = self.__SW_VERSION__ || `sw-${Date.now()}`;
-const CACHE_NAME = `offer-alert-${CACHE_VERSION}`;
+// Version and cache name - use deployment-aware versioning
+const DEPLOYMENT_VERSION = self.__SW_VERSION__ || `v${Date.now()}`;
+const CACHE_NAME = `offeralert-cache-${DEPLOYMENT_VERSION}`;
 
 // Mobile-optimized caching strategy
 const CACHE_FIRST_URLS = [
