@@ -113,26 +113,31 @@ const AgencyDashboard = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:grid-cols-5">
-          <TabsTrigger value="overview" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Overview
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 lg:w-auto">
+          <TabsTrigger value="overview" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Overview</span>
+            <span className="sm:hidden">Home</span>
           </TabsTrigger>
-          <TabsTrigger value="subscription" className="flex items-center gap-2">
-            <Crown className="h-4 w-4" />
-            Subscription
+          <TabsTrigger value="subscription" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Crown className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Subscription</span>
+            <span className="sm:hidden">Plan</span>
           </TabsTrigger>
-          <TabsTrigger value="influencers" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Influencers
+          <TabsTrigger value="influencers" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Influencers</span>
+            <span className="sm:hidden">Users</span>
           </TabsTrigger>
-          <TabsTrigger value="promo-codes" className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            Promo Codes
+          <TabsTrigger value="promo-codes" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Promo Codes</span>
+            <span className="sm:hidden">Codes</span>
           </TabsTrigger>
-          <TabsTrigger value="add-influencer" className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Influencer
+          <TabsTrigger value="add-influencer" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Add Influencer</span>
+            <span className="sm:hidden">Add</span>
           </TabsTrigger>
         </TabsList>
 
