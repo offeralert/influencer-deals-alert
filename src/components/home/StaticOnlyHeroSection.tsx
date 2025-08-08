@@ -14,18 +14,7 @@ const StaticOnlyHeroSection = () => {
             <p className="text-sm md:text-lg text-muted-foreground">
               Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app download required.
             </p>
-            <p className="text-xs md:text-sm text-muted-foreground/80">
-              Prefer desktop shopping? Try our highly-rated browser extension for automatic discount codes while browsing any website.
-            </p>
-            <div className="flex items-center justify-center lg:justify-start gap-1 text-sm text-muted-foreground">
-              <div className="flex">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <span className="ml-2">Rated 5 stars on Chrome Store</span>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+            <div className="flex justify-center lg:justify-start">
               <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
                 <a 
                   href="https://www.instagram.com/offeralert.io" 
@@ -33,15 +22,6 @@ const StaticOnlyHeroSection = () => {
                   rel="noopener noreferrer"
                 >
                   Try Instagram DM
-                </a>
-              </Button>
-              <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
-                <a 
-                  href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  Download Extension
                 </a>
               </Button>
             </div>

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Instagram, Chrome } from "lucide-react";
+import { Instagram, Chrome, Star } from "lucide-react";
 
 const PromoCodeSolutionsSection = () => {
   const solutions = [
@@ -20,8 +20,8 @@ const PromoCodeSolutionsSection = () => {
     },
     {
       icon: Chrome,
-      title: "Browser Extension",
-      description: "Get automatic notifications when discount codes are available on any website",
+      title: "Browser Extension - Desktop Shoppers",
+      description: "Perfect for desktop shopping - get automatic notifications when discount codes are available on any website",
       steps: [
         "Download our free browser extension",
         "Shop on any website as usual",
@@ -70,6 +70,17 @@ const PromoCodeSolutionsSection = () => {
                         </div>
                       ))}
                     </div>
+                    
+                    {index === 1 && (
+                      <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-4">
+                        <div className="flex">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                        <span className="ml-2">Rated 5 stars on Chrome Store</span>
+                      </div>
+                    )}
                     
                     <div className="text-center">
                       <Button size="lg" className={`w-full md:w-auto ${index === 0 ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`} asChild>
