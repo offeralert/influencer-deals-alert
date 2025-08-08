@@ -15,6 +15,9 @@ const CallToActionSection = () => {
           <p className="text-base md:text-lg text-muted-foreground mb-2">
             Join thousands of users who are already saving money with discount codes.
           </p>
+          <p className="text-base md:text-lg text-muted-foreground mb-2">
+            Are you an influencer with discount codes? Sign up below to add your codes to our platform.
+          </p>
           <p className="text-lg mb-8 font-semibold text-brand-green">
             Try it now: DM us <span className="bg-brand-green/10 px-2 py-1 rounded">@offeralert.io</span> on Instagram
           </p>
