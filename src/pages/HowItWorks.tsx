@@ -91,6 +91,37 @@ const HowItWorks = () => {
         </div>
       </div>
 
+      {/* Example Section */}
+      <div className="mt-16 p-8 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl border">
+        <h2 className="text-2xl font-semibold mb-6 text-center">Try it now - Example</h2>
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg border">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold">Message to @offeralert.io:</p>
+              </div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
+              <p className="text-gray-700 dark:text-gray-300 italic">
+                "Hi! I'm shopping at @rarebeauty - do you have any discount codes?"
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <Zap className="w-4 h-4 text-white" />
+              </div>
+              <p className="text-sm text-muted-foreground">Instant response with available codes!</p>
+            </div>
+          </div>
+          <p className="text-center text-sm text-muted-foreground mt-4">
+            Just mention any brand you're shopping at and we'll find you the best deals available.
+          </p>
+        </div>
+      </div>
+
       {/* Influencer Call-to-Action Section */}
       <div className="mt-20 py-12 px-8 bg-brand-paleGreen dark:bg-brand-dark rounded-2xl">
         <h2 className="text-3xl font-bold mb-6 text-center">Are you an influencer?</h2>
