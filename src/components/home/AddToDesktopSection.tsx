@@ -16,27 +16,6 @@ const AddToDesktopSection = () => {
           <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
             The easiest way to get discount codes - just send us a DM at <span className="font-semibold text-purple-600">@offeralert.io</span> while you're already browsing Instagram.
           </p>
-          
-          {/* Example DM interaction */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 md:p-6 mb-6 md:mb-8 max-w-2xl mx-auto">
-            <div className="text-sm md:text-base">
-              <div className="mb-4">
-                <div className="font-medium text-gray-800 mb-1">You → @offeralert.io</div>
-                <div className="bg-blue-100 text-blue-800 p-3 rounded-lg inline-block">@rarebeauty</div>
-              </div>
-              
-              <div>
-                <div className="font-medium text-gray-800 mb-1">@offeralert.io → You</div>
-                <div className="bg-gray-100 text-gray-800 p-3 rounded-lg">
-                  🎉 Found 1 promo code for Rare Beauty (@rarebeauty):<br/><br/>
-                  <strong>Code:</strong> SASCHA15<br/>
-                  <strong>Amount:</strong> 15% off<br/>
-                  <strong>Link:</strong> https://www.rarebeauty.com<br/>
-                  <strong>From:</strong> @sascha.skincare
-                </div>
-              </div>
-            </div>
-          </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
               <a 
