@@ -85,7 +85,7 @@ const HowItWorks = () => {
             </p>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Zap className="h-4 w-4 text-orange-500" />
-              Average response time: Under 1 minute
+              Average response time: Under 3 seconds
             </div>
           </div>
         </div>
