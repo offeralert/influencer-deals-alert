@@ -60,7 +60,7 @@ const PromoCodeSolutionsSection = () => {
                       <p className="text-sm md:text-base text-muted-foreground">{solution.description}</p>
                     </div>
                     
-                     <div className="space-y-4 mb-6">
+                    <div className="space-y-4 mb-6">
                       {solution.steps.map((step, stepIndex) => (
                         <div key={stepIndex} className="flex items-start space-x-3">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${index === 0 ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
@@ -70,30 +70,6 @@ const PromoCodeSolutionsSection = () => {
                         </div>
                       ))}
                     </div>
-                    
-                    {index === 0 && (
-                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 mb-6">
-                        <p className="text-sm font-semibold text-center mb-3 text-foreground">Example: Try it now!</p>
-                        <div className="space-y-3">
-                          <div className="flex justify-end">
-                            <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-2 rounded-2xl rounded-br-sm max-w-xs">
-                              <p className="text-sm">@rarebeauty</p>
-                            </div>
-                          </div>
-                          <div className="flex justify-start">
-                            <div className="bg-white dark:bg-gray-800 border px-3 py-2 rounded-2xl rounded-bl-sm max-w-xs shadow-sm">
-                              <p className="text-sm text-foreground">🎉 Found 1 promo code for Rare Beauty (@rarebeauty):</p>
-                              <p className="text-sm text-foreground mt-2">
-                                <strong>Code:</strong> SASCHA15<br />
-                                <strong>Amount:</strong> 15% off<br />
-                                <strong>Link:</strong> https://www.rarebeauty.com<br />
-                                <strong>From:</strong> @sascha.skincare
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                     
                     {index === 1 && (
                       <div className="flex items-center justify-center gap-1 text-sm text-muted-foreground mb-4">
