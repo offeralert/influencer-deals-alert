@@ -9,10 +9,10 @@ const StaticOnlyHeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
           <div className="space-y-4 md:space-y-6 text-center lg:text-left">
             <h1 className="text-2xl md:text-4xl font-bold leading-tight">
-              Shop on Instagram. <span className="text-brand-green">Get Discount Codes.</span> Instantly.
+              Shop. <span className="text-brand-green">Save.</span> Influencers Get Paid.
             </h1>
             <p className="text-sm md:text-lg text-muted-foreground">
-              Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app switching required.
+              Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app download required.
             </p>
             <p className="text-xs md:text-sm text-muted-foreground/80">
               Prefer desktop shopping? Try our highly-rated browser extension for automatic discount codes while browsing any website.
