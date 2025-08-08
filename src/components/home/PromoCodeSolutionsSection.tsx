@@ -10,14 +10,13 @@ const PromoCodeSolutionsSection = () => {
       description: "Shop without leaving Instagram - just send us a DM for instant discount codes",
       steps: [
         "Send a DM to @offeralert.io on Instagram",
-        "Tell us what brand or product you're shopping for",
         "Get instant discount codes (if available)",
         "Copy the code and save money - stay on Instagram!"
       ],
       ctaText: "Try Instagram DM",
       ctaLink: "https://www.instagram.com/offeralert.io",
       isExternal: true,
-      featured: true
+      featured: false
     },
     {
       icon: Chrome,
@@ -26,8 +25,7 @@ const PromoCodeSolutionsSection = () => {
       steps: [
         "Download our free browser extension",
         "Shop on any website as usual",
-        "Get automatic notifications when codes are available",
-        "Apply codes instantly at checkout"
+        "Get automatic notifications when codes are available"
       ],
       ctaText: "Download Extension",
       ctaLink: "https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb",
