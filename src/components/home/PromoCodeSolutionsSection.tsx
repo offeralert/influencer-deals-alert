@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Instagram, Chrome, Star, MessageCircle, Zap } from "lucide-react";
+import { Instagram, Chrome, Star, MessageCircle, Zap, Bell } from "lucide-react";
 
 const PromoCodeSolutionsSection = () => {
   const solutions = [
@@ -94,49 +94,91 @@ const PromoCodeSolutionsSection = () => {
                       </Button>
                      </div>
                      
-                     {/* Example section for Instagram DM */}
-                     {index === 0 && (
-                       <div className="mt-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border">
-                         <h4 className="text-sm font-semibold mb-3 text-center">Try it now - Example</h4>
-                         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border">
-                           <div className="flex items-center gap-3 mb-3">
-                             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                               <MessageCircle className="w-4 h-4 text-white" />
-                             </div>
-                             <div>
-                               <p className="text-xs font-semibold">Message to @offeralert.io:</p>
-                             </div>
-                           </div>
-                           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-3">
-                             <p className="text-sm text-gray-700 dark:text-gray-300 italic">
-                               "@rarebeauty"
-                             </p>
-                           </div>
-                           <div className="flex items-center gap-3 mb-3">
-                             <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                               <Zap className="w-3 h-3 text-white" />
-                             </div>
-                             <p className="text-xs text-muted-foreground">Instant response:</p>
-                           </div>
-                           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border-l-4 border-green-500">
-                             <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                               🎉 Found 1 promo code for Rare Beauty (@rarebeauty):
-                               {"\n\n"}
-                               Code: SASCHA15
-                               {"\n"}
-                               Amount: 15% off
-                               {"\n"}
-                               Link: https://www.rarebeauty.com
-                               {"\n"}
-                               From: @sascha.skincare
-                             </p>
-                           </div>
-                         </div>
-                         <p className="text-center text-xs text-muted-foreground mt-3">
-                           Just mention any brand you're shopping at and we'll find you the best deals available.
-                         </p>
-                       </div>
-                     )}
+                      {/* Example section for Instagram DM */}
+                      {index === 0 && (
+                        <div className="mt-6 p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border">
+                          <h4 className="text-sm font-semibold mb-3 text-center">Try it now - Example</h4>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                <MessageCircle className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold">Message to @offeralert.io:</p>
+                              </div>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-3">
+                              <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                                "@rarebeauty"
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <Zap className="w-3 h-3 text-white" />
+                              </div>
+                              <p className="text-xs text-muted-foreground">Instant response:</p>
+                            </div>
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border-l-4 border-green-500">
+                              <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                🎉 Found 1 promo code for Rare Beauty (@rarebeauty):
+                                {"\n\n"}
+                                Code: SASCHA15
+                                {"\n"}
+                                Amount: 15% off
+                                {"\n"}
+                                Link: https://www.rarebeauty.com
+                                {"\n"}
+                                From: @sascha.skincare
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-center text-xs text-muted-foreground mt-3">
+                            Just mention any brand you're shopping at and we'll find you the best deals available.
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Example section for Browser Extension */}
+                      {index === 1 && (
+                        <div className="mt-6 p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border">
+                          <h4 className="text-sm font-semibold mb-3 text-center">See it in action - Example</h4>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-8 h-8 bg-brand-green rounded-full flex items-center justify-center">
+                                <Chrome className="w-4 h-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold">Browser Extension on rarebeauty.com:</p>
+                              </div>
+                            </div>
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-3">
+                              <p className="text-sm text-gray-700 dark:text-gray-300">
+                                You visit rarebeauty.com to shop for makeup...
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                                <Bell className="w-3 h-3 text-white" />
+                              </div>
+                              <p className="text-xs text-muted-foreground">Extension notification appears:</p>
+                            </div>
+                            <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border-l-4 border-orange-500">
+                              <p className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                                🎁 Promo codes available for Rare Beauty!
+                                {"\n\n"}
+                                Code: SASCHA15 (15% off)
+                                {"\n"}
+                                From: @sascha.skincare
+                                {"\n\n"}
+                                Click to copy and apply automatically
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-center text-xs text-muted-foreground mt-3">
+                            Get automatic notifications on any website when promo codes are available.
+                          </p>
+                        </div>
+                      )}
                    </CardContent>
                 </Card>
               );
