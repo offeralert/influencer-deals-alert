@@ -9,10 +9,10 @@ const StaticOnlyHeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center">
           <div className="space-y-4 md:space-y-6 text-center lg:text-left">
             <h1 className="text-2xl md:text-4xl font-bold leading-tight">
-              Shop. <span className="text-brand-green">Save.</span> Influencers Get Paid.
+              Shop on Instagram. <span className="text-brand-green">Get Discount Codes.</span> Instantly.
             </h1>
             <p className="text-sm md:text-lg text-muted-foreground">
-              Follow your favorite influencers and get notified of their promo codes when you shop online.
+              Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app switching required.
             </p>
             <div className="flex items-center justify-center lg:justify-start gap-1 text-sm text-muted-foreground">
               <div className="flex">
@@ -22,8 +22,17 @@ const StaticOnlyHeroSection = () => {
               </div>
               <span className="ml-2">Rated 5 stars on Chrome Store</span>
             </div>
-            <div className="flex justify-center lg:justify-start">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <Button size="lg" className="h-10 md:h-12" asChild>
+                <a 
+                  href="https://www.instagram.com/offeralert.io" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  Try Instagram DM
+                </a>
+              </Button>
+              <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
                 <a 
                   href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 
                   target="_blank" 

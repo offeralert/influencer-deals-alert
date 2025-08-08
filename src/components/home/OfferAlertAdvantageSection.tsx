@@ -1,22 +1,22 @@
 
-import { CheckCircle, Zap, TrendingUp } from "lucide-react";
+import { Instagram, Zap, TrendingUp, Clock } from "lucide-react";
 
 const OfferAlertAdvantageSection = () => {
   const advantages = [
     {
-      icon: CheckCircle,
-      title: "Higher Conversion",
-      description: "Promo codes that actually work - no more expired deals"
+      icon: Instagram,
+      title: "Shop on Instagram",
+      description: "No app switching - get discount codes while browsing your favorite social platform"
     },
     {
       icon: Zap,
-      title: "Bigger Savings",
-      description: "Direct connection to influencers means better discounts"
+      title: "Instant Response",
+      description: "Send a DM and get discount codes back in seconds if available"
     },
     {
-      icon: TrendingUp,
-      title: "More Commissions",
-      description: "Creators earn more when you use their authentic codes"
+      icon: Clock,
+      title: "Save Time",
+      description: "No more hunting for promo codes across multiple websites"
     }
   ];
 

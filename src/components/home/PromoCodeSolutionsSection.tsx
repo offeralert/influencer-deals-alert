@@ -1,30 +1,33 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, Chrome } from "lucide-react";
+import { Instagram, Chrome } from "lucide-react";
 
 const PromoCodeSolutionsSection = () => {
   const solutions = [
     {
-      icon: MessageSquare,
-      title: "Instagram DM Method",
-      description: "Get instant promo codes through Instagram direct messages",
+      icon: Instagram,
+      title: "Instagram DM - Instant & Easy",
+      description: "Shop without leaving Instagram - just send us a DM for instant discount codes",
       steps: [
-        "Browse Instagram and find a brand you love",
-        "Share the brand's profile via DM to @offeralert.io",
-        "Instantly receive applicable promo codes and deals"
+        "Send a DM to @offeralert.io on Instagram",
+        "Tell us what brand or product you're shopping for",
+        "Get instant discount codes (if available)",
+        "Copy the code and save money - stay on Instagram!"
       ],
-      ctaText: "Try DM Method",
-      ctaLink: "https://instagram.com/direct/new/?text=@offeralert.io",
-      isExternal: true
+      ctaText: "Try Instagram DM",
+      ctaLink: "https://www.instagram.com/offeralert.io",
+      isExternal: true,
+      featured: true
     },
     {
       icon: Chrome,
       title: "Browser Extension",
-      description: "Automatic notifications while you shop online",
+      description: "Get automatic notifications when discount codes are available on any website",
       steps: [
-        "Install the free browser extension",
-        "Shop online as usual on any website",
-        "Get automatic notifications when promo codes are available"
+        "Download our free browser extension",
+        "Shop on any website as usual",
+        "Get automatic notifications when codes are available",
+        "Apply codes instantly at checkout"
       ],
       ctaText: "Download Extension",
       ctaLink: "https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb",
@@ -49,10 +52,17 @@ const PromoCodeSolutionsSection = () => {
             {solutions.map((solution, index) => {
               const IconComponent = solution.icon;
               return (
-                <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-0 shadow-md">
+                <Card key={index} className={`group hover:shadow-lg transition-all duration-300 border-0 shadow-md ${solution.featured ? 'ring-2 ring-brand-green ring-opacity-50 relative' : ''}`}>
+                  {solution.featured && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                      </div>
+                    </div>
+                  )}
                   <CardContent className="p-6 md:p-8">
                     <div className="text-center mb-6">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-brand-green rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-xl md:text-2xl font-bold mb-2">{solution.title}</h3>
@@ -62,7 +72,7 @@ const PromoCodeSolutionsSection = () => {
                     <div className="space-y-4 mb-6">
                       {solution.steps.map((step, stepIndex) => (
                         <div key={stepIndex} className="flex items-start space-x-3">
-                          <div className="w-6 h-6 bg-brand-green rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
                             <span className="text-white text-sm font-medium">{stepIndex + 1}</span>
                           </div>
                           <p className="text-sm md:text-base text-foreground">{step}</p>
@@ -71,7 +81,7 @@ const PromoCodeSolutionsSection = () => {
                     </div>
                     
                     <div className="text-center">
-                      <Button size="lg" className="w-full md:w-auto" asChild>
+                      <Button size="lg" className={`w-full md:w-auto ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`} asChild>
                         <a 
                           href={solution.ctaLink}
                           target={solution.isExternal ? "_blank" : undefined}
