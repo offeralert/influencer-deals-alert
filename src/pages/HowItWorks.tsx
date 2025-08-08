@@ -106,7 +106,7 @@ const HowItWorks = () => {
             </div>
             <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
               <p className="text-gray-700 dark:text-gray-300 italic">
-                "Hi! I'm shopping at @rarebeauty - do you have any discount codes?"
+                "@rarebeauty"
               </p>
             </div>
             <div className="flex items-center gap-3">
