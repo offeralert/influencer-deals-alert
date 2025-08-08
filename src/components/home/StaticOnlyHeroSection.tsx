@@ -14,6 +14,9 @@ const StaticOnlyHeroSection = () => {
             <p className="text-sm md:text-lg text-muted-foreground">
               Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app switching required.
             </p>
+            <p className="text-xs md:text-sm text-muted-foreground/80">
+              Prefer desktop shopping? Try our highly-rated browser extension for automatic discount codes while browsing any website.
+            </p>
             <div className="flex items-center justify-center lg:justify-start gap-1 text-sm text-muted-foreground">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
