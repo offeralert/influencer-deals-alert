@@ -109,11 +109,24 @@ const HowItWorks = () => {
                 "@rarebeauty"
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                 <Zap className="w-4 h-4 text-white" />
               </div>
-              <p className="text-sm text-muted-foreground">Instant response with available codes!</p>
+              <p className="text-sm text-muted-foreground">Instant response:</p>
+            </div>
+            <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border-l-4 border-green-500">
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                🎉 Found 1 promo code for Rare Beauty (@rarebeauty):
+                {"\n\n"}
+                Code: SASCHA15
+                {"\n"}
+                Amount: 15% off
+                {"\n"}
+                Link: https://www.rarebeauty.com
+                {"\n"}
+                From: @sascha.skincare
+              </p>
             </div>
           </div>
           <p className="text-center text-sm text-muted-foreground mt-4">
