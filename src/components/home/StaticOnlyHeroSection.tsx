@@ -26,7 +26,7 @@ const StaticOnlyHeroSection = () => {
               <span className="ml-2">Rated 5 stars on Chrome Store</span>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-              <Button size="lg" className="h-10 md:h-12" asChild>
+              <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
                 <a 
                   href="https://www.instagram.com/offeralert.io" 
                   target="_blank" 
