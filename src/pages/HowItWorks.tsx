@@ -28,7 +28,7 @@ const HowItWorks = () => {
           <div className="flex-1 text-left">
             <h2 className="text-2xl font-semibold mb-4">Send us a DM on Instagram</h2>
             <p className="text-muted-foreground text-lg mb-4">
-              Just message us at <span className="font-semibold">@offeralert.io</span> with the brand or store you're shopping at. 
+              Just message us at <span className="font-semibold">@offeralert.io</span> with the brand profile you're shopping at. 
               We'll instantly respond with any available discount codes.
             </p>
             <div className="flex flex-wrap gap-3">
