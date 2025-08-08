@@ -36,13 +36,6 @@ const Index = () => {
         <PromoCodeSolutionsSection />
       </div>
       
-      <Separator className="h-[1px] bg-gray-100" />
-      
-      <div className="section-container" data-dynamic-content>
-        <AddToDesktopSection />
-      </div>
-      
-      <Separator className="h-[1px] bg-gray-100" />
       
       <div className="section-container" data-dynamic-content>
         <WhyItMattersSection />
