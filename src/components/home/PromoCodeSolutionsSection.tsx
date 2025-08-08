@@ -50,17 +50,10 @@ const PromoCodeSolutionsSection = () => {
             {solutions.map((solution, index) => {
               const IconComponent = solution.icon;
               return (
-                <Card key={index} className={`group hover:shadow-lg transition-all duration-300 border-0 shadow-md ${solution.featured ? 'ring-2 ring-brand-green ring-opacity-50 relative' : ''}`}>
-                  {solution.featured && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                        Most Popular
-                      </div>
-                    </div>
-                  )}
+                <Card key={index} className={`group hover:shadow-lg transition-all duration-300 border-0 shadow-md`}>
                   <CardContent className="p-6 md:p-8">
                     <div className="text-center mb-6">
-                      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
+                      <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300 ${index === 0 ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
                         <IconComponent className="w-8 h-8 text-white" />
                       </div>
                       <h3 className="text-xl md:text-2xl font-bold mb-2">{solution.title}</h3>
@@ -70,7 +63,7 @@ const PromoCodeSolutionsSection = () => {
                     <div className="space-y-4 mb-6">
                       {solution.steps.map((step, stepIndex) => (
                         <div key={stepIndex} className="flex items-start space-x-3">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${index === 0 ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-brand-green'}`}>
                             <span className="text-white text-sm font-medium">{stepIndex + 1}</span>
                           </div>
                           <p className="text-sm md:text-base text-foreground">{step}</p>
@@ -79,7 +72,7 @@ const PromoCodeSolutionsSection = () => {
                     </div>
                     
                     <div className="text-center">
-                      <Button size="lg" className={`w-full md:w-auto ${solution.featured ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`} asChild>
+                      <Button size="lg" className={`w-full md:w-auto ${index === 0 ? 'bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600' : ''}`} asChild>
                         <a 
                           href={solution.ctaLink}
                           target={solution.isExternal ? "_blank" : undefined}
