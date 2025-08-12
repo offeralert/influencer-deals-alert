@@ -203,6 +203,41 @@ async function getBrandsByCategory(requestedBrand: string): Promise<string[]> {
   }
 }
 
+async function getActualPromoCodes(brandName: string): Promise<any[]> {
+  try {
+    console.log(`🔍 Fetching actual promo codes for: ${brandName}`)
+    
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select(`
+        id,
+        brand_name,
+        brand_instagram_handle,
+        promo_code,
+        description,
+        affiliate_link,
+        expiration_date,
+        category,
+        profiles:influencer_id (
+          full_name,
+          username
+        )
+      `)
+      .or(`brand_name.ilike.%${brandName}%,brand_instagram_handle.ilike.%${brandName}%`)
+      .limit(10)
+
+    if (error) {
+      console.error('Error fetching promo codes:', error)
+      return []
+    }
+
+    console.log(`✅ Found ${data?.length || 0} actual promo codes`)
+    return data || []
+  } catch (error) {
+    console.error('Error in getActualPromoCodes:', error)
+    return []
+}
+
 async function getConversationHistory(instagramUserId: string): Promise<OpenAIMessage[]> {
   try {
     const { data, error } = await supabase
@@ -233,33 +268,43 @@ async function getConversationHistory(instagramUserId: string): Promise<OpenAIMe
 function createSystemPrompt(popularBrands: string[], context?: any): string {
   return `You are OfferAlert's AI assistant helping users find promo codes and deals through Instagram DMs.
 
+CRITICAL RULE: NEVER make up, invent, or hallucinate promo codes. Only use the actual promo codes provided in the context.
+
 ABOUT OFFERALERT:
 - We help users find the best promo codes and deals from their favorite influencers
 - Users can search by brand name or Instagram handle (@username)
 - We have partnerships with top brands and influencers
 
 YOUR ROLE:
-- Help users find promo codes when none are available for their requested brand
-- Suggest similar or alternative brands that might have deals
+- Help users with actual promo codes from our database ONLY
+- Suggest similar or alternative brands that might have deals (from our database)
 - Provide general help about how OfferAlert works
 - Keep responses concise (under 200 characters for Instagram DMs)
 
 BRANDS AVAILABLE WITH PROMO CODES:
 ${popularBrands.length > 0 ? popularBrands.join(', ') : 'Various fashion, beauty, and lifestyle brands'}
 
+${context?.actualPromoCodes && context.actualPromoCodes.length > 0 ? 
+  `ACTUAL PROMO CODES AVAILABLE:\n${context.actualPromoCodes.map(code => 
+    `- ${code.brand_name}: Code "${code.promo_code}" - ${code.description} (From: @${code.profiles?.username || 'influencer'})`
+  ).join('\n')}` : ''}
+
 ${context?.alternativeBrands ? `ALTERNATIVE BRANDS FOR "${context.brand}": ${context.alternativeBrands.join(', ')}` : ''}
 
 RESPONSE GUIDELINES:
+- When actual promo codes exist, present them clearly with code, description, and source
 - When no promo codes exist for a requested brand, suggest specific alternatives from our available brands
 - Prioritize brands that actually have promo codes in our database
 - Be helpful and friendly but concise
 - Use format: "No codes for [brand] right now, but try: [alternatives]"
 - For general questions, explain how to use OfferAlert
+- NEVER create fake promo codes or percentages
 
 CURRENT CONTEXT:
 ${context?.brand ? `User searched for: ${context.brand}` : ''}
 ${context?.noPromoCodesFound ? 'No promo codes found for this brand - suggest alternatives' : ''}
-${context?.generalQuery ? 'This is a general question about OfferAlert' : ''}`
+${context?.generalQuery ? 'This is a general question about OfferAlert' : ''}
+${context?.actualPromoCodes && context.actualPromoCodes.length > 0 ? 'Real promo codes are available - present them accurately' : ''}`
 }
 
 async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string) {
@@ -338,6 +383,13 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Get actual promo codes if this is a brand-specific request
+    let actualPromoCodes: any[] = []
+    if (context?.brand) {
+      actualPromoCodes = await getActualPromoCodes(context.brand)
+      console.log(`🔍 Found ${actualPromoCodes.length} actual promo codes for ${context.brand}`)
+    }
+
     // Get alternative brands if this is a "no promo codes found" request
     let alternativeBrands: string[] = []
     if (context?.noPromoCodesFound && context?.brand) {
@@ -351,9 +403,10 @@ Deno.serve(async (req) => {
       getConversationHistory(instagramUserId)
     ])
 
-    // Create system prompt with current context including alternative brands
+    // Create system prompt with current context including actual promo codes and alternative brands
     const enhancedContext = {
       ...context,
+      actualPromoCodes,
       alternativeBrands
     }
     const systemPrompt = createSystemPrompt(popularBrands, enhancedContext)
