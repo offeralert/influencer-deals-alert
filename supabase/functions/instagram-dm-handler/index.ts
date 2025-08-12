@@ -305,11 +305,32 @@ serve(async (req) => {
                 }
               }
 
-              // Don't send any message if no valid content was processed
+              // If no Instagram content found, engage with OpenAI for general conversation
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
                 console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
-                console.log("🤐 No message will be sent - staying silent");
+                console.log("🤖 Engaging with OpenAI for general conversation");
+                
+                // Get the user's message text for OpenAI context
+                const userMessage = messagingEvent.message.text || "General message without specific brand request";
+                
+                try {
+                  const openaiResponse = await callOpenAIIntegration(userMessage, senderId, {
+                    generalQuery: true
+                  }, supabaseClient);
+                  
+                  if (openaiResponse && openaiResponse.response) {
+                    await sendInstagramMessage(senderId, "openai_response", [], openaiResponse.response);
+                    console.log("✅ OpenAI response sent successfully");
+                  } else {
+                    await sendInstagramMessage(senderId, "general_help", []);
+                    console.log("✅ Fallback help message sent");
+                  }
+                } catch (error) {
+                  console.error("❌ Error calling OpenAI:", error);
+                  await sendInstagramMessage(senderId, "general_help", []);
+                  console.log("✅ Fallback help message sent due to OpenAI error");
+                }
               } else {
                 console.log(`✅ Message processed successfully - promo details should have been sent`);
               }
@@ -770,6 +791,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
   } else if (requestedHandle === "openai_response") {
     messageText = chatbaseResponse || "I'm here to help! You can ask me about promo codes, brands, or how to use OfferAlert.";
+  } else if (requestedHandle === "general_help") {
+    messageText = "Hi! I'm here to help you find promo codes! 🛍️\n\nYou can:\n• Share an Instagram post from a brand\n• Send me a brand's handle (like @nike)\n• Ask about specific brands or categories\n\nFor online browsing notifications, check out our extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
   } else if (requestedHandle === "no_valid_content") {
     messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
   } else if (!requestedHandle) {
