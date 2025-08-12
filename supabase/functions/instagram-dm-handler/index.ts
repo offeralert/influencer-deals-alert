@@ -785,7 +785,10 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
     }
   }
 
-  // If no promo codes found, try OpenAI for additional help
+  // Send response with promo codes directly (skip AI if codes found)
+  await sendInstagramMessage(senderId, requestedHandle, promoCodes || []);
+  
+  // Only call OpenAI for additional suggestions if NO promo codes were found
   if (!promoCodes || promoCodes.length === 0) {
     console.log('No promo codes found, trying OpenAI for additional help');
     
@@ -797,14 +800,10 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
     );
     
     if (openaiResponse && openaiResponse.response) {
-      // Use the AI-generated response directly
+      // Send the AI-generated alternative suggestions as a follow-up message
       await sendInstagramMessage(senderId, "openai_response", [], openaiResponse.response);
-      return;
     }
   }
-
-  // Send response with promo codes (or standard no codes message)
-  await sendInstagramMessage(senderId, requestedHandle, promoCodes || []);
 }
 
 async function sendInstagramMessage(recipientId: string, requestedHandle: string | null, promoCodes: any[], chatbaseResponse?: string) {
@@ -844,7 +843,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (requestedHandle === "openai_response") {
     messageText = chatbaseResponse || "I'm here to help! You can ask me about promo codes, brands, or how to use OfferAlert.";
   } else if (requestedHandle === "general_help") {
-    messageText = "Hi! I'm here to help you find promo codes! 🛍️\n\nYou can:\n• Share an Instagram post from a brand\n• Send me a brand's handle (like @nike)\n• Ask about specific brands or categories\n\nFor online browsing notifications, check out our extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
+    messageText = "Hi! I'm here to help you find promo codes! 🛍️\n\nYou can:\n• Share an Instagram post from a brand\n• Send me a brand's handle (like @nike)\n• Ask about specific brands or categories";
   } else if (requestedHandle === "no_valid_content") {
     messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
   } else if (!requestedHandle) {
@@ -882,12 +881,12 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       messageText += `🔗 Shop: ${code.affiliate_link}\n\n`;
     });
 
-    // Add extension promo
-    messageText += "💡 Get instant notifications when shopping with our Chrome extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
+    // Remove the Chrome extension promotion - user doesn't want it
+    // messageText += "💡 Get instant notifications when shopping with our Chrome extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
 
     // Trim message if it's too long (Instagram has a 1000 character limit)
     if (messageText.length > 950) {
-      messageText = messageText.substring(0, 900) + "...\n\n🔗 Extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
+      messageText = messageText.substring(0, 900) + "...";
     }
   }
 
