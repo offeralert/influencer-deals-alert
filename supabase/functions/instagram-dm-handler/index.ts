@@ -861,8 +861,10 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       if (promoCodes.length > 1) {
         messageText += `📝 Code ${index + 1}:\n`;
       }
-      messageText += `💰 Code: ${code.promo_code}\n`;
-      messageText += `🎯 Deal: ${code.description}\n`;
+      
+      // Make the code easily copiable on its own line
+      messageText += `Copy this code:\n${code.promo_code}\n\n`;
+      messageText += `🎯 ${code.description}\n`;
       
       // Show the appropriate username - either the actual influencer for agency codes or the profile username
       if (code.actualInfluencer) {
@@ -878,11 +880,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
         messageText += `⏰ Expires: ${expDate}\n`;
       }
       
-      messageText += `🔗 Shop: ${code.affiliate_link}\n\n`;
+      messageText += `🔗 ${code.affiliate_link}\n\n`;
     });
-
-    // Remove the Chrome extension promotion - user doesn't want it
-    // messageText += "💡 Get instant notifications when shopping with our Chrome extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
 
     // Trim message if it's too long (Instagram has a 1000 character limit)
     if (messageText.length > 950) {
