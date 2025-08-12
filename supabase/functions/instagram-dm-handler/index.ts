@@ -247,8 +247,8 @@ serve(async (req) => {
                     console.log("- Template type:", attachment.payload?.template_type);
                     console.log("- Keys in payload:", attachment.payload ? Object.keys(attachment.payload) : 'none');
                     
-                    // Enhanced Android debugging
-                    console.log("🤖 ANDROID DEBUGGING - Full attachment structure:");
+                    // Enhanced debugging for preview cards
+                    console.log("🔍 PREVIEW CARD DEBUGGING - Full attachment structure:");
                     console.log("- attachment.type:", attachment.type);
                     if (attachment.payload) {
                       console.log("- payload keys:", Object.keys(attachment.payload));
@@ -257,11 +257,25 @@ serve(async (req) => {
                       console.log("- payload.description:", attachment.payload.description);
                       console.log("- payload.template_type:", attachment.payload.template_type);
                       
-                      // Check for any field that might contain Instagram reference
+                      // Try extracting from all string fields in payload
                       Object.keys(attachment.payload).forEach(key => {
                         const value = attachment.payload[key];
-                        if (typeof value === 'string' && value.includes('instagram')) {
-                          console.log(`- Found 'instagram' in ${key}:`, value);
+                        if (typeof value === 'string') {
+                          console.log(`📝 ${key}: "${value}"`);
+                          
+                          // Check if this field contains instagram references
+                          if (value.includes('instagram')) {
+                            console.log(`🎯 Found 'instagram' in ${key}: ${value}`);
+                            
+                            // Try extracting username from this field
+                            const usernameFromField = extractInstagramUsername(value);
+                            if (usernameFromField) {
+                              console.log(`🎉 FOUND USERNAME in field ${key}: ${usernameFromField}`);
+                              await processPromoCodeRequest(senderId, usernameFromField, supabaseClient);
+                              processedMessage = true;
+                              break;
+                            }
+                          }
                         }
                       });
                     }
@@ -842,36 +856,38 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else {
     // Format response with all available promo codes
     const brandName = promoCodes[0].brand_name;
-    messageText = `🎉 Found ${promoCodes.length} promo code${promoCodes.length > 1 ? 's' : ''} for ${brandName} (${requestedHandle}):\n\n`;
+    messageText = `🎉 Found ${promoCodes.length} promo code${promoCodes.length > 1 ? 's' : ''} for ${brandName}!\n\n`;
     
     promoCodes.forEach((code, index) => {
       if (promoCodes.length > 1) {
-        messageText += `${index + 1}.\n`;
+        messageText += `📝 Code ${index + 1}:\n`;
       }
-      messageText += `Code: ${code.promo_code}\n`;
-      messageText += `Amount: ${code.description}\n`;
-      messageText += `Link: ${code.affiliate_link}\n`;
+      messageText += `💰 Code: ${code.promo_code}\n`;
+      messageText += `🎯 Deal: ${code.description}\n`;
       
       // Show the appropriate username - either the actual influencer for agency codes or the profile username
       if (code.actualInfluencer) {
         // Agency-created promo code, show the actual influencer
-        messageText += `From: @${code.actualInfluencer.username}\n`;
+        messageText += `👤 From: @${code.actualInfluencer.username}\n`;
       } else if (code.profiles && code.profiles.username) {
         // Regular influencer-created promo code
-        messageText += `From: @${code.profiles.username}\n`;
+        messageText += `👤 From: @${code.profiles.username}\n`;
       }
       
       if (code.expiration_date) {
         const expDate = new Date(code.expiration_date).toLocaleDateString();
-        messageText += `Expires: ${expDate}\n`;
+        messageText += `⏰ Expires: ${expDate}\n`;
       }
       
-      messageText += "\n";
+      messageText += `🔗 Shop: ${code.affiliate_link}\n\n`;
     });
+
+    // Add extension promo
+    messageText += "💡 Get instant notifications when shopping with our Chrome extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
 
     // Trim message if it's too long (Instagram has a 1000 character limit)
     if (messageText.length > 950) {
-      messageText = messageText.substring(0, 950) + "...";
+      messageText = messageText.substring(0, 900) + "...\n\n🔗 Extension: https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk";
     }
   }
 
@@ -957,6 +973,40 @@ function extractUsernameFromStructuredData(payload: any): string | null {
   console.log(`📥 Payload:`, JSON.stringify(payload, null, 2));
   
   try {
+    // First, check if there's a URL in the payload that we can extract from
+    if (payload.url && typeof payload.url === 'string') {
+      console.log(`🔗 Found URL in payload: ${payload.url}`);
+      const urlUsername = extractInstagramUsername(payload.url);
+      if (urlUsername) {
+        console.log(`✅ Found username in structured URL: ${urlUsername}`);
+        return urlUsername;
+      }
+    }
+
+    // Check title and description for Instagram handles or usernames
+    const textFields = ['title', 'description', 'subtitle', 'text'];
+    for (const field of textFields) {
+      if (payload[field] && typeof payload[field] === 'string') {
+        console.log(`🔍 Checking ${field}: ${payload[field]}`);
+        
+        // Look for @username pattern
+        const handleMatch = payload[field].match(/@([a-zA-Z0-9._]+)/);
+        if (handleMatch) {
+          const username = '@' + handleMatch[1];
+          console.log(`✅ Found @username in ${field}: ${username}`);
+          return username;
+        }
+        
+        // Look for "instagram.com/username" pattern  
+        const urlMatch = payload[field].match(/instagram\.com\/([a-zA-Z0-9._]+)/);
+        if (urlMatch) {
+          const username = '@' + urlMatch[1];
+          console.log(`✅ Found instagram.com username in ${field}: ${username}`);
+          return username;
+        }
+      }
+    }
+    
     // Check various possible fields where username might be stored
     const possibleFields = [
       'username',
@@ -1000,20 +1050,11 @@ function extractUsernameFromStructuredData(payload: any): string | null {
       }
     }
     
-    // Check for URLs in structured data
-    if (payload.url && typeof payload.url === 'string') {
-      const urlUsername = extractInstagramUsername(payload.url);
-      if (urlUsername) {
-        console.log(`✅ Found username in structured URL: ${urlUsername}`);
-        return urlUsername;
-      }
-    }
-    
     // Check for deep links in structured data
     const allStringValues = JSON.stringify(payload);
     const deepLinkUsername = extractUsernameFromDeepLink(allStringValues);
     if (deepLinkUsername) {
-      console.log(`✅ Found username in structured deep link: ${deepLinkUsername}`);
+      console.log(`✅ Found username in deep link within structured data: ${deepLinkUsername}`);
       return deepLinkUsername;
     }
     
