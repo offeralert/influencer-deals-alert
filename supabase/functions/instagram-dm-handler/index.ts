@@ -115,7 +115,7 @@ serve(async (req) => {
     // Handle incoming messages (POST request)
     if (req.method === "POST") {
       const body: InstagramWebhookData = await req.json();
-      console.log("=== 🔔 WEBHOOK RECEIVED ===");
+      console.log("=== 🔔 WEBHOOK RECEIVED (v2.0) ===");
       console.log("📦 Full webhook payload:", JSON.stringify(body, null, 2));
 
       // Process each entry in the webhook
