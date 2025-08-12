@@ -236,6 +236,7 @@ async function getActualPromoCodes(brandName: string): Promise<any[]> {
   } catch (error) {
     console.error('Error in getActualPromoCodes:', error)
     return []
+  }
 }
 
 async function getConversationHistory(instagramUserId: string): Promise<OpenAIMessage[]> {
