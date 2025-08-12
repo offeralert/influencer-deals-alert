@@ -1,12 +1,12 @@
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
-// Function to call Chatbase integration
-async function callChatbaseIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any) {
+// Function to call OpenAI integration
+async function callOpenAIIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any) {
   try {
-    console.log('Calling Chatbase integration:', { message, instagramUserId, context });
+    console.log('Calling OpenAI integration:', { message, instagramUserId, context });
     
-    const response = await supabaseClient.functions.invoke('chatbase-integration', {
+    const response = await supabaseClient.functions.invoke('openai-integration', {
       body: {
         message,
         instagramUserId,
@@ -15,13 +15,13 @@ async function callChatbaseIntegration(message: string, instagramUserId: string,
     });
 
     if (response.error) {
-      console.error('Chatbase integration error:', response.error);
+      console.error('OpenAI integration error:', response.error);
       return null;
     }
 
     return response.data;
   } catch (error) {
-    console.error('Error calling Chatbase integration:', error);
+    console.error('Error calling OpenAI integration:', error);
     return null;
   }
 }
@@ -712,21 +712,20 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
     }
   }
 
-  // If no promo codes found, try Chatbase for additional help
+  // If no promo codes found, try OpenAI for additional help
   if (!promoCodes || promoCodes.length === 0) {
-    console.log('No promo codes found, trying Chatbase for additional help');
+    console.log('No promo codes found, trying OpenAI for additional help');
     
-    const chatbaseResponse = await callChatbaseIntegration(
+    const openaiResponse = await callOpenAIIntegration(
       `Looking for promo codes for ${requestedHandle}`,
       senderId,
       { brand: requestedHandle, noPromoCodesFound: true },
       supabaseClient
     );
     
-    if (chatbaseResponse && chatbaseResponse.response) {
-      // Combine the "no promo codes" message with Chatbase response
-      const combinedMessage = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a profile from another brand or searching for a different handle! 🔍\n\n${chatbaseResponse.response}`;
-      await sendInstagramMessage(senderId, "chatbase_response", [], combinedMessage);
+    if (openaiResponse && openaiResponse.response) {
+      // Use the AI-generated response directly
+      await sendInstagramMessage(senderId, "openai_response", [], openaiResponse.response);
       return;
     }
   }
@@ -769,7 +768,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     messageText = "I had trouble processing that shared post. Please try sharing the post again, or send me the brand's Instagram handle directly (like @nike).";
   } else if (requestedHandle === "error_database") {
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
-  } else if (requestedHandle === "chatbase_response") {
+  } else if (requestedHandle === "openai_response") {
     messageText = chatbaseResponse || "I'm here to help! You can ask me about promo codes, brands, or how to use OfferAlert.";
   } else if (requestedHandle === "no_valid_content") {
     messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
