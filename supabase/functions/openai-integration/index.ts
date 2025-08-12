@@ -22,14 +22,27 @@ interface OpenAIMessage {
 interface OpenAIRequest {
   message: string
   instagramUserId: string
+  imageUrl?: string
   context?: {
     brand?: string
     noPromoCodesFound?: boolean
     generalQuery?: boolean
+    alternativeBrands?: string[]
   }
 }
 
-async function sendToOpenAI(messages: OpenAIMessage[]): Promise<string | null> {
+interface OpenAIMessageWithVision {
+  role: 'system' | 'user' | 'assistant'
+  content: string | Array<{
+    type: 'text' | 'image_url'
+    text?: string
+    image_url?: {
+      url: string
+    }
+  }>
+}
+
+async function sendToOpenAI(messages: (OpenAIMessage | OpenAIMessageWithVision)[]): Promise<string | null> {
   if (!OPENAI_API_KEY) {
     console.error('Missing OpenAI API key')
     return null
@@ -45,7 +58,7 @@ async function sendToOpenAI(messages: OpenAIMessage[]): Promise<string | null> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages,
         max_tokens: 300, // Keep responses concise for Instagram DMs
         temperature: 0.7,
@@ -67,12 +80,74 @@ async function sendToOpenAI(messages: OpenAIMessage[]): Promise<string | null> {
   }
 }
 
+async function extractUsernameFromImage(imageUrl: string): Promise<string | null> {
+  if (!OPENAI_API_KEY) {
+    console.error('Missing OpenAI API key for vision')
+    return null
+  }
+
+  try {
+    console.log('🖼️ Extracting username from Instagram preview image:', imageUrl)
+    
+    const visionMessage: OpenAIMessageWithVision = {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: 'This is an Instagram preview card/story. Please extract the username from the top heading or profile name. Return ONLY the username without the @ symbol. If no username is visible, return "NOT_FOUND".'
+        },
+        {
+          type: 'image_url',
+          image_url: {
+            url: imageUrl
+          }
+        }
+      ]
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [visionMessage],
+        max_tokens: 50,
+        temperature: 0.1,
+      })
+    })
+
+    if (!response.ok) {
+      console.error('OpenAI Vision API error:', response.status, await response.text())
+      return null
+    }
+
+    const data = await response.json()
+    const extractedText = data.choices[0]?.message?.content?.trim()
+    
+    console.log('🔍 Vision API extracted:', extractedText)
+    
+    if (extractedText && extractedText !== 'NOT_FOUND') {
+      // Clean up the extracted username
+      const cleanUsername = extractedText.replace(/[@\s]/g, '').toLowerCase()
+      return cleanUsername
+    }
+    
+    return null
+  } catch (error) {
+    console.error('Error in extractUsernameFromImage:', error)
+    return null
+  }
+}
+
 async function getPopularBrands(): Promise<string[]> {
   try {
     const { data, error } = await supabase
       .from('promo_codes')
       .select('brand_name')
-      .limit(10)
+      .limit(50)
 
     if (error) {
       console.error('Error fetching popular brands:', error)
@@ -81,9 +156,49 @@ async function getPopularBrands(): Promise<string[]> {
 
     // Get unique brand names
     const brands = [...new Set(data?.map(item => item.brand_name) || [])]
-    return brands.slice(0, 5) // Top 5 brands
+    return brands.slice(0, 20) // Top 20 brands for better recommendations
   } catch (error) {
     console.error('Error in getPopularBrands:', error)
+    return []
+  }
+}
+
+async function getBrandsByCategory(requestedBrand: string): Promise<string[]> {
+  try {
+    console.log(`🔍 Finding similar brands for: ${requestedBrand}`)
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('brand_name, category')
+      .ilike('brand_name', `%${requestedBrand}%`)
+      .limit(20)
+
+    if (error) {
+      console.error('Error fetching similar brands:', error)
+      return []
+    }
+
+    // If we found exact matches, return those
+    if (data && data.length > 0) {
+      return [...new Set(data.map(item => item.brand_name))]
+    }
+
+    // Otherwise, get brands from common categories
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('promo_codes')
+      .select('brand_name')
+      .in('category', ['Fashion', 'Beauty', 'Tech', 'Food', 'Lifestyle'])
+      .limit(15)
+
+    if (categoryError) {
+      console.error('Error fetching category brands:', categoryError)
+      return []
+    }
+
+    const similarBrands = [...new Set(categoryData?.map(item => item.brand_name) || [])]
+    console.log(`✅ Found ${similarBrands.length} alternative brands`)
+    return similarBrands
+  } catch (error) {
+    console.error('Error in getBrandsByCategory:', error)
     return []
   }
 }
@@ -129,19 +244,21 @@ YOUR ROLE:
 - Provide general help about how OfferAlert works
 - Keep responses concise (under 200 characters for Instagram DMs)
 
-POPULAR BRANDS WITH DEALS:
+BRANDS AVAILABLE WITH PROMO CODES:
 ${popularBrands.length > 0 ? popularBrands.join(', ') : 'Various fashion, beauty, and lifestyle brands'}
 
-RESPONSE STYLE:
-- Be helpful and friendly
-- Use emojis sparingly
-- Suggest specific alternatives when possible
-- Direct users to share Instagram profiles or brand names
-- If they ask about a brand we don't have, suggest similar popular brands
+${context?.alternativeBrands ? `ALTERNATIVE BRANDS FOR "${context.brand}": ${context.alternativeBrands.join(', ')}` : ''}
+
+RESPONSE GUIDELINES:
+- When no promo codes exist for a requested brand, suggest specific alternatives from our available brands
+- Prioritize brands that actually have promo codes in our database
+- Be helpful and friendly but concise
+- Use format: "No codes for [brand] right now, but try: [alternatives]"
+- For general questions, explain how to use OfferAlert
 
 CURRENT CONTEXT:
 ${context?.brand ? `User searched for: ${context.brand}` : ''}
-${context?.noPromoCodesFound ? 'No promo codes found for this brand' : ''}
+${context?.noPromoCodesFound ? 'No promo codes found for this brand - suggest alternatives' : ''}
 ${context?.generalQuery ? 'This is a general question about OfferAlert' : ''}`
 }
 
@@ -187,7 +304,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message, instagramUserId, context }: OpenAIRequest = await req.json()
+    const { message, instagramUserId, imageUrl, context }: OpenAIRequest = await req.json()
 
     if (!message || !instagramUserId) {
       return new Response(
@@ -199,7 +316,34 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Processing OpenAI request:', { message, instagramUserId, context })
+    console.log('Processing OpenAI request:', { message, instagramUserId, imageUrl, context })
+
+    // Handle image processing for Instagram preview cards
+    let extractedUsername = null
+    if (imageUrl) {
+      console.log('🖼️ Image URL provided, attempting to extract username')
+      extractedUsername = await extractUsernameFromImage(imageUrl)
+      if (extractedUsername) {
+        console.log(`✅ Extracted username from image: ${extractedUsername}`)
+        return new Response(
+          JSON.stringify({
+            response: `Found username: ${extractedUsername}`,
+            responseType: 'username_extraction',
+            extractedUsername: extractedUsername
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        )
+      }
+    }
+
+    // Get alternative brands if this is a "no promo codes found" request
+    let alternativeBrands: string[] = []
+    if (context?.noPromoCodesFound && context?.brand) {
+      alternativeBrands = await getBrandsByCategory(context.brand)
+      console.log(`🔍 Found ${alternativeBrands.length} alternative brands for ${context.brand}`)
+    }
 
     // Get popular brands and conversation history
     const [popularBrands, conversationHistory] = await Promise.all([
@@ -207,8 +351,12 @@ Deno.serve(async (req) => {
       getConversationHistory(instagramUserId)
     ])
 
-    // Create system prompt with current context
-    const systemPrompt = createSystemPrompt(popularBrands, context)
+    // Create system prompt with current context including alternative brands
+    const enhancedContext = {
+      ...context,
+      alternativeBrands
+    }
+    const systemPrompt = createSystemPrompt(popularBrands, enhancedContext)
 
     // Build messages array
     const messages: OpenAIMessage[] = [

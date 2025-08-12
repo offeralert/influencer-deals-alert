@@ -2,14 +2,15 @@ import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
 // Function to call OpenAI integration
-async function callOpenAIIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any) {
+async function callOpenAIIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any, imageUrl?: string) {
   try {
-    console.log('Calling OpenAI integration:', { message, instagramUserId, context });
+    console.log('Calling OpenAI integration:', { message, instagramUserId, context, imageUrl });
     
     const response = await supabaseClient.functions.invoke('openai-integration', {
       body: {
         message,
         instagramUserId,
+        imageUrl,
         context
       }
     });
@@ -196,6 +197,30 @@ serve(async (req) => {
                   console.log(`🏷️ Type: ${attachment.type}`);
                   console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
+                  // Handle image attachments for Instagram preview cards
+                  if (attachment.type === "image" && attachment.payload?.url) {
+                    console.log("🖼️ Processing image attachment for username extraction...");
+                    try {
+                      const openaiResponse = await callOpenAIIntegration(
+                        "Extract username from Instagram preview image",
+                        senderId,
+                        { generalQuery: false },
+                        supabaseClient,
+                        attachment.payload.url
+                      );
+                      
+                      if (openaiResponse && openaiResponse.extractedUsername) {
+                        const extractedUsername = '@' + openaiResponse.extractedUsername.replace(/^@/, '');
+                        console.log(`🎉 Successfully extracted username from image: ${extractedUsername}`);
+                        await processPromoCodeRequest(senderId, extractedUsername, supabaseClient);
+                        processedMessage = true;
+                        continue;
+                      }
+                    } catch (error) {
+                      console.error("❌ Error processing image with vision API:", error);
+                    }
+                  }
+                  
                   if (attachment.type === "share" && attachment.payload) {
                     // Handle standard URL sharing
                     if (attachment.payload.url && attachment.payload.template_type !== "media") {
@@ -230,7 +255,7 @@ serve(async (req) => {
                     // If nothing worked, log for debugging
                     if (attachment.payload?.template_type === "media") {
                       console.log("🎥 Processing media share - attempting oEmbed extraction...");
-                      const oembed = await processSharedMediaWithOEmbed(attachment.payload.url);
+                      const oembed = await processSharedMediaWithOEmbed(attachment.payload.url, senderId);
                       if (oembed) {
                         console.log(`🎉 Successfully extracted brand handle from oEmbed: ${oembed}`);
                         await processPromoCodeRequest(senderId, oembed, supabaseClient);
@@ -264,8 +289,8 @@ serve(async (req) => {
                         }
                       });
                     }
-                  } else {
-                    console.log(`⚠️ Not a share attachment (type: ${attachment.type}) - skipping`);
+                  } else if (attachment.type !== "image") {
+                    console.log(`⚠️ Not a share or image attachment (type: ${attachment.type}) - skipping`);
                   }
                 }
               }
@@ -799,7 +824,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     // This shouldn't happen anymore but keeping as fallback
     messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
   } else if (promoCodes.length === 0) {
-    messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Try sharing a profile from another brand or searching for a different handle! 🔍`;
+    // Default message if no AI response was generated earlier
+    messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Let me suggest some similar brands that might have deals available! 💡`;
   } else {
     // Format response with all available promo codes
     const brandName = promoCodes[0].brand_name;
