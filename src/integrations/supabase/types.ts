@@ -56,6 +56,33 @@ export type Database = {
           },
         ]
       }
+      chatbase_interactions: {
+        Row: {
+          chatbase_response: string | null
+          created_at: string
+          id: string
+          instagram_user_id: string
+          message_text: string
+          response_type: string
+        }
+        Insert: {
+          chatbase_response?: string | null
+          created_at?: string
+          id?: string
+          instagram_user_id: string
+          message_text: string
+          response_type?: string
+        }
+        Update: {
+          chatbase_response?: string | null
+          created_at?: string
+          id?: string
+          instagram_user_id?: string
+          message_text?: string
+          response_type?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -238,6 +265,33 @@ export type Database = {
           subscribed?: boolean
           subscription_end?: string | null
           subscription_tier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_conversations: {
+        Row: {
+          conversation_context: Json | null
+          created_at: string
+          id: string
+          instagram_user_id: string
+          last_interaction_at: string
+          updated_at: string
+        }
+        Insert: {
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          instagram_user_id: string
+          last_interaction_at?: string
+          updated_at?: string
+        }
+        Update: {
+          conversation_context?: Json | null
+          created_at?: string
+          id?: string
+          instagram_user_id?: string
+          last_interaction_at?: string
           updated_at?: string
         }
         Relationships: []

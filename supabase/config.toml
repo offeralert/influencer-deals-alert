@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.instagram-dm-handler]
 verify_jwt = false
+
+[functions.chatbase-integration]
+verify_jwt = false
