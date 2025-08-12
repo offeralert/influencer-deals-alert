@@ -197,30 +197,6 @@ serve(async (req) => {
                   console.log(`🏷️ Type: ${attachment.type}`);
                   console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
                   
-                  // Handle image attachments for Instagram preview cards
-                  if (attachment.type === "image" && attachment.payload?.url) {
-                    console.log("🖼️ Processing image attachment for username extraction...");
-                    try {
-                      const openaiResponse = await callOpenAIIntegration(
-                        "Extract username from Instagram preview image",
-                        senderId,
-                        { generalQuery: false },
-                        supabaseClient,
-                        attachment.payload.url
-                      );
-                      
-                      if (openaiResponse && openaiResponse.extractedUsername) {
-                        const extractedUsername = '@' + openaiResponse.extractedUsername.replace(/^@/, '');
-                        console.log(`🎉 Successfully extracted username from image: ${extractedUsername}`);
-                        await processPromoCodeRequest(senderId, extractedUsername, supabaseClient);
-                        processedMessage = true;
-                        continue;
-                      }
-                    } catch (error) {
-                      console.error("❌ Error processing image with vision API:", error);
-                    }
-                  }
-                  
                   if (attachment.type === "share" && attachment.payload) {
                     // Handle standard URL sharing
                     if (attachment.payload.url && attachment.payload.template_type !== "media") {
@@ -694,9 +670,9 @@ function extractInstagramUsername(url: string): string | null {
 async function processPromoCodeRequest(senderId: string, requestedHandle: string, supabaseClient: any) {
   console.log(`Processing promo code request for handle: ${requestedHandle}`);
   
-  // Query promo codes for this Instagram handle
-  // Get promo codes matching the requested brand
-  const { data: promoCodes, error } = await supabaseClient
+  // Query promo codes for this Instagram handle OR brand name
+  // First try by brand_instagram_handle, then by brand_name if not found
+  let { data: promoCodes, error } = await supabaseClient
     .from('promo_codes')
     .select(`
       id,
@@ -718,6 +694,43 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
     `)
     .ilike('brand_instagram_handle', requestedHandle)
     .order('created_at', { ascending: false });
+
+  // If no results found by Instagram handle, try searching by brand name
+  if ((!promoCodes || promoCodes.length === 0) && !error) {
+    console.log(`No codes found for handle ${requestedHandle}, trying brand name search...`);
+    
+    // Remove @ symbol and search by brand name
+    const brandName = requestedHandle.replace(/^@/, '');
+    const result = await supabaseClient
+      .from('promo_codes')
+      .select(`
+        id,
+        brand_name,
+        brand_instagram_handle,
+        promo_code,
+        description,
+        affiliate_link,
+        expiration_date,
+        category,
+        influencer_id,
+        agency_id,
+        profiles:influencer_id (
+          full_name,
+          username,
+          is_agency,
+          is_influencer
+        )
+      `)
+      .ilike('brand_name', `%${brandName}%`)
+      .order('created_at', { ascending: false });
+    
+    promoCodes = result.data;
+    error = result.error;
+    
+    if (promoCodes && promoCodes.length > 0) {
+      console.log(`Found ${promoCodes.length} codes by brand name for "${brandName}"`);
+    }
+  }
 
   if (error) {
     console.error("Database error:", error);
