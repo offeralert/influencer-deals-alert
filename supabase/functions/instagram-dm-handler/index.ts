@@ -258,7 +258,7 @@ serve(async (req) => {
                       console.log("- payload.template_type:", attachment.payload.template_type);
                       
                       // Try extracting from all string fields in payload
-                      Object.keys(attachment.payload).forEach(key => {
+                      for (const key of Object.keys(attachment.payload)) {
                         const value = attachment.payload[key];
                         if (typeof value === 'string') {
                           console.log(`📝 ${key}: "${value}"`);
@@ -277,7 +277,7 @@ serve(async (req) => {
                             }
                           }
                         }
-                      });
+                      }
                     }
                   } else if (attachment.type !== "image") {
                     console.log(`⚠️ Not a share or image attachment (type: ${attachment.type}) - skipping`);
