@@ -843,12 +843,14 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (requestedHandle === "openai_response") {
     messageText = chatbaseResponse || "I'm here to help! You can ask me about promo codes, brands, or how to use OfferAlert.";
   } else if (requestedHandle === "general_help") {
-    messageText = "Hi! I'm here to help you find promo codes! 🛍️\n\nYou can:\n• Share an Instagram post from a brand\n• Send me a brand's handle (like @nike)\n• Ask about specific brands or categories";
+    // No default message - user requested removal
+    return;
   } else if (requestedHandle === "no_valid_content") {
-    messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
+    // No default message - user requested removal
+    return;
   } else if (!requestedHandle) {
-    // This shouldn't happen anymore but keeping as fallback
-    messageText = "Thank you for using OfferAlert! For online browsing notifications check out our extension https://chromewebstore.google.com/detail/offer-alert/bpbafccmoldgaecdefhjfmmandfgblfk\n\nPlease share an Instagram profile URL or send me a brand's handle (like @instacart) to find promo codes.";
+    // No default message - user requested removal
+    return;
   } else if (promoCodes.length === 0) {
     // Default message if no AI response was generated earlier
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Let me suggest some similar brands that might have deals available! 💡`;
