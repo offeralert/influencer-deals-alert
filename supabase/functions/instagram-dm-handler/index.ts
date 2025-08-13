@@ -320,32 +320,12 @@ serve(async (req) => {
                 }
               }
 
-              // If no Instagram content found, engage with OpenAI for general conversation
+              // If no Instagram content found, don't send any messages
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
                 console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
-                console.log("🤖 Engaging with OpenAI for general conversation");
-                
-                // Get the user's message text for OpenAI context
-                const userMessage = messagingEvent.message.text || "General message without specific brand request";
-                
-                try {
-                  const openaiResponse = await callOpenAIIntegration(userMessage, senderId, {
-                    generalQuery: true
-                  }, supabaseClient);
-                  
-                  if (openaiResponse && openaiResponse.response) {
-                    await sendInstagramMessage(senderId, "openai_response", [], openaiResponse.response);
-                    console.log("✅ OpenAI response sent successfully");
-                  } else {
-                    await sendInstagramMessage(senderId, "general_help", []);
-                    console.log("✅ Fallback help message sent");
-                  }
-                } catch (error) {
-                  console.error("❌ Error calling OpenAI:", error);
-                  await sendInstagramMessage(senderId, "general_help", []);
-                  console.log("✅ Fallback help message sent due to OpenAI error");
-                }
+                console.log("🚫 Not sending any response message per user request");
+                // User requested no default messages, so we don't send anything
               } else {
                 console.log(`✅ Message processed successfully - promo details should have been sent`);
               }
