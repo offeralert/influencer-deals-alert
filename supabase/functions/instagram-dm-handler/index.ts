@@ -861,10 +861,8 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
       if (promoCodes.length > 1) {
         messageText += `📝 Code ${index + 1}:\n`;
       }
-      
-      // Make the code easily copiable on its own line
-      messageText += `Copy this code:\n${code.promo_code}\n\n`;
-      messageText += `🎯 ${code.description}\n`;
+      messageText += `💰 Code: ${code.promo_code}\n`;
+      messageText += `🎯 Deal: ${code.description}\n`;
       
       // Show the appropriate username - either the actual influencer for agency codes or the profile username
       if (code.actualInfluencer) {
@@ -880,7 +878,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
         messageText += `⏰ Expires: ${expDate}\n`;
       }
       
-      messageText += `🔗 ${code.affiliate_link}\n\n`;
+      messageText += `🔗 Shop: ${code.affiliate_link}\n\n`;
     });
 
     // Trim message if it's too long (Instagram has a 1000 character limit)
@@ -892,7 +890,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   try {
     console.log(`📤 Sending message to ${recipientId}: ${messageText.substring(0, 100)}...`);
     
-    // Send message via Instagram Graph API
+    // Send main message via Instagram Graph API
     const response = await fetch(`https://graph.facebook.com/v23.0/me/messages`, {
       method: "POST",
       headers: {
@@ -911,6 +909,36 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     } else {
       const responseData = await response.json();
       console.log(`✅ Successfully sent message to ${recipientId}:`, responseData);
+      
+      // If we have promo codes, send each code in a separate message for easy copying
+      if (promoCodes && promoCodes.length > 0) {
+        for (const code of promoCodes) {
+          try {
+            // Small delay between messages to avoid rate limiting
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const codeResponse = await fetch(`https://graph.facebook.com/v23.0/me/messages`, {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${accessToken}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                recipient: { id: recipientId },
+                message: { text: code.promo_code },
+              }),
+            });
+            
+            if (codeResponse.ok) {
+              console.log(`✅ Sent promo code: ${code.promo_code}`);
+            } else {
+              console.error(`❌ Failed to send promo code: ${code.promo_code}`);
+            }
+          } catch (error) {
+            console.error(`❌ Error sending promo code ${code.promo_code}:`, error);
+          }
+        }
+      }
     }
   } catch (error) {
     console.error("❌ Error sending Instagram message:", error);
