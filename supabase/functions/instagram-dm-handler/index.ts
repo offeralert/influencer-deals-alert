@@ -841,7 +841,11 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (requestedHandle === "error_database") {
     messageText = "I'm having trouble accessing my database right now. Please try again in a moment!";
   } else if (requestedHandle === "openai_response") {
-    messageText = chatbaseResponse || "I'm here to help! You can ask me about promo codes, brands, or how to use OfferAlert.";
+    if (!chatbaseResponse || chatbaseResponse.trim() === "") {
+      // Don't send empty messages
+      return;
+    }
+    messageText = chatbaseResponse;
   } else if (requestedHandle === "general_help") {
     // No default message - user requested removal
     return;
