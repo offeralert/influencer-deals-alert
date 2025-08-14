@@ -36,7 +36,7 @@ import NotFound from "./pages/NotFound";
 import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
-const queryClient = new QueryClient();
+// QueryClient will be created inside the component
 
 const AppContent = () => {
   return (
@@ -91,15 +91,27 @@ const AppWithUpdateManager = () => {
   );
 };
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppWithUpdateManager />
-        <SpeedInsights />
-      </BrowserRouter>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+const App = () => {
+  // Create QueryClient inside component to avoid stale references
+  const [queryClient] = React.useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        gcTime: 1000 * 60 * 10, // 10 minutes
+      },
+    },
+  }));
+
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppWithUpdateManager />
+          <SpeedInsights />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+};
 
 export default App;
