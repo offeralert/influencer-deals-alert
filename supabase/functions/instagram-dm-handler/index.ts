@@ -839,38 +839,25 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
     // Default message if no AI response was generated earlier
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Let me suggest some similar brands that might have deals available! 💡`;
   } else {
-    // Format response with all available promo codes
-    const brandName = promoCodes[0].brand_name;
-    messageText = `🎉 Found ${promoCodes.length} promo code${promoCodes.length > 1 ? 's' : ''} for ${brandName}!\n\n`;
+    // Use the specific format requested by user
+    const code = promoCodes[0]; // Use first promo code for the main message
+    const brandName = code.brand_name;
     
-    promoCodes.forEach((code, index) => {
-      if (promoCodes.length > 1) {
-        messageText += `📝 Code ${index + 1}:\n`;
-      }
-      messageText += `💰 Code: ${code.promo_code}\n`;
-      messageText += `🎯 Deal: ${code.description}\n`;
-      
-      // Show the appropriate username - either the actual influencer for agency codes or the profile username
-      if (code.actualInfluencer) {
-        // Agency-created promo code, show the actual influencer
-        messageText += `👤 From: @${code.actualInfluencer.username}\n`;
-      } else if (code.profiles && code.profiles.username) {
-        // Regular influencer-created promo code
-        messageText += `👤 From: @${code.profiles.username}\n`;
-      }
-      
-      if (code.expiration_date) {
-        const expDate = new Date(code.expiration_date).toLocaleDateString();
-        messageText += `⏰ Expires: ${expDate}\n`;
-      }
-      
-      messageText += `🔗 Shop: ${code.affiliate_link}\n\n`;
-    });
-
-    // Trim message if it's too long (Instagram has a 1000 character limit)
-    if (messageText.length > 950) {
-      messageText = messageText.substring(0, 900) + "...";
+    // Get the influencer username
+    let influencerUsername = '';
+    if (code.actualInfluencer) {
+      influencerUsername = `@${code.actualInfluencer.username}`;
+    } else if (code.profiles && code.profiles.username) {
+      influencerUsername = `@${code.profiles.username}`;
     }
+    
+    // Format the main message with the specific template
+    messageText = `🎉 Found ${promoCodes.length} promo code${promoCodes.length > 1 ? 's' : ''} for ${brandName}!
+
+🎯 Deal: ${code.description}
+👤 From: ${influencerUsername}
+🔗 Shop: ${code.affiliate_link}
+Use the promo code below 👇`;
   }
 
   try {
