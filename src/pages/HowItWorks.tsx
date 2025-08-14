@@ -41,7 +41,7 @@ const HowItWorks = () => {
                 Copy @offeralert.io
               </Button>
               <a 
-                href="https://instagram.com/offeralert.io" 
+                href="https://ig.me/m/offeralert.io" 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
@@ -168,7 +168,7 @@ const HowItWorks = () => {
             Copy @offeralert.io
           </Button>
           <a 
-            href="https://instagram.com/offeralert.io" 
+            href="https://ig.me/m/offeralert.io" 
             target="_blank" 
             rel="noopener noreferrer"
           >

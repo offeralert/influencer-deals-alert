@@ -24,7 +24,7 @@ const CallToActionSection = () => {
           <div className="flex flex-col sm:flex-row justify-center gap-3 md:gap-4">
             <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
               <a 
-                href="https://www.instagram.com/offeralert.io" 
+                href="https://ig.me/m/offeralert.io" 
                 target="_blank" 
                 rel="noopener noreferrer"
               >

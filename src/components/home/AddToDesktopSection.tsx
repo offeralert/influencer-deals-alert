@@ -16,10 +16,10 @@ const AddToDesktopSection = () => {
           <p className="text-base md:text-lg text-muted-foreground mb-6 md:mb-8">
             The easiest way to get discount codes - just send us a DM at <span className="font-semibold text-purple-600">@offeralert.io</span> while you're already browsing Instagram.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
               <a 
-                href="https://www.instagram.com/offeralert.io" 
+                href="https://ig.me/m/offeralert.io" 
                 target="_blank" 
                 rel="noopener noreferrer"
               >
@@ -27,6 +27,17 @@ const AddToDesktopSection = () => {
                 Try Instagram DM
               </a>
             </Button>
+            
+            {/* QR Code for desktop */}
+            <div className="hidden md:flex flex-col items-center gap-2">
+              <img 
+                src="/lovable-uploads/b67c9d42-6693-4dec-a63a-dfb9b4d46345.png" 
+                alt="QR Code to Instagram DM" 
+                className="w-20 h-20"
+              />
+              <p className="text-xs text-muted-foreground text-center">Scan to DM</p>
+            </div>
+            
             <Button size="lg" variant="outline" className="h-10 md:h-12" asChild>
               <a 
                 href="https://chromewebstore.google.com/detail/bpbafccmoldgaecdefhjfmmandfgblfk?utm_source=item-share-cb" 

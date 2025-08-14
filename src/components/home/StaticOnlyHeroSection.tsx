@@ -14,16 +14,26 @@ const StaticOnlyHeroSection = () => {
             <p className="text-sm md:text-lg text-muted-foreground">
               Just send us a DM <span className="font-semibold text-brand-green">@offeralert.io</span> and get instant discount codes while shopping on Instagram. No app download required.
             </p>
-            <div className="flex justify-center lg:justify-start">
+            <div className="flex justify-center lg:justify-start items-center gap-4">
               <Button size="lg" className="h-10 md:h-12 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" asChild>
                 <a 
-                  href="https://www.instagram.com/offeralert.io" 
+                  href="https://ig.me/m/offeralert.io" 
                   target="_blank" 
                   rel="noopener noreferrer"
                 >
                   Try Instagram DM
                 </a>
               </Button>
+              
+              {/* QR Code for desktop */}
+              <div className="hidden lg:flex flex-col items-center gap-2">
+                <img 
+                  src="/lovable-uploads/b67c9d42-6693-4dec-a63a-dfb9b4d46345.png" 
+                  alt="QR Code to Instagram DM" 
+                  className="w-16 h-16"
+                />
+                <p className="text-xs text-muted-foreground text-center">Scan to DM</p>
+              </div>
             </div>
           </div>
           <div className="hidden lg:block relative">

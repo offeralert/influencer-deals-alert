@@ -14,7 +14,7 @@ const PromoCodeSolutionsSection = () => {
         "Copy the code and save money - stay on Instagram!"
       ],
       ctaText: "Try Instagram DM",
-      ctaLink: "https://www.instagram.com/offeralert.io",
+      ctaLink: "https://ig.me/m/offeralert.io",
       isExternal: true,
       featured: false
     },
