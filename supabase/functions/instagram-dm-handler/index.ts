@@ -221,22 +221,25 @@ serve(async (req) => {
                       console.log(`✅ Found Instagram username from deep link in text: ${deepLinkUsername}`);
                       await processPromoCodeRequest(senderId, deepLinkUsername, supabaseClient);
                       processedMessage = true;
-                    } else {
-                      // Extract Instagram handles from the message using regex
-                      const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
-                      const matches = messageText.match(instagramHandleRegex);
+                      } else {
+                        // Extract Instagram handles from the message using regex
+                        const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
+                        const matches = messageText.match(instagramHandleRegex);
 
-                      if (matches && matches.length > 0) {
-                        console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
-                        for (const handle of matches) {
-                          console.log(`🔄 Processing handle: ${handle}`);
-                          await processPromoCodeRequest(senderId, handle, supabaseClient);
+                        if (matches && matches.length > 0) {
+                          console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
+                          for (const handle of matches) {
+                            console.log(`🔄 Processing handle: ${handle}`);
+                            await processPromoCodeRequest(senderId, handle, supabaseClient);
+                            processedMessage = true;
+                          }
+                        } else {
+                          console.log("❌ No Instagram handles, URLs, or deep links found in text message");
+                          // Process as general brand inquiry using the new system
+                          await processBrandInquiry(senderId, messageText, supabaseClient);
                           processedMessage = true;
                         }
-                      } else {
-                        console.log("❌ No Instagram handles, URLs, or deep links found in text message");
                       }
-                    }
                   }
                 }
 
@@ -382,11 +385,22 @@ serve(async (req) => {
                 }
               }
 
-              // If no Instagram content found, don't send any messages
+              // Text processing already handles brand inquiries via processBrandInquiry
+
+              // If still no content processed, send OpenAI guided response
               if (!processedMessage) {
                 console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
-                console.log("🚫 No Instagram handles found in text and no valid shared posts processed");
-                console.log("🚫 Not sending any response message per user request");
+                console.log("🚫 No identifiable brand information found");
+                await callOpenAIIntegration(
+                  "User sent a message without clear brand information",
+                  senderId,
+                  { 
+                    conversationType: 'guide',
+                    message: 'Guide the user to share a brand name, handle, or URL for promo code lookup'
+                  },
+                  supabaseClient
+                );
+                processedMessage = true;
                 // User requested no default messages, so we don't send anything
               } else {
                 console.log(`✅ Message processed successfully - promo details should have been sent`);
@@ -720,6 +734,211 @@ function extractInstagramUsername(url: string): string | null {
   } catch (error) {
     console.error("❌ Error extracting Instagram username:", error);
     return null;
+  }
+}
+
+// Function to extract brand information from text
+function extractBrandInfo(text: string): { type: 'handle' | 'brand' | 'url' | 'none', value: string | null } {
+  // Check for Instagram handles (@username)
+  const handleMatch = text.match(/@([a-zA-Z0-9_.]+)/);
+  if (handleMatch) {
+    return { type: 'handle', value: `@${handleMatch[1]}` };
+  }
+  
+  // Check for URLs and extract usernames
+  const urlMatch = text.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9_.]+)/);
+  if (urlMatch) {
+    return { type: 'url', value: `@${urlMatch[1]}` };
+  }
+  
+  // Check for other URL patterns that might contain usernames
+  const linkMatch = text.match(/(?:https?:\/\/)?(?:www\.)?linktr\.ee\/([a-zA-Z0-9_.]+)/);
+  if (linkMatch) {
+    return { type: 'url', value: `@${linkMatch[1]}` };
+  }
+  
+  // Check for brand names (simple heuristic: capitalized words that could be brand names)
+  const brandMatch = text.match(/\b([A-Z][a-zA-Z0-9\s&'.-]{2,30})\b/);
+  if (brandMatch && !['Looking', 'Found', 'Deal', 'From', 'Shop', 'Use'].includes(brandMatch[1])) {
+    return { type: 'brand', value: brandMatch[1].trim() };
+  }
+  
+  return { type: 'none', value: null };
+}
+
+// Function to search Supabase for promo codes
+async function searchPromoCode(query: string, type: 'handle' | 'brand' | 'url', supabaseClient: any) {
+  try {
+    let searchQuery;
+    
+    if (type === 'handle' || type === 'url') {
+      // Remove @ symbol and search by Instagram handle
+      const cleanHandle = query.replace('@', '').toLowerCase().trim();
+      searchQuery = supabaseClient
+        .from('promo_codes')
+        .select(`
+          id,
+          brand_name,
+          brand_instagram_handle,
+          promo_code,
+          description,
+          affiliate_link,
+          brand_url,
+          category,
+          is_featured,
+          is_trending,
+          expiration_date,
+          influencer_id,
+          agency_id,
+          profiles:influencer_id (
+            id,
+            username,
+            full_name,
+            avatar_url,
+            instagram_url,
+            is_agency,
+            is_influencer
+          )
+        `)
+        .or(`brand_instagram_handle.ilike.%${cleanHandle}%,brand_instagram_handle.ilike.%@${cleanHandle}%`);
+    } else {
+      // Search by brand name
+      searchQuery = supabaseClient
+        .from('promo_codes')
+        .select(`
+          id,
+          brand_name,
+          brand_instagram_handle,
+          promo_code,
+          description,
+          affiliate_link,
+          brand_url,
+          category,
+          is_featured,
+          is_trending,
+          expiration_date,
+          influencer_id,
+          agency_id,
+          profiles:influencer_id (
+            id,
+            username,
+            full_name,
+            avatar_url,
+            instagram_url,
+            is_agency,
+            is_influencer
+          )
+        `)
+        .ilike('brand_name', `%${query}%`);
+    }
+    
+    const { data, error } = await searchQuery
+      .order('is_featured', { ascending: false })
+      .order('is_trending', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (error) {
+      console.error(`Error searching promo codes:`, error);
+      return null;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in searchPromoCode:', error);
+    return null;
+  }
+}
+
+// Main function to process brand inquiries
+async function processBrandInquiry(senderId: string, messageText: string, supabaseClient: any) {
+  try {
+    console.log(`🔍 Processing brand inquiry: "${messageText}"`);
+    
+    // Extract brand information from the message
+    const brandInfo = extractBrandInfo(messageText);
+    console.log(`📊 Extracted brand info:`, brandInfo);
+    
+    if (brandInfo.type === 'none') {
+      // No brand information found - use OpenAI to guide conversation
+      console.log('❌ No brand information found, using OpenAI to guide conversation');
+      await callOpenAIIntegration(
+        messageText,
+        senderId,
+        { 
+          conversationType: 'guide',
+          message: 'User sent a message without clear brand information. Guide them to share a brand name, handle, or URL.'
+        },
+        supabaseClient
+      );
+      return true;
+    }
+    
+    // Search for promo codes
+    console.log(`🔎 Searching for: ${brandInfo.value} (type: ${brandInfo.type})`);
+    const promoCodes = await searchPromoCode(brandInfo.value!, brandInfo.type, supabaseClient);
+    
+    if (!promoCodes) {
+      console.error('Failed to search promo codes');
+      await sendInstagramMessage(senderId, "error_database", []);
+      return false;
+    }
+    
+    if (promoCodes.length > 0) {
+      // Found promo codes - process them the same way as the original function
+      console.log(`✅ Found ${promoCodes.length} promo codes for ${brandInfo.value}`);
+      
+      // For each promo code, determine the correct influencer to show
+      for (let i = 0; i < promoCodes.length; i++) {
+        const code = promoCodes[i];
+        
+        // If this promo code has an agency_id, it was created by an agency
+        if (code.agency_id) {
+          console.log(`Promo code ${code.id} was created by agency (${code.agency_id}), using influencer_id: ${code.influencer_id}`);
+          
+          if (code.profiles) {
+            code.actualInfluencer = {
+              username: code.profiles.username,
+              full_name: code.profiles.full_name
+            };
+          }
+        } else {
+          // This is a regular influencer-created promo code
+          if (code.profiles) {
+            code.actualInfluencer = {
+              username: code.profiles.username,
+              full_name: code.profiles.full_name
+            };
+          }
+        }
+      }
+      
+      await sendInstagramMessage(senderId, brandInfo.value, promoCodes);
+    } else {
+      // No promo codes found - use OpenAI for recommendations
+      console.log(`❌ No promo codes found for ${brandInfo.value}, using OpenAI for recommendations`);
+      await sendInstagramMessage(senderId, brandInfo.value, []);
+      
+      const openaiResponse = await callOpenAIIntegration(
+        `Looking for promo codes for ${brandInfo.value}`,
+        senderId,
+        { 
+          brand: brandInfo.value,
+          noPromoCodesFound: true,
+          originalQuery: messageText
+        },
+        supabaseClient
+      );
+      
+      if (openaiResponse && openaiResponse.response) {
+        await sendInstagramMessage(senderId, "openai_response", [], openaiResponse.response);
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in processBrandInquiry:', error);
+    return false;
   }
 }
 
