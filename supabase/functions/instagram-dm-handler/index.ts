@@ -1,6 +1,60 @@
 import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.29.0";
 
+// Function to process ig_reel attachments via Graph API
+async function processIgReelAttachment(attachment: any): Promise<string | null> {
+  try {
+    const pageAccessToken = Deno.env.get('PAGE_ACCESS_TOKEN');
+    if (!pageAccessToken) {
+      console.error('❌ PAGE_ACCESS_TOKEN not found in environment variables');
+      return null;
+    }
+
+    const reelVideoId = attachment.payload?.reel_video_id;
+    if (!reelVideoId) {
+      console.log('❌ No reel_video_id found in ig_reel attachment');
+      return null;
+    }
+
+    console.log(`🔍 Fetching reel metadata for video ID: ${reelVideoId}`);
+    
+    const graphApiUrl = `https://graph.facebook.com/v20.0/${reelVideoId}?fields=username,owner{username},permalink,caption&access_token=${pageAccessToken}`;
+    
+    const response = await fetch(graphApiUrl);
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('❌ Graph API error:', data);
+      return null;
+    }
+
+    console.log('📊 Graph API response:', JSON.stringify(data, null, 2));
+
+    // Extract username - try direct username first, then owner.username
+    let username = null;
+    if (data.username) {
+      username = data.username;
+      console.log(`✅ Found direct username: ${username}`);
+    } else if (data.owner?.username) {
+      username = data.owner.username;
+      console.log(`✅ Found owner username: ${username}`);
+    } else {
+      console.log('❌ No username found in Graph API response');
+      return null;
+    }
+
+    // Normalize username to @handle format
+    const normalizedUsername = username.startsWith('@') ? username : `@${username}`;
+    console.log(`🔄 Normalized username: ${normalizedUsername}`);
+    
+    return normalizedUsername;
+    
+  } catch (error) {
+    console.error('❌ Error processing ig_reel attachment:', error);
+    return null;
+  }
+}
+
 // Function to call OpenAI integration
 async function callOpenAIIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any, imageUrl?: string) {
   try {
@@ -278,6 +332,14 @@ serve(async (req) => {
                           }
                         }
                       }
+                    }
+                  } else if (attachment.type === "ig_reel") {
+                    console.log(`🎬 Processing ig_reel attachment`);
+                    const extractedUsername = await processIgReelAttachment(attachment);
+                    if (extractedUsername) {
+                      console.log(`✅ Extracted username from reel: ${extractedUsername}`);
+                      await processPromoCodeRequest(senderId, extractedUsername, supabaseClient);
+                      processedMessage = true;
                     }
                   } else if (attachment.type !== "image") {
                     console.log(`⚠️ Not a share or image attachment (type: ${attachment.type}) - skipping`);
