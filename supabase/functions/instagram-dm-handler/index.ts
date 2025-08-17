@@ -55,28 +55,28 @@ async function processIgReelAttachment(attachment: any): Promise<string | null> 
   }
 }
 
-// Function to call OpenAI integration
-async function callOpenAIIntegration(message: string, instagramUserId: string, context: any = {}, supabaseClient: any, imageUrl?: string) {
+// Function to call OpenAI Smart Assistant (now handles ALL messages)
+async function callOpenAISmartAssistant(message: string, instagramUserId: string, supabaseClient: any, imageUrl?: string) {
   try {
-    console.log('Calling OpenAI integration:', { message, instagramUserId, context, imageUrl });
+    console.log('🤖 Calling OpenAI Smart Assistant:', { message, instagramUserId, imageUrl });
     
     const response = await supabaseClient.functions.invoke('openai-integration', {
       body: {
         message,
         instagramUserId,
-        imageUrl,
-        context
+        imageUrl
       }
     });
 
     if (response.error) {
-      console.error('OpenAI integration error:', response.error);
+      console.error('❌ OpenAI Smart Assistant error:', response.error);
       return null;
     }
 
+    console.log('✅ OpenAI Smart Assistant response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error calling OpenAI integration:', error);
+    console.error('❌ Error calling OpenAI Smart Assistant:', error);
     return null;
   }
 }
@@ -188,60 +188,73 @@ serve(async (req) => {
             
               if (messagingEvent.message) {
                 const senderId = messagingEvent.sender.id;
-                let processedMessage = false;
-
                 console.log(`=== 📄 MESSAGE DETAILS ===`);
                 console.log(`🆔 Message ID: ${messagingEvent.message.mid}`);
                 console.log(`📝 Has text: ${!!messagingEvent.message.text}`);
                 console.log(`📎 Has attachments: ${!!messagingEvent.message.attachments}`);
                 console.log(`🔗 Has quick_reply: ${!!messagingEvent.message.quick_reply}`);
                 console.log(`📋 Has template: ${!!messagingEvent.message.template}`);
-                console.log(`🔍 Full message object:`, JSON.stringify(messagingEvent.message, null, 2));
 
-                // Process text messages for Instagram handles and URLs
+                // === NEW ARCHITECTURE: Send ALL messages to OpenAI Smart Assistant ===
+                let messageToProcess = '';
+                let imageUrl = null;
+
+                // Extract text message
                 if (messagingEvent.message.text) {
-                  const messageText = messagingEvent.message.text;
-                  console.log(`=== 📝 TEXT MESSAGE PROCESSING ===`);
-                  console.log(`💬 Text content: "${messageText}"`);
+                  messageToProcess = messagingEvent.message.text;
+                  console.log(`📝 Text message: "${messageToProcess}"`);
+                }
 
-                  // First try to extract username from Instagram URLs in text
-                  const instagramUrl = messageText.match(/(?:https?:\/\/)?(?:www\.)?instagram\.com\/([a-zA-Z0-9._]+)/i);
-                  if (instagramUrl) {
-                    let username = instagramUrl[1];
-                    if (!username.startsWith('@')) {
-                      username = '@' + username;
-                    }
-                    console.log(`✅ Found Instagram URL in text, extracted username: ${username}`);
-                    await processPromoCodeRequest(senderId, username, supabaseClient);
-                    processedMessage = true;
-                  } else {
-                    // Check for deep links in text
-                    const deepLinkUsername = extractUsernameFromDeepLink(messageText);
-                    if (deepLinkUsername) {
-                      console.log(`✅ Found Instagram username from deep link in text: ${deepLinkUsername}`);
-                      await processPromoCodeRequest(senderId, deepLinkUsername, supabaseClient);
-                      processedMessage = true;
-                      } else {
-                        // Extract Instagram handles from the message using regex
-                        const instagramHandleRegex = /@([a-zA-Z0-9._]+)/g;
-                        const matches = messageText.match(instagramHandleRegex);
-
-                        if (matches && matches.length > 0) {
-                          console.log(`✅ Found ${matches.length} Instagram handle(s):`, matches);
-                          for (const handle of matches) {
-                            console.log(`🔄 Processing handle: ${handle}`);
-                            await processPromoCodeRequest(senderId, handle, supabaseClient);
-                            processedMessage = true;
-                          }
-                        } else {
-                          console.log("❌ No Instagram handles, URLs, or deep links found in text message");
-                          // Process as general brand inquiry using the new system
-                          await processBrandInquiry(senderId, messageText, supabaseClient);
-                          processedMessage = true;
-                        }
+                // Check for image attachments that might contain Instagram previews
+                if (messagingEvent.message.attachments) {
+                  for (const attachment of messagingEvent.message.attachments) {
+                    if (attachment.type === "share" && attachment.payload?.url) {
+                      // Check if this is an Instagram URL that should be sent as text
+                      const instagramMatch = attachment.payload.url.match(/instagram\.com\/([^\/\?]+)/);
+                      if (instagramMatch) {
+                        messageToProcess = messageToProcess || `Looking for promo codes for @${instagramMatch[1]}`;
+                        console.log(`🔗 Found Instagram URL in attachment: ${messageToProcess}`);
                       }
+                      
+                      // If this might be a preview card with image, try to extract it
+                      if (attachment.payload.template_type === "media" || attachment.payload.url.includes('instagram')) {
+                        imageUrl = attachment.payload.url;
+                        console.log(`🖼️ Found potential Instagram preview image: ${imageUrl}`);
+                      }
+                    } else if (attachment.type === "ig_reel") {
+                      console.log(`🎬 Found ig_reel attachment - will be processed by Smart Assistant`);
+                      // Let the Smart Assistant handle reel processing
+                      const extractedUsername = await processIgReelAttachment(attachment);
+                      if (extractedUsername) {
+                        messageToProcess = `Looking for promo codes for ${extractedUsername}`;
+                      }
+                    }
                   }
                 }
+
+                // If no clear message content, create a general inquiry
+                if (!messageToProcess) {
+                  messageToProcess = "I shared something with you. Can you help me find promo codes?";
+                }
+
+                console.log(`🤖 Sending to OpenAI Smart Assistant: "${messageToProcess}"`);
+                
+                // Send everything to OpenAI Smart Assistant
+                const assistantResponse = await callOpenAISmartAssistant(
+                  messageToProcess, 
+                  senderId, 
+                  supabaseClient, 
+                  imageUrl
+                );
+
+                if (assistantResponse?.response) {
+                  console.log(`🎯 Smart Assistant response: ${assistantResponse.response}`);
+                  await sendInstagramMessage(senderId, assistantResponse.response);
+                } else {
+                  console.log(`❌ No response from Smart Assistant, sending fallback`);
+                  await sendInstagramMessage(senderId, "I'm here to help you find the best promo codes! Tell me a brand name or share an @handle and I'll find you deals! 🛍️");
+                }
+              }
 
               // Process shared Instagram profile URLs and Android-specific formats
               if (messagingEvent.message.attachments) {
@@ -406,7 +419,7 @@ serve(async (req) => {
                 console.log(`✅ Message processed successfully - promo details should have been sent`);
               }
             } else {
-              console.log("❌ No message object found in messaging event");
+              console.log("❌ No message object found in messaging event - likely a read receipt or other event type");
             }
           }
         } else {

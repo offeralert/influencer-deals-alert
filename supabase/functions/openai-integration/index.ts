@@ -15,41 +15,220 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
 
 interface OpenAIMessage {
-  role: 'system' | 'user' | 'assistant'
-  content: string
+  role: 'system' | 'user' | 'assistant' | 'function'
+  content: string | null
+  function_call?: {
+    name: string
+    arguments: string
+  }
+  name?: string
 }
 
 interface OpenAIRequest {
   message: string
   instagramUserId: string
   imageUrl?: string
-  context?: {
-    brand?: string
-    noPromoCodesFound?: boolean
-    generalQuery?: boolean
-    alternativeBrands?: string[]
+}
+
+interface SupabaseFunctionResult {
+  success: boolean
+  data?: any[]
+  error?: string
+}
+
+// Supabase function calling for OpenAI
+const supabaseFunctions = [
+  {
+    name: "searchPromoCodesByBrand",
+    description: "Search for promo codes by brand name",
+    parameters: {
+      type: "object",
+      properties: {
+        brandName: {
+          type: "string",
+          description: "The brand name to search for"
+        }
+      },
+      required: ["brandName"]
+    }
+  },
+  {
+    name: "searchPromoCodesByHandle",
+    description: "Search for promo codes by Instagram handle (with or without @)",
+    parameters: {
+      type: "object", 
+      properties: {
+        handle: {
+          type: "string",
+          description: "The Instagram handle to search for (with or without @)"
+        }
+      },
+      required: ["handle"]
+    }
+  },
+  {
+    name: "searchPromoCodesByUrl",
+    description: "Extract brand from URL and search for promo codes",
+    parameters: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "URL containing brand information"
+        }
+      },
+      required: ["url"]
+    }
+  },
+  {
+    name: "getAlternativeBrands",
+    description: "Get alternative brands with active promo codes in a similar category",
+    parameters: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string",
+          description: "Category to search within (Fashion, Beauty, Tech, Food, Lifestyle, etc.)"
+        },
+        excludeBrand: {
+          type: "string",
+          description: "Brand name to exclude from results"
+        }
+      },
+      required: ["category"]
+    }
+  },
+  {
+    name: "getBrandsByCategory",
+    description: "Get all brands with promo codes in a specific category",
+    parameters: {
+      type: "object",
+      properties: {
+        category: {
+          type: "string", 
+          description: "Category to search (Fashion, Beauty, Tech, Food, Lifestyle, etc.)"
+        }
+      },
+      required: ["category"]
+    }
+  }
+]
+
+async function executeSupabaseFunction(functionName: string, params: any): Promise<SupabaseFunctionResult> {
+  try {
+    console.log(`🔍 Executing ${functionName} with params:`, params)
+    
+    switch (functionName) {
+      case 'searchPromoCodesByBrand':
+        return await searchPromoCodesByBrand(params.brandName)
+      case 'searchPromoCodesByHandle':
+        return await searchPromoCodesByHandle(params.handle)
+      case 'searchPromoCodesByUrl':
+        return await searchPromoCodesByUrl(params.url)
+      case 'getAlternativeBrands':
+        return await getAlternativeBrands(params.category, params.excludeBrand)
+      case 'getBrandsByCategory':
+        return await getBrandsByCategory(params.category)
+      default:
+        return { success: false, error: `Unknown function: ${functionName}` }
+    }
+  } catch (error) {
+    console.error(`Error executing ${functionName}:`, error)
+    return { success: false, error: error.message }
   }
 }
 
-interface OpenAIMessageWithVision {
-  role: 'system' | 'user' | 'assistant'
-  content: string | Array<{
-    type: 'text' | 'image_url'
-    text?: string
-    image_url?: {
-      url: string
-    }
-  }>
+async function searchPromoCodesByBrand(brandName: string): Promise<SupabaseFunctionResult> {
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select(`
+      id, brand_name, brand_instagram_handle, promo_code, description, 
+      affiliate_link, expiration_date, category,
+      profiles:influencer_id (full_name, username)
+    `)
+    .ilike('brand_name', `%${brandName}%`)
+    .limit(5)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, data: data || [] }
 }
 
-async function sendToOpenAI(messages: (OpenAIMessage | OpenAIMessageWithVision)[]): Promise<string | null> {
+async function searchPromoCodesByHandle(handle: string): Promise<SupabaseFunctionResult> {
+  const cleanHandle = handle.replace('@', '')
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select(`
+      id, brand_name, brand_instagram_handle, promo_code, description,
+      affiliate_link, expiration_date, category,
+      profiles:influencer_id (full_name, username)
+    `)
+    .or(`brand_instagram_handle.ilike.%${cleanHandle}%,profiles.username.ilike.%${cleanHandle}%`)
+    .limit(5)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  return { success: true, data: data || [] }
+}
+
+async function searchPromoCodesByUrl(url: string): Promise<SupabaseFunctionResult> {
+  // Extract brand name from URL
+  const brandMatch = url.match(/instagram\.com\/([^\/\?]+)/)
+  if (!brandMatch) {
+    return { success: false, error: 'Could not extract brand from URL' }
+  }
+  
+  return await searchPromoCodesByHandle(brandMatch[1])
+}
+
+async function getAlternativeBrands(category: string, excludeBrand?: string): Promise<SupabaseFunctionResult> {
+  let query = supabase
+    .from('promo_codes')
+    .select('brand_name, category')
+    .ilike('category', `%${category}%`)
+    .limit(10)
+
+  if (excludeBrand) {
+    query = query.not('brand_name', 'ilike', `%${excludeBrand}%`)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  const uniqueBrands = [...new Set(data?.map(item => item.brand_name) || [])]
+  return { success: true, data: uniqueBrands.slice(0, 8) }
+}
+
+async function getBrandsByCategory(category: string): Promise<SupabaseFunctionResult> {
+  const { data, error } = await supabase
+    .from('promo_codes')
+    .select('brand_name, category')
+    .ilike('category', `%${category}%`)
+    .limit(15)
+
+  if (error) {
+    return { success: false, error: error.message }
+  }
+
+  const uniqueBrands = [...new Set(data?.map(item => item.brand_name) || [])]
+  return { success: true, data: uniqueBrands }
+}
+
+async function sendToOpenAI(messages: OpenAIMessage[], instagramUserId: string): Promise<string | null> {
   if (!OPENAI_API_KEY) {
     console.error('Missing OpenAI API key')
     return null
   }
 
   try {
-    console.log('Sending messages to OpenAI:', messages)
+    console.log('🤖 Sending messages to OpenAI with function calling capability')
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -60,8 +239,10 @@ async function sendToOpenAI(messages: (OpenAIMessage | OpenAIMessageWithVision)[
       body: JSON.stringify({
         model: 'gpt-4.1-2025-04-14',
         messages,
-        max_tokens: 300, // Keep responses concise for Instagram DMs
-        temperature: 0.7,
+        functions: supabaseFunctions,
+        function_call: "auto",
+        max_completion_tokens: 400,
+        temperature: 0.3,
       })
     })
 
@@ -71,9 +252,60 @@ async function sendToOpenAI(messages: (OpenAIMessage | OpenAIMessageWithVision)[
     }
 
     const data = await response.json()
-    console.log('OpenAI response:', data)
+    console.log('🤖 OpenAI response:', JSON.stringify(data, null, 2))
     
-    return data.choices[0]?.message?.content || null
+    const choice = data.choices[0]
+    
+    // Handle function calling
+    if (choice.message?.function_call) {
+      console.log('🔧 OpenAI wants to call function:', choice.message.function_call.name)
+      
+      const functionName = choice.message.function_call.name
+      const functionArgs = JSON.parse(choice.message.function_call.arguments)
+      
+      // Execute the Supabase function
+      const functionResult = await executeSupabaseFunction(functionName, functionArgs)
+      
+      // Add function call and result to conversation
+      messages.push({
+        role: 'assistant',
+        content: null,
+        function_call: choice.message.function_call
+      })
+      
+      messages.push({
+        role: 'function',
+        name: functionName,
+        content: JSON.stringify(functionResult)
+      })
+      
+      // Get final response from OpenAI
+      const finalResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-2025-04-14',
+          messages,
+          max_completion_tokens: 400,
+          temperature: 0.3,
+        })
+      })
+      
+      if (!finalResponse.ok) {
+        console.error('OpenAI final response error:', finalResponse.status, await finalResponse.text())
+        return null
+      }
+      
+      const finalData = await finalResponse.json()
+      console.log('🎯 OpenAI final response:', finalData)
+      
+      return finalData.choices[0]?.message?.content || null
+    }
+    
+    return choice.message?.content || null
   } catch (error) {
     console.error('Error calling OpenAI:', error)
     return null
@@ -266,46 +498,44 @@ async function getConversationHistory(instagramUserId: string): Promise<OpenAIMe
   }
 }
 
-function createSystemPrompt(popularBrands: string[], context?: any): string {
-  return `You are OfferAlert's AI assistant helping users find promo codes and deals through Instagram DMs.
+function createSystemPrompt(): string {
+  return `You are OfferAlert's AI Shopping Expert and Promo Code Specialist! 🛍️
 
-CRITICAL RULE: NEVER make up, invent, or hallucinate promo codes. Only use the actual promo codes provided in the context.
+PERSONALITY & APPROACH:
+- You're a friendly, knowledgeable shopping expert who LOVES finding deals
+- Be conversational, helpful, and enthusiastic about saving people money
+- Use emojis sparingly but effectively to add personality
+- Keep responses under 200 characters for Instagram DMs (be concise but helpful)
 
-ABOUT OFFERALERT:
-- We help users find the best promo codes and deals from their favorite influencers
-- Users can search by brand name or Instagram handle (@username)
-- We have partnerships with top brands and influencers
+CRITICAL RULE: NEVER make up, invent, or hallucinate promo codes. ONLY use data from your Supabase function calls.
 
-YOUR ROLE:
-- Help users with actual promo codes from our database ONLY
-- Suggest similar or alternative brands that might have deals (from our database)
-- Provide general help about how OfferAlert works
-- Keep responses concise (under 200 characters for Instagram DMs)
+YOUR CAPABILITIES:
+You have access to these functions to search our exclusive promo code database:
+- searchPromoCodesByBrand(brandName): Find codes for specific brands
+- searchPromoCodesByHandle(handle): Find codes by Instagram @handle
+- searchPromoCodesByUrl(url): Extract brand from URLs and find codes
+- getAlternativeBrands(category, excludeBrand): Get similar brands with codes
+- getBrandsByCategory(category): Get all brands in a category
 
-BRANDS AVAILABLE WITH PROMO CODES:
-${popularBrands.length > 0 ? popularBrands.join(', ') : 'Various fashion, beauty, and lifestyle brands'}
+CONVERSATION FLOW:
+1. When users mention a brand/handle/URL → immediately search our database
+2. If codes found → present them with enthusiasm: "Found it! Use code [CODE] at [BRAND] for [DESCRIPTION]"
+3. If no codes found → search for alternatives in the same category and suggest them
+4. If users ask general questions → guide them to share a brand name or @handle
 
-${context?.actualPromoCodes && context.actualPromoCodes.length > 0 ? 
-  `ACTUAL PROMO CODES AVAILABLE:\n${context.actualPromoCodes.map(code => 
-    `- ${code.brand_name}: Code "${code.promo_code}" - ${code.description} (From: @${code.profiles?.username || 'influencer'})`
-  ).join('\n')}` : ''}
+RESPONSE EXAMPLES:
+✅ Good: "Found 2 codes for Nike! Use SAVE20 for 20% off or ATHLETE15 for 15% off athletic wear"
+✅ Good: "No codes for Zara right now, but try H&M (code STYLE10) or ASOS (code FASHION20)!"
+✅ Good: "Tell me the brand or @handle you want deals for, and I'll find the best codes!"
+❌ Bad: "Try using SAVE20 at Nike" (without actually finding this code in our database)
 
-${context?.alternativeBrands ? `ALTERNATIVE BRANDS FOR "${context.brand}": ${context.alternativeBrands.join(', ')}` : ''}
+SHOPPING EXPERTISE:
+- Understand fashion, beauty, tech, food, and lifestyle categories
+- Help users discover brands they might not know about
+- Suggest alternatives that make sense (fashion→fashion, beauty→beauty, etc.)
+- Guide users through their shopping journey naturally
 
-RESPONSE GUIDELINES:
-- When actual promo codes exist, present them clearly with code, description, and source
-- When no promo codes exist for a requested brand, suggest specific alternatives from our available brands
-- Prioritize brands that actually have promo codes in our database
-- Be helpful and friendly but concise
-- Use format: "No codes for [brand] right now, but try: [alternatives]"
-- For general questions, explain how to use OfferAlert
-- NEVER create fake promo codes or percentages
-
-CURRENT CONTEXT:
-${context?.brand ? `User searched for: ${context.brand}` : ''}
-${context?.noPromoCodesFound ? 'No promo codes found for this brand - suggest alternatives' : ''}
-${context?.generalQuery ? 'This is a general question about OfferAlert' : ''}
-${context?.actualPromoCodes && context.actualPromoCodes.length > 0 ? 'Real promo codes are available - present them accurately' : ''}`
+REMEMBER: You're here to save people money using ONLY the real, verified promo codes in our Supabase database. Be the shopping expert they wish they had as a friend! 🎯`
 }
 
 async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string) {
@@ -343,6 +573,68 @@ async function saveConversation(instagramUserId: string, messageText: string, ai
   }
 }
 
+async function getConversationHistory(instagramUserId: string): Promise<OpenAIMessage[]> {
+  try {
+    const { data, error } = await supabase
+      .from('chatbase_interactions')
+      .select('message_text, chatbase_response')
+      .eq('instagram_user_id', instagramUserId)
+      .order('created_at', { ascending: false })
+      .limit(8) // Last 8 interactions for better context
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error getting conversation history:', error)
+      return []
+    }
+
+    const history: OpenAIMessage[] = []
+    data?.reverse().forEach(interaction => {
+      history.push({ role: 'user', content: interaction.message_text })
+      history.push({ role: 'assistant', content: interaction.chatbase_response })
+    })
+
+    return history
+  } catch (error) {
+    console.error('Error in getConversationHistory:', error)
+    return []
+  }
+}
+
+async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string) {
+  try {
+    // Update or create conversation record
+    const { error: conversationError } = await supabase
+      .from('user_conversations')
+      .upsert({
+        instagram_user_id: instagramUserId,
+        last_interaction_at: new Date().toISOString(),
+        conversation_context: { last_message: messageText }
+      }, {
+        onConflict: 'instagram_user_id'
+      })
+
+    if (conversationError) {
+      console.error('Error saving conversation:', conversationError)
+    }
+
+    // Log the interaction
+    const { error: interactionError } = await supabase
+      .from('chatbase_interactions')
+      .insert({
+        instagram_user_id: instagramUserId,
+        message_text: messageText,
+        chatbase_response: aiResponse,
+        response_type: 'openai_smart'
+      })
+
+    if (interactionError) {
+      console.error('Error saving conversation:', interactionError)
+    }
+  } catch (error) {
+    console.error('Error in saveConversation:', error)
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -350,7 +642,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message, instagramUserId, imageUrl, context }: OpenAIRequest = await req.json()
+    const { message, instagramUserId, imageUrl }: OpenAIRequest = await req.json()
 
     if (!message || !instagramUserId) {
       return new Response(
@@ -362,71 +654,64 @@ Deno.serve(async (req) => {
       )
     }
 
-    console.log('Processing OpenAI request:', { message, instagramUserId, imageUrl, context })
+    console.log('🤖 Processing OpenAI Smart Assistant request:', { message, instagramUserId, imageUrl })
 
-    // Handle image processing for Instagram preview cards
-    let extractedUsername = null
+    // Handle image processing for Instagram preview cards first
     if (imageUrl) {
       console.log('🖼️ Image URL provided, attempting to extract username')
-      extractedUsername = await extractUsernameFromImage(imageUrl)
+      const extractedUsername = await extractUsernameFromImage(imageUrl)
       if (extractedUsername) {
         console.log(`✅ Extracted username from image: ${extractedUsername}`)
-        return new Response(
-          JSON.stringify({
-            response: `Found username: ${extractedUsername}`,
-            responseType: 'username_extraction',
-            extractedUsername: extractedUsername
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        )
+        // Continue processing with extracted username as the message
+        const usernameMessage = `Looking for promo codes for @${extractedUsername}`
+        
+        // Get conversation history
+        const conversationHistory = await getConversationHistory(instagramUserId)
+        
+        // Build messages array for username search
+        const messages: OpenAIMessage[] = [
+          { role: 'system', content: createSystemPrompt() },
+          ...conversationHistory,
+          { role: 'user', content: usernameMessage }
+        ]
+
+        // Send to OpenAI with function calling
+        const aiResponse = await sendToOpenAI(messages, instagramUserId)
+        
+        if (aiResponse) {
+          await saveConversation(instagramUserId, usernameMessage, aiResponse)
+          return new Response(
+            JSON.stringify({
+              response: aiResponse,
+              responseType: 'openai_smart',
+              extractedUsername: extractedUsername
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
       }
     }
 
-    // Get actual promo codes if this is a brand-specific request
-    let actualPromoCodes: any[] = []
-    if (context?.brand) {
-      actualPromoCodes = await getActualPromoCodes(context.brand)
-      console.log(`🔍 Found ${actualPromoCodes.length} actual promo codes for ${context.brand}`)
-    }
-
-    // Get alternative brands if this is a "no promo codes found" request
-    let alternativeBrands: string[] = []
-    if (context?.noPromoCodesFound && context?.brand) {
-      alternativeBrands = await getBrandsByCategory(context.brand)
-      console.log(`🔍 Found ${alternativeBrands.length} alternative brands for ${context.brand}`)
-    }
-
-    // Get popular brands and conversation history
-    const [popularBrands, conversationHistory] = await Promise.all([
-      getPopularBrands(),
-      getConversationHistory(instagramUserId)
-    ])
-
-    // Create system prompt with current context including actual promo codes and alternative brands
-    const enhancedContext = {
-      ...context,
-      actualPromoCodes,
-      alternativeBrands
-    }
-    const systemPrompt = createSystemPrompt(popularBrands, enhancedContext)
-
+    // Get conversation history
+    const conversationHistory = await getConversationHistory(instagramUserId)
+    
     // Build messages array
     const messages: OpenAIMessage[] = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: createSystemPrompt() },
       ...conversationHistory,
       { role: 'user', content: message }
     ]
 
-    // Send to OpenAI
-    const aiResponse = await sendToOpenAI(messages)
+    // Send to OpenAI with function calling capabilities
+    const aiResponse = await sendToOpenAI(messages, instagramUserId)
 
     if (!aiResponse) {
       return new Response(
         JSON.stringify({ 
           error: 'Failed to get response from OpenAI',
-          fallbackMessage: "I'm sorry, I'm having trouble processing your request right now. Please try asking about a specific brand or check back later."
+          fallbackMessage: "I'm sorry, I'm having trouble right now. Tell me a brand name or @handle and I'll find you the best deals! 🛍️"
         }),
         { 
           status: 500, 
@@ -441,7 +726,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         response: aiResponse,
-        responseType: 'openai'
+        responseType: 'openai_smart'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -453,7 +738,7 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error',
-        fallbackMessage: "I'm sorry, something went wrong. Please try again or ask about a specific brand."
+        fallbackMessage: "Something went wrong! Tell me a brand or @handle and I'll help you find deals! 🛍️"
       }),
       { 
         status: 500, 
@@ -462,3 +747,66 @@ Deno.serve(async (req) => {
     )
   }
 })
+
+// Vision capability for image processing
+async function extractUsernameFromImage(imageUrl: string): Promise<string | null> {
+  if (!OPENAI_API_KEY) {
+    console.error('Missing OpenAI API key for vision')
+    return null
+  }
+
+  try {
+    console.log('🖼️ Extracting username from Instagram preview image:', imageUrl)
+    
+    const visionMessage = {
+      role: 'user' as const,
+      content: [
+        {
+          type: 'text' as const,
+          text: 'This is an Instagram preview card/story. Please extract the username from the top heading or profile name. Return ONLY the username without the @ symbol. If no username is visible, return "NOT_FOUND".'
+        },
+        {
+          type: 'image_url' as const,
+          image_url: {
+            url: imageUrl
+          }
+        }
+      ]
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4.1-2025-04-14',
+        messages: [visionMessage],
+        max_completion_tokens: 50,
+        temperature: 0.1,
+      })
+    })
+
+    if (!response.ok) {
+      console.error('OpenAI Vision API error:', response.status, await response.text())
+      return null
+    }
+
+    const data = await response.json()
+    const extractedText = data.choices[0]?.message?.content?.trim()
+    
+    console.log('🔍 Vision API extracted:', extractedText)
+    
+    if (extractedText && extractedText !== 'NOT_FOUND') {
+      // Clean up the extracted username
+      const cleanUsername = extractedText.replace(/[@\s]/g, '').toLowerCase()
+      return cleanUsername
+    }
+    
+    return null
+  } catch (error) {
+    console.error('Error in extractUsernameFromImage:', error)
+    return null
+  }
+}
