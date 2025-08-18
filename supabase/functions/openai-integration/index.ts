@@ -24,6 +24,17 @@ interface OpenAIMessage {
   name?: string
 }
 
+interface OpenAIMessageWithVision {
+  role: 'user'
+  content: Array<{
+    type: 'text' | 'image_url'
+    text?: string
+    image_url?: {
+      url: string
+    }
+  }>
+}
+
 interface OpenAIRequest {
   message: string
   instagramUserId: string
@@ -395,7 +406,7 @@ async function getPopularBrands(): Promise<string[]> {
   }
 }
 
-async function getBrandsByCategory(requestedBrand: string): Promise<string[]> {
+async function getBrandsBySimilarity(requestedBrand: string): Promise<string[]> {
   try {
     console.log(`🔍 Finding similar brands for: ${requestedBrand}`)
     const { data, error } = await supabase
@@ -430,7 +441,7 @@ async function getBrandsByCategory(requestedBrand: string): Promise<string[]> {
     console.log(`✅ Found ${similarBrands.length} alternative brands`)
     return similarBrands
   } catch (error) {
-    console.error('Error in getBrandsByCategory:', error)
+    console.error('Error in getBrandsBySimilarity:', error)
     return []
   }
 }
@@ -573,67 +584,6 @@ async function saveConversation(instagramUserId: string, messageText: string, ai
   }
 }
 
-async function getConversationHistory(instagramUserId: string): Promise<OpenAIMessage[]> {
-  try {
-    const { data, error } = await supabase
-      .from('chatbase_interactions')
-      .select('message_text, chatbase_response')
-      .eq('instagram_user_id', instagramUserId)
-      .order('created_at', { ascending: false })
-      .limit(8) // Last 8 interactions for better context
-
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error getting conversation history:', error)
-      return []
-    }
-
-    const history: OpenAIMessage[] = []
-    data?.reverse().forEach(interaction => {
-      history.push({ role: 'user', content: interaction.message_text })
-      history.push({ role: 'assistant', content: interaction.chatbase_response })
-    })
-
-    return history
-  } catch (error) {
-    console.error('Error in getConversationHistory:', error)
-    return []
-  }
-}
-
-async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string) {
-  try {
-    // Update or create conversation record
-    const { error: conversationError } = await supabase
-      .from('user_conversations')
-      .upsert({
-        instagram_user_id: instagramUserId,
-        last_interaction_at: new Date().toISOString(),
-        conversation_context: { last_message: messageText }
-      }, {
-        onConflict: 'instagram_user_id'
-      })
-
-    if (conversationError) {
-      console.error('Error saving conversation:', conversationError)
-    }
-
-    // Log the interaction
-    const { error: interactionError } = await supabase
-      .from('chatbase_interactions')
-      .insert({
-        instagram_user_id: instagramUserId,
-        message_text: messageText,
-        chatbase_response: aiResponse,
-        response_type: 'openai_smart'
-      })
-
-    if (interactionError) {
-      console.error('Error saving conversation:', interactionError)
-    }
-  } catch (error) {
-    console.error('Error in saveConversation:', error)
-  }
-}
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -747,66 +697,3 @@ Deno.serve(async (req) => {
     )
   }
 })
-
-// Vision capability for image processing
-async function extractUsernameFromImage(imageUrl: string): Promise<string | null> {
-  if (!OPENAI_API_KEY) {
-    console.error('Missing OpenAI API key for vision')
-    return null
-  }
-
-  try {
-    console.log('🖼️ Extracting username from Instagram preview image:', imageUrl)
-    
-    const visionMessage = {
-      role: 'user' as const,
-      content: [
-        {
-          type: 'text' as const,
-          text: 'This is an Instagram preview card/story. Please extract the username from the top heading or profile name. Return ONLY the username without the @ symbol. If no username is visible, return "NOT_FOUND".'
-        },
-        {
-          type: 'image_url' as const,
-          image_url: {
-            url: imageUrl
-          }
-        }
-      ]
-    }
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: [visionMessage],
-        max_completion_tokens: 50,
-        temperature: 0.1,
-      })
-    })
-
-    if (!response.ok) {
-      console.error('OpenAI Vision API error:', response.status, await response.text())
-      return null
-    }
-
-    const data = await response.json()
-    const extractedText = data.choices[0]?.message?.content?.trim()
-    
-    console.log('🔍 Vision API extracted:', extractedText)
-    
-    if (extractedText && extractedText !== 'NOT_FOUND') {
-      // Clean up the extracted username
-      const cleanUsername = extractedText.replace(/[@\s]/g, '').toLowerCase()
-      return cleanUsername
-    }
-    
-    return null
-  } catch (error) {
-    console.error('Error in extractUsernameFromImage:', error)
-    return null
-  }
-}

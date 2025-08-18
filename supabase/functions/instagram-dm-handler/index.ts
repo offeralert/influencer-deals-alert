@@ -249,10 +249,10 @@ serve(async (req) => {
 
                 if (assistantResponse?.response) {
                   console.log(`🎯 Smart Assistant response: ${assistantResponse.response}`);
-                  await sendInstagramMessage(senderId, assistantResponse.response);
+                  await sendInstagramMessage(senderId, assistantResponse.response, []);
                 } else {
                   console.log(`❌ No response from Smart Assistant, sending fallback`);
-                  await sendInstagramMessage(senderId, "I'm here to help you find the best promo codes! Tell me a brand name or share an @handle and I'll find you deals! 🛍️");
+                  await sendInstagramMessage(senderId, "I'm here to help you find the best promo codes! Tell me a brand name or share an @handle and I'll find you deals! 🛍️", []);
                 }
               } else {
                 console.log("❌ No message object found in messaging event - likely a read receipt or other event type");
@@ -956,7 +956,7 @@ async function sendInstagramMessage(recipientId: string, requestedHandle: string
   } else if (!requestedHandle) {
     // No default message - user requested removal
     return;
-  } else if (promoCodes.length === 0) {
+  } else if (!promoCodes || promoCodes.length === 0) {
     // Default message if no AI response was generated earlier
     messageText = `Sorry, I couldn't find any promo codes for ${requestedHandle} right now. Let me suggest some similar brands that might have deals available! 💡`;
   } else {
