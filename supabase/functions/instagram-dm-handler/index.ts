@@ -254,173 +254,10 @@ serve(async (req) => {
                   console.log(`❌ No response from Smart Assistant, sending fallback`);
                   await sendInstagramMessage(senderId, "I'm here to help you find the best promo codes! Tell me a brand name or share an @handle and I'll find you deals! 🛍️");
                 }
-              }
-
-              // Process shared Instagram profile URLs and Android-specific formats
-              if (messagingEvent.message.attachments) {
-                console.log(`=== 📎 ATTACHMENTS PROCESSING ===`);
-                console.log(`📊 Found ${messagingEvent.message.attachments.length} attachment(s)`);
-                
-                for (let i = 0; i < messagingEvent.message.attachments.length; i++) {
-                  const attachment = messagingEvent.message.attachments[i];
-                  console.log(`--- 📎 Attachment ${i + 1} ---`);
-                  console.log(`🏷️ Type: ${attachment.type}`);
-                  console.log(`🔍 Full attachment object:`, JSON.stringify(attachment, null, 2));
-                  
-                  if (attachment.type === "share" && attachment.payload) {
-                    // Handle standard URL sharing
-                    if (attachment.payload.url && attachment.payload.template_type !== "media") {
-                      console.log("✅ Processing text-based share attachment...");
-                      const brandUsername = extractInstagramUsername(attachment.payload.url);
-                      if (brandUsername) {
-                        console.log(`🎉 Successfully extracted brand username: ${brandUsername}`);
-                        await processPromoCodeRequest(senderId, brandUsername, supabaseClient);
-                        processedMessage = true;
-                        continue;
-                      }
-
-                      // Check for deep links in shared URL
-                      const deepLinkUsername = extractUsernameFromDeepLink(attachment.payload.url);
-                      if (deepLinkUsername) {
-                        console.log(`🎉 Successfully extracted username from deep link: ${deepLinkUsername}`);
-                        await processPromoCodeRequest(senderId, deepLinkUsername, supabaseClient);
-                        processedMessage = true;
-                        continue;
-                      }
-                    }
-
-                    // Handle structured objects and PODs (Android-specific)
-                    const structuredUsername = extractUsernameFromStructuredData(attachment.payload);
-                    if (structuredUsername) {
-                      console.log(`🎉 Successfully extracted username from structured data: ${structuredUsername}`);
-                      await processPromoCodeRequest(senderId, structuredUsername, supabaseClient);
-                      processedMessage = true;
-                      continue;
-                    }
-
-                    // If nothing worked, log for debugging
-                    if (attachment.payload?.template_type === "media") {
-                      console.log("🎥 Processing media share - attempting oEmbed extraction...");
-                      const oembed = await processSharedMediaWithOEmbed(attachment.payload.url, senderId);
-                      if (oembed) {
-                        console.log(`🎉 Successfully extracted brand handle from oEmbed: ${oembed}`);
-                        await processPromoCodeRequest(senderId, oembed, supabaseClient);
-                        processedMessage = true;
-                        continue;
-                      }
-                    }
-                    
-                    console.log("❌ Could not extract username from share attachment");
-                    console.log("📊 Attachment payload summary:");
-                    console.log("- Type:", attachment.type);
-                    console.log("- Has URL:", !!attachment.payload?.url);
-                    console.log("- Template type:", attachment.payload?.template_type);
-                    console.log("- Keys in payload:", attachment.payload ? Object.keys(attachment.payload) : 'none');
-                    
-                    // Enhanced debugging for preview cards
-                    console.log("🔍 PREVIEW CARD DEBUGGING - Full attachment structure:");
-                    console.log("- attachment.type:", attachment.type);
-                    if (attachment.payload) {
-                      console.log("- payload keys:", Object.keys(attachment.payload));
-                      console.log("- payload.url:", attachment.payload.url);
-                      console.log("- payload.title:", attachment.payload.title);
-                      console.log("- payload.description:", attachment.payload.description);
-                      console.log("- payload.template_type:", attachment.payload.template_type);
-                      
-                      // Try extracting from all string fields in payload
-                      for (const key of Object.keys(attachment.payload)) {
-                        const value = attachment.payload[key];
-                        if (typeof value === 'string') {
-                          console.log(`📝 ${key}: "${value}"`);
-                          
-                          // Check if this field contains instagram references
-                          if (value.includes('instagram')) {
-                            console.log(`🎯 Found 'instagram' in ${key}: ${value}`);
-                            
-                            // Try extracting username from this field
-                            const usernameFromField = extractInstagramUsername(value);
-                            if (usernameFromField) {
-                              console.log(`🎉 FOUND USERNAME in field ${key}: ${usernameFromField}`);
-                              await processPromoCodeRequest(senderId, usernameFromField, supabaseClient);
-                              processedMessage = true;
-                              break;
-                            }
-                          }
-                        }
-                      }
-                    }
-                  } else if (attachment.type === "ig_reel") {
-                    console.log(`🎬 Processing ig_reel attachment`);
-                    const extractedUsername = await processIgReelAttachment(attachment);
-                    if (extractedUsername) {
-                      console.log(`✅ Extracted username from reel: ${extractedUsername}`);
-                      await processPromoCodeRequest(senderId, extractedUsername, supabaseClient);
-                      processedMessage = true;
-                    }
-                  } else if (attachment.type !== "image") {
-                    console.log(`⚠️ Not a share or image attachment (type: ${attachment.type}) - skipping`);
-                  }
-                }
-              }
-
-              // Handle quick replies and generic templates (Android-specific)
-              if (messagingEvent.message.quick_reply) {
-                console.log(`=== 🔗 QUICK REPLY PROCESSING ===`);
-                console.log(`🔍 Quick reply data:`, JSON.stringify(messagingEvent.message.quick_reply, null, 2));
-                const quickReplyUsername = extractUsernameFromQuickReply(messagingEvent.message.quick_reply);
-                if (quickReplyUsername) {
-                  console.log(`🎉 Successfully extracted username from quick reply: ${quickReplyUsername}`);
-                  await processPromoCodeRequest(senderId, quickReplyUsername, supabaseClient);
-                  processedMessage = true;
-                }
-              }
-
-              // Handle generic template messages
-              if (messagingEvent.message.template) {
-                console.log(`=== 📋 TEMPLATE PROCESSING ===`);
-                console.log(`🔍 Template data:`, JSON.stringify(messagingEvent.message.template, null, 2));
-                const templateUsername = extractUsernameFromTemplate(messagingEvent.message.template);
-                if (templateUsername) {
-                  console.log(`🎉 Successfully extracted username from template: ${templateUsername}`);
-                  await processPromoCodeRequest(senderId, templateUsername, supabaseClient);
-                  processedMessage = true;
-                }
-              }
-
-              // Fallback: Check entire message object for any Instagram profile data
-              if (!processedMessage) {
-                console.log(`=== 🔄 FALLBACK PROCESSING ===`);
-                const fallbackUsername = extractUsernameFromMessageFallback(messagingEvent.message);
-                if (fallbackUsername) {
-                  console.log(`🎉 Successfully extracted username from message fallback: ${fallbackUsername}`);
-                  await processPromoCodeRequest(senderId, fallbackUsername, supabaseClient);
-                  processedMessage = true;
-                }
-              }
-
-              // Text processing already handles brand inquiries via processBrandInquiry
-
-              // If still no content processed, send OpenAI guided response
-              if (!processedMessage) {
-                console.log(`=== ❌ NO VALID CONTENT FOUND ===`);
-                console.log("🚫 No identifiable brand information found");
-                await callOpenAIIntegration(
-                  "User sent a message without clear brand information",
-                  senderId,
-                  { 
-                    conversationType: 'guide',
-                    message: 'Guide the user to share a brand name, handle, or URL for promo code lookup'
-                  },
-                  supabaseClient
-                );
-                processedMessage = true;
-                // User requested no default messages, so we don't send anything
               } else {
-                console.log(`✅ Message processed successfully - promo details should have been sent`);
+                console.log("❌ No message object found in messaging event - likely a read receipt or other event type");
               }
-            } else {
-              console.log("❌ No message object found in messaging event - likely a read receipt or other event type");
-            }
+
           }
         } else {
           console.log("❌ No messaging events found in entry");
@@ -875,13 +712,9 @@ async function processBrandInquiry(senderId: string, messageText: string, supaba
     if (brandInfo.type === 'none') {
       // No brand information found - use OpenAI to guide conversation
       console.log('❌ No brand information found, using OpenAI to guide conversation');
-      await callOpenAIIntegration(
+      await callOpenAISmartAssistant(
         messageText,
         senderId,
-        { 
-          conversationType: 'guide',
-          message: 'User sent a message without clear brand information. Guide them to share a brand name, handle, or URL.'
-        },
         supabaseClient
       );
       return true;
@@ -932,14 +765,9 @@ async function processBrandInquiry(senderId: string, messageText: string, supaba
       console.log(`❌ No promo codes found for ${brandInfo.value}, using OpenAI for recommendations`);
       await sendInstagramMessage(senderId, brandInfo.value, []);
       
-      const openaiResponse = await callOpenAIIntegration(
+      const openaiResponse = await callOpenAISmartAssistant(
         `Looking for promo codes for ${brandInfo.value}`,
         senderId,
-        { 
-          brand: brandInfo.value,
-          noPromoCodesFound: true,
-          originalQuery: messageText
-        },
         supabaseClient
       );
       
@@ -1066,10 +894,9 @@ async function processPromoCodeRequest(senderId: string, requestedHandle: string
   if (!promoCodes || promoCodes.length === 0) {
     console.log('No promo codes found, trying OpenAI for additional help');
     
-    const openaiResponse = await callOpenAIIntegration(
+    const openaiResponse = await callOpenAISmartAssistant(
       `Looking for promo codes for ${requestedHandle}`,
       senderId,
-      { brand: requestedHandle, noPromoCodesFound: true },
       supabaseClient
     );
     
