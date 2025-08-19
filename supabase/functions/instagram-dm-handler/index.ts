@@ -187,6 +187,12 @@ serve(async (req) => {
             console.log(`⏰ Timestamp: ${messagingEvent.timestamp}`);
             
               if (messagingEvent.message) {
+                // Skip echo messages (our own bot responses)
+                if (messagingEvent.message.is_echo) {
+                  console.log(`🔄 Skipping echo message (bot's own response)`);
+                  continue;
+                }
+
                 const senderId = messagingEvent.sender.id;
                 console.log(`=== 📄 MESSAGE DETAILS ===`);
                 console.log(`🆔 Message ID: ${messagingEvent.message.mid}`);
@@ -194,6 +200,7 @@ serve(async (req) => {
                 console.log(`📎 Has attachments: ${!!messagingEvent.message.attachments}`);
                 console.log(`🔗 Has quick_reply: ${!!messagingEvent.message.quick_reply}`);
                 console.log(`📋 Has template: ${!!messagingEvent.message.template}`);
+                console.log(`🔄 Is echo: ${!!messagingEvent.message.is_echo}`);
 
                 // === NEW ARCHITECTURE: Send ALL messages to OpenAI Smart Assistant ===
                 let messageToProcess = '';
