@@ -212,8 +212,13 @@ serve(async (req) => {
                       // Check if this is an Instagram URL that should be sent as text
                       const instagramMatch = attachment.payload.url.match(/instagram\.com\/([^\/\?]+)/);
                       if (instagramMatch) {
-                        messageToProcess = messageToProcess || `Looking for promo codes for @${instagramMatch[1]}`;
-                        console.log(`🔗 Found Instagram URL in attachment: ${messageToProcess}`);
+                        // Only use Instagram URL processing if there's no explicit text message or if the text is generic
+                        if (!messageToProcess || messageToProcess.trim().length === 0) {
+                          messageToProcess = `Looking for promo codes for @${instagramMatch[1]}`;
+                          console.log(`🔗 Found Instagram URL in attachment: ${messageToProcess}`);
+                        } else {
+                          console.log(`🔗 Found Instagram URL but keeping original message: "${messageToProcess}"`);
+                        }
                       }
                       
                       // If this might be a preview card with image, try to extract it
