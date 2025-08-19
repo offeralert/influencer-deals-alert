@@ -169,6 +169,8 @@ async function searchPromoCodesByBrand(brandName: string): Promise<SupabaseFunct
 
 async function searchPromoCodesByHandle(handle: string): Promise<SupabaseFunctionResult> {
   const cleanHandle = handle.replace('@', '')
+  console.log(`🔍 Searching for handle: "${cleanHandle}" (original: "${handle}")`)
+  
   const { data, error } = await supabase
     .from('promo_codes')
     .select(`
@@ -176,10 +178,13 @@ async function searchPromoCodesByHandle(handle: string): Promise<SupabaseFunctio
       affiliate_link, expiration_date, category,
       profiles:influencer_id (full_name, username)
     `)
-    .or(`brand_instagram_handle.ilike.%${cleanHandle}%,profiles.username.ilike.%${cleanHandle}%`)
+    .ilike('brand_instagram_handle', `%${cleanHandle}%`)
     .limit(5)
 
+  console.log(`📊 Handle search results for "${cleanHandle}":`, { data, error })
+
   if (error) {
+    console.error(`❌ Handle search error:`, error)
     return { success: false, error: error.message }
   }
 
