@@ -14,12 +14,26 @@ const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => crypto.randomUUID());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Auto-scroll to bottom when new messages arrive
+  // Smart scroll to bottom - only when user is near the bottom
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (!container || !isNearBottom) return;
+    
+    container.scrollTop = container.scrollHeight;
+  };
+
+  // Check if user is near the bottom of the messages
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const isNear = scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+    setIsNearBottom(isNear);
   };
 
   useEffect(() => {
@@ -140,7 +154,11 @@ const ChatInterface = () => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-4"
+      >
         {messages.map((message, index) => (
           <ChatMessage
             key={index}
@@ -163,7 +181,6 @@ const ChatInterface = () => {
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
