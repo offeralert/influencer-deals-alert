@@ -73,6 +73,12 @@ const Header = () => {
                   >
                     Credit Cards
                   </button>
+                  <button 
+                    onClick={() => handleNavigation("/shopping-assistant")} 
+                    className="text-left text-lg font-medium hover:text-brand-green"
+                  >
+                    Shopping Assistant
+                  </button>
                   {isInfluencer && (
                     <button 
                       onClick={() => handleNavigation("/influencer-dashboard")} 
@@ -190,6 +196,9 @@ const Header = () => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
                     <Link to="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/shopping-assistant">Offer Alert Shopping Assistant</Link>
                   </DropdownMenuItem>
                   {isInfluencer && (
                     <DropdownMenuItem asChild>

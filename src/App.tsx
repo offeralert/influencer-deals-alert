@@ -34,6 +34,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import ManageInfluencerCodes from "./pages/ManageInfluencerCodes";
+import ShoppingAssistant from "./pages/ShoppingAssistant";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 // QueryClient will be created inside the component
@@ -46,6 +47,7 @@ const AppContent = () => {
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<Signup />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="shopping-assistant" element={<ShoppingAssistant />} />
         <Route path="explore" element={<Explore />} />
         <Route path="deals" element={<Deals />} />
         <Route path="influencers" element={<Influencers />} />
