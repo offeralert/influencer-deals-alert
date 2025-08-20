@@ -23,18 +23,17 @@ const validateToken = (token: string | undefined): boolean => {
     return false
   }
   
-  // Basic format validation - Instagram tokens typically have dots
-  if (!token.includes('.')) {
-    console.error('❌ INSTAGRAM_ACCESS_TOKEN appears to be malformed (missing dots)')
-    return false
-  }
-  
   // Check minimum length
-  if (token.length < 50) {
+  if (token.length < 10) {
     console.error('❌ INSTAGRAM_ACCESS_TOKEN appears to be too short')
     return false
   }
   
+  // Log token info for debugging (without exposing the actual token)
+  console.log(`✅ Token found - Length: ${token.length}, Starts with: ${token.substring(0, 4)}...`)
+  
+  // Instagram tokens can have various formats, so we'll be less strict
+  // Just check it's not empty and has reasonable length
   console.log('✅ Token validation passed')
   return true
 }
