@@ -134,6 +134,113 @@ const callOpenAISmartAssistant = async (message: string, instagramUserId: string
   }
 }
 
+// Extract asset_id from Instagram CDN URL
+const extractAssetIdFromUrl = (url: string): string | null => {
+  try {
+    console.log(`🔍 Extracting asset_id from URL: ${url}`)
+    const match = url.match(/asset_id=(\d+)/)
+    if (match && match[1]) {
+      console.log(`✅ Found asset_id: ${match[1]}`)
+      return match[1]
+    }
+    console.log('❌ No asset_id found in URL')
+    return null
+  } catch (error) {
+    console.error('❌ Error extracting asset_id:', error)
+    return null
+  }
+}
+
+// Get brand username from asset_id via two-step Graph API resolution
+const getBrandFromAssetId = async (assetId: string): Promise<string | null> => {
+  if (!validateToken(INSTAGRAM_ACCESS_TOKEN)) {
+    console.error('❌ Token validation failed - cannot query Graph API')
+    return null
+  }
+
+  try {
+    console.log(`🔍 Step 1: Getting owner ID for asset_id: ${assetId}`)
+    
+    // Step 1: Get owner ID from asset_id
+    const ownerResponse = await fetch(
+      `https://graph.facebook.com/v21.0/${assetId}?fields=owner&access_token=${INSTAGRAM_ACCESS_TOKEN}`
+    )
+    
+    if (!ownerResponse.ok) {
+      const errorText = await ownerResponse.text()
+      console.error('❌ Graph API error (step 1):', ownerResponse.status, errorText)
+      return null
+    }
+    
+    const ownerData = await ownerResponse.json()
+    console.log('✅ Step 1 response:', ownerData)
+    
+    if (!ownerData.owner || !ownerData.owner.id) {
+      console.log('❌ No owner ID found in response')
+      return null
+    }
+    
+    const ownerId = ownerData.owner.id
+    console.log(`🔍 Step 2: Getting username for owner ID: ${ownerId}`)
+    
+    // Step 2: Get username from owner ID
+    const usernameResponse = await fetch(
+      `https://graph.facebook.com/v21.0/${ownerId}?fields=username&access_token=${INSTAGRAM_ACCESS_TOKEN}`
+    )
+    
+    if (!usernameResponse.ok) {
+      const errorText = await usernameResponse.text()
+      console.error('❌ Graph API error (step 2):', usernameResponse.status, errorText)
+      return null
+    }
+    
+    const usernameData = await usernameResponse.json()
+    console.log('✅ Step 2 response:', usernameData)
+    
+    if (!usernameData.username) {
+      console.log('❌ No username found in response')
+      return null
+    }
+    
+    console.log(`✅ Resolved brand username: @${usernameData.username}`)
+    return usernameData.username
+    
+  } catch (error) {
+    console.error('❌ Error in getBrandFromAssetId:', error)
+    return null
+  }
+}
+
+// Process Instagram attachments for brand detection
+const processAttachment = async (attachment: any, senderId: string): Promise<string | null> => {
+  console.log('📎 Processing attachment:', JSON.stringify(attachment, null, 2))
+  
+  // Check if it's a share-type attachment (Instagram preview card)
+  if (attachment.type === 'share' && attachment.payload && attachment.payload.url) {
+    console.log('🔍 Detected Instagram share attachment')
+    
+    // Extract asset_id from the URL
+    const assetId = extractAssetIdFromUrl(attachment.payload.url)
+    if (!assetId) {
+      console.log('❌ Could not extract asset_id from share URL')
+      return null
+    }
+    
+    // Get brand username from asset_id
+    const brandUsername = await getBrandFromAssetId(assetId)
+    if (brandUsername) {
+      console.log(`✅ Successfully extracted brand: @${brandUsername}`)
+      return `@${brandUsername}`
+    } else {
+      console.log('❌ Could not resolve brand username from asset_id')
+      return null
+    }
+  }
+  
+  console.log(`📎 Attachment type "${attachment.type}" not supported for brand detection`)
+  return null
+}
+
 const isBrandOrHandleMessage = (text: string): boolean => {
   // Check if message starts with @ or contains brand-like patterns
   if (text.startsWith('@')) return true
@@ -255,8 +362,26 @@ Deno.serve(async (req) => {
               
               // Process the message
               await processInstagramMessage(senderId, messageText, attachments)
+            } else if (attachments && attachments.length > 0) {
+              console.log('📎 Message contains only attachments - checking for brand detection')
+              
+              // Try to extract brand from attachments
+              let detectedBrand: string | null = null
+              for (const attachment of attachments) {
+                detectedBrand = await processAttachment(attachment, senderId)
+                if (detectedBrand) break // Use first successfully detected brand
+              }
+              
+              if (detectedBrand) {
+                console.log(`🎯 Brand detected from attachment: ${detectedBrand}`)
+                // Process as brand search
+                await processInstagramMessage(senderId, detectedBrand, attachments)
+              } else {
+                console.log('📎 No brand detected from attachments, sending fallback message')
+                await sendInstagramMessage(senderId, "I can help you find promo codes! Send me a brand name or @handle and I'll find the best deals for you! 🛍️")
+              }
             } else {
-              console.log('📎 Message contains only attachments or other non-text content')
+              console.log('❌ Message has no text or attachments')
               await sendInstagramMessage(senderId, "I can help you find promo codes! Send me a brand name or @handle and I'll find the best deals for you! 🛍️")
             }
           }
