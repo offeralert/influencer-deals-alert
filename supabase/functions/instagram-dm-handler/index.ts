@@ -18,10 +18,19 @@ const VERIFY_TOKEN = 'your_verify_token_here'
 
 // Token validation function
 const validateToken = (token: string | undefined): boolean => {
+  console.log('🔍 DEBUG: validateToken called')
+  console.log('🔍 DEBUG: token type:', typeof token)
+  console.log('🔍 DEBUG: token is undefined:', token === undefined)
+  console.log('🔍 DEBUG: token is null:', token === null)
+  console.log('🔍 DEBUG: token is empty string:', token === '')
+  
   if (!token) {
-    console.error('❌ INSTAGRAM_ACCESS_TOKEN is missing')
+    console.error('❌ INSTAGRAM_ACCESS_TOKEN is missing or empty')
     return false
   }
+  
+  // Log token info for debugging (without exposing the actual token)
+  console.log(`✅ Token found - Length: ${token.length}, Starts with: ${token.substring(0, 4)}...`)
   
   // Check minimum length
   if (token.length < 10) {
@@ -29,12 +38,7 @@ const validateToken = (token: string | undefined): boolean => {
     return false
   }
   
-  // Log token info for debugging (without exposing the actual token)
-  console.log(`✅ Token found - Length: ${token.length}, Starts with: ${token.substring(0, 4)}...`)
-  
-  // Instagram tokens can have various formats, so we'll be less strict
-  // Just check it's not empty and has reasonable length
-  console.log('✅ Token validation passed')
+  console.log('✅ Token validation passed - ready to send message')
   return true
 }
 
