@@ -13,8 +13,31 @@ const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 // Instagram configuration
-const PAGE_ACCESS_TOKEN = Deno.env.get('PAGE_ACCESS_TOKEN')
+const INSTAGRAM_ACCESS_TOKEN = Deno.env.get('INSTAGRAM_ACCESS_TOKEN')
 const VERIFY_TOKEN = 'your_verify_token_here'
+
+// Token validation function
+const validateToken = (token: string | undefined): boolean => {
+  if (!token) {
+    console.error('❌ INSTAGRAM_ACCESS_TOKEN is missing')
+    return false
+  }
+  
+  // Basic format validation - Instagram tokens typically have dots
+  if (!token.includes('.')) {
+    console.error('❌ INSTAGRAM_ACCESS_TOKEN appears to be malformed (missing dots)')
+    return false
+  }
+  
+  // Check minimum length
+  if (token.length < 50) {
+    console.error('❌ INSTAGRAM_ACCESS_TOKEN appears to be too short')
+    return false
+  }
+  
+  console.log('✅ Token validation passed')
+  return true
+}
 
 // Instagram webhook handler
 const handleWebhookVerification = (url: URL) => {
@@ -41,8 +64,8 @@ const handleWebhookVerification = (url: URL) => {
 }
 
 const sendInstagramMessage = async (recipientId: string, message: string) => {
-  if (!PAGE_ACCESS_TOKEN) {
-    console.error('❌ PAGE_ACCESS_TOKEN not found')
+  if (!validateToken(INSTAGRAM_ACCESS_TOKEN)) {
+    console.error('❌ Token validation failed - cannot send message')
     return
   }
 
@@ -58,7 +81,7 @@ const sendInstagramMessage = async (recipientId: string, message: string) => {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${PAGE_ACCESS_TOKEN}`,
+        'Authorization': `Bearer ${INSTAGRAM_ACCESS_TOKEN}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload)
@@ -67,6 +90,11 @@ const sendInstagramMessage = async (recipientId: string, message: string) => {
     if (!response.ok) {
       const errorText = await response.text()
       console.error('❌ Instagram API error:', response.status, errorText)
+      
+      // Enhanced error reporting for token issues
+      if (response.status === 400 || response.status === 401) {
+        console.error('❌ This looks like a token authentication issue. Please check INSTAGRAM_ACCESS_TOKEN.')
+      }
       return
     }
 
