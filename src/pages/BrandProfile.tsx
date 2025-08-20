@@ -22,7 +22,7 @@ const BrandProfile = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <BrandProfileHeader brandName={decodedBrandName} />
-      <BrandPromoCodes promoCodes={promoCodes} />
+      <BrandPromoCodes promoCodes={promoCodes} brandName={decodedBrandName} />
     </div>
   );
 };
