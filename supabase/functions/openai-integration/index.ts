@@ -129,20 +129,36 @@ async function executeSupabaseFunction(functionName: string, params: any): Promi
   try {
     console.log(`🔍 Executing ${functionName} with params:`, params)
     
+    let result: SupabaseFunctionResult
+    
     switch (functionName) {
       case 'searchPromoCodesByBrand':
-        return await searchPromoCodesByBrand(params.brandName)
+        result = await searchPromoCodesByBrand(params.brandName)
+        break
       case 'searchPromoCodesByHandle':
-        return await searchPromoCodesByHandle(params.handle)
+        result = await searchPromoCodesByHandle(params.handle)
+        break
       case 'searchPromoCodesByUrl':
-        return await searchPromoCodesByUrl(params.url)
+        result = await searchPromoCodesByUrl(params.url)
+        break
       case 'getAlternativeBrands':
-        return await getAlternativeBrands(params.category, params.excludeBrand)
+        result = await getAlternativeBrands(params.category, params.excludeBrand)
+        break
       case 'getBrandsByCategory':
-        return await getBrandsByCategory(params.category)
+        result = await getBrandsByCategory(params.category)
+        break
       default:
-        return { success: false, error: `Unknown function: ${functionName}` }
+        result = { success: false, error: `Unknown function: ${functionName}` }
     }
+    
+    // Enhanced logging for empty results
+    if (result.success && (!result.data || result.data.length === 0)) {
+      console.log(`📭 Function ${functionName} returned empty results - no codes found`)
+    } else if (result.success && result.data) {
+      console.log(`✅ Function ${functionName} returned ${result.data.length} results`)
+    }
+    
+    return result
   } catch (error) {
     console.error(`Error executing ${functionName}:`, error)
     return { success: false, error: error.message }
@@ -523,7 +539,12 @@ PERSONALITY & APPROACH:
 - Use emojis sparingly but effectively to add personality
 - Keep responses under 200 characters for Instagram DMs (be concise but helpful)
 
-CRITICAL RULE: NEVER make up, invent, or hallucinate promo codes. ONLY use data from your Supabase function calls.
+🚨 CRITICAL ANTI-HALLUCINATION RULES:
+1. NEVER make up, invent, create, or suggest ANY promo codes that aren't directly returned from function calls
+2. NEVER use example codes, sample codes, or placeholder codes like "SAVE20", "DISCOUNT15", etc.
+3. If function calls return empty results or errors, you MUST NOT suggest any codes at all
+4. When no codes are found, use ONLY the approved no-codes-found templates below
+5. All promo codes must come exclusively from your Supabase function call results
 
 GREETING RESPONSES:
 When users say greetings like "hello", "hi", "hey", or similar:
@@ -543,15 +564,20 @@ You have access to these functions to search our exclusive promo code database:
 CONVERSATION FLOW:
 1. Greetings → respond with warm introduction and ask what brand they want deals for
 2. When users mention a brand/handle/URL → immediately search our database
-3. If codes found → present them with enthusiasm: "Found it! Use code [CODE] at [BRAND] for [DESCRIPTION]"
-4. If no codes found → search for alternatives in the same category and suggest them
+3. If codes found → present them with enthusiasm and ONLY codes from function results
+4. If no codes found → use approved no-codes-found templates and suggest alternatives
 5. If users ask general questions → guide them to share a brand name or @handle
+
+NO-CODES-FOUND TEMPLATES (use these EXACTLY when function calls return empty):
+- "No active deals for [BRAND] right now 😔 Try these similar brands instead: [LIST_ALTERNATIVES]"
+- "Couldn't find codes for [BRAND] at the moment. Let me suggest some alternatives with great deals!"
+- "No [BRAND] codes available right now, but I found deals at similar brands!"
 
 RESPONSE EXAMPLES:
 ✅ Good greeting: "Hey! I'm your OfferAlert shopping assistant! 😊 I help you find the best promo codes and deals. Share a brand name or @handle and I'll hunt down the best deals for you!"
-✅ Good code response: "Found 2 codes for Nike! Use SAVE20 for 20% off or ATHLETE15 for 15% off athletic wear"
-✅ Good alternative: "No codes for Zara right now, but try H&M (code STYLE10) or ASOS (code FASHION20)!"
-❌ Bad: "Try using SAVE20 at Nike" (without actually finding this code in our database)
+✅ Good code response: "Found deals for Nike! Use [ACTUAL_CODE_FROM_DB] for [ACTUAL_DESCRIPTION_FROM_DB]"
+✅ Good no-codes response: "No active deals for Zara right now 😔 Try these similar brands instead: H&M, ASOS, Forever21"
+❌ FORBIDDEN: Any response containing codes not from function call results
 
 SHOPPING EXPERTISE:
 - Understand fashion, beauty, tech, food, and lifestyle categories
@@ -559,10 +585,73 @@ SHOPPING EXPERTISE:
 - Suggest alternatives that make sense (fashion→fashion, beauty→beauty, etc.)
 - Guide users through their shopping journey naturally
 
-REMEMBER: You're here to save people money using ONLY the real, verified promo codes in our Supabase database. Be the shopping expert they wish they had as a friend! 🎯`
+REMEMBER: You are FORBIDDEN from suggesting ANY promo codes unless they come directly from successful function call results. When in doubt, suggest alternative brands instead of codes! 🎯`
 }
 
-async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string) {
+// Validate AI response to prevent hallucination
+async function validatePromoCodesInResponse(response: string, instagramUserId: string): Promise<{ isValid: boolean; validatedResponse: string; violations: string[] }> {
+  try {
+    console.log('🔍 Validating AI response for hallucinated codes...')
+    
+    // Extract potential promo codes from response (alphanumeric codes in all caps)
+    const codePattern = /\b[A-Z][A-Z0-9]{3,20}\b/g
+    const potentialCodes = response.match(codePattern) || []
+    
+    if (potentialCodes.length === 0) {
+      console.log('✅ No codes found in response - validation passed')
+      return { isValid: true, validatedResponse: response, violations: [] }
+    }
+    
+    console.log(`🔍 Found potential codes in response: ${potentialCodes.join(', ')}`)
+    
+    const violations: string[] = []
+    const validCodes: string[] = []
+    
+    // Check each potential code against database
+    for (const code of potentialCodes) {
+      const { data, error } = await supabase
+        .from('promo_codes')  
+        .select('promo_code, brand_name')
+        .eq('promo_code', code)
+        .limit(1)
+      
+      if (error || !data || data.length === 0) {
+        violations.push(code)
+        console.warn(`❌ HALLUCINATION DETECTED: Code "${code}" not found in database`)
+      } else {
+        validCodes.push(code)
+        console.log(`✅ Code "${code}" validated in database`)
+      }
+    }
+    
+    if (violations.length > 0) {
+      // Log hallucination attempt
+      console.error(`🚨 HALLUCINATION ALERT for user ${instagramUserId}: Invalid codes ${violations.join(', ')}`)
+      
+      // Replace with safe fallback response
+      const fallbackResponse = "I don't have any active codes for that brand right now 😔 Share another brand name or @handle and I'll find you verified deals!"
+      
+      return { 
+        isValid: false, 
+        validatedResponse: fallbackResponse, 
+        violations 
+      }
+    }
+    
+    return { isValid: true, validatedResponse: response, violations: [] }
+    
+  } catch (error) {
+    console.error('Error in validatePromoCodesInResponse:', error)
+    // Return safe fallback if validation fails
+    return { 
+      isValid: false, 
+      validatedResponse: "I'm having trouble right now. Share a brand name or @handle and I'll find you the best deals! 🛍️",
+      violations: ['validation_error'] 
+    }
+  }
+}
+
+async function saveConversation(instagramUserId: string, messageText: string, aiResponse: string, violations?: string[]) {
   try {
     // Update or create conversation record
     const { error: conversationError } = await supabase
@@ -570,7 +659,10 @@ async function saveConversation(instagramUserId: string, messageText: string, ai
       .upsert({
         instagram_user_id: instagramUserId,
         last_interaction_at: new Date().toISOString(),
-        conversation_context: { last_message: messageText }
+        conversation_context: { 
+          last_message: messageText,
+          hallucination_violations: violations || []
+        }
       }, {
         onConflict: 'instagram_user_id'
       })
@@ -579,18 +671,23 @@ async function saveConversation(instagramUserId: string, messageText: string, ai
       console.error('Error saving conversation:', conversationError)
     }
 
-    // Log the interaction
+    // Log the interaction with violation tracking
     const { error: interactionError } = await supabase
       .from('chatbase_interactions')
       .insert({
         instagram_user_id: instagramUserId,
         message_text: messageText,
         chatbase_response: aiResponse,
-        response_type: 'openai'
+        response_type: violations && violations.length > 0 ? 'openai_validated' : 'openai'
       })
 
     if (interactionError) {
       console.error('Error saving interaction:', interactionError)
+    }
+    
+    // Log hallucination attempts for monitoring
+    if (violations && violations.length > 0) {
+      console.error(`🚨 LOGGED HALLUCINATION: User ${instagramUserId} - Codes: ${violations.join(', ')}`)
     }
   } catch (error) {
     console.error('Error in saveConversation:', error)
@@ -642,12 +739,17 @@ Deno.serve(async (req) => {
         const aiResponse = await sendToOpenAI(messages, instagramUserId)
         
         if (aiResponse) {
-          await saveConversation(instagramUserId, usernameMessage, aiResponse)
+          // Validate response for hallucinated codes
+          const validation = await validatePromoCodesInResponse(aiResponse, instagramUserId)
+          const finalResponse = validation.validatedResponse
+          
+          await saveConversation(instagramUserId, usernameMessage, finalResponse, validation.violations)
           return new Response(
             JSON.stringify({
-              response: aiResponse,
+              response: finalResponse,
               responseType: 'openai_smart',
-              extractedUsername: extractedUsername
+              extractedUsername: extractedUsername,
+              validated: validation.isValid
             }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -683,13 +785,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Save conversation
-    await saveConversation(instagramUserId, message, aiResponse)
+    // Validate response for hallucinated promo codes
+    const validation = await validatePromoCodesInResponse(aiResponse, instagramUserId)
+    const finalResponse = validation.validatedResponse
+
+    // Save conversation with violation tracking
+    await saveConversation(instagramUserId, message, finalResponse, validation.violations)
 
     return new Response(
       JSON.stringify({
-        response: aiResponse,
-        responseType: 'openai_smart'
+        response: finalResponse,
+        responseType: 'openai_smart',
+        validated: validation.isValid,
+        violations: validation.violations.length > 0 ? validation.violations : undefined
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
