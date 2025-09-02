@@ -15,7 +15,7 @@ export const useDealsData = (
     const validDeals = promoCodes
       .filter((deal) => {
         const hasRequiredFields = deal.id && deal.brand_name && deal.promo_code;
-        const hasValidProfile = deal.profiles && deal.profiles.username;
+        const hasValidProfile = deal.profiles && (deal.profiles.username || deal.profiles.is_agency);
         
         // Optional search filter
         const matchesSearch = !searchQuery.trim() || 

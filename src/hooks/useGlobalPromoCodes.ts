@@ -31,7 +31,8 @@ export const useGlobalPromoCodes = () => {
             profiles!influencer_id (
               full_name,
               username,
-              avatar_url
+              avatar_url,
+              is_agency
             )
           `)
           .order('created_at', { ascending: false });
@@ -90,7 +91,8 @@ export const useGlobalPromoCodes = () => {
                   profiles!influencer_id (
                     full_name,
                     username,
-                    avatar_url
+                    avatar_url,
+                    is_agency
                   )
                 `)
                 .eq('id', payload.new.id)
@@ -124,7 +126,8 @@ export const useGlobalPromoCodes = () => {
                   profiles!influencer_id (
                     full_name,
                     username,
-                    avatar_url
+                    avatar_url,
+                    is_agency
                   )
                 `)
                 .eq('id', payload.new.id)
